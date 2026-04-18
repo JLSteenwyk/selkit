@@ -5171,6 +5171,7 @@ git push origin main
 5. **Alignment-dir batch mode (`--alignment-dir`).** Spec'd in §4; the RunConfig field exists but the CLI doesn't yet consume it. Small orchestration layer on top of `run_site_models` per gene.
 6. **Intra-model vectorization / numba.** After first real-world benchmarks.
 7. **`--warnings-as-errors` flag.** One-line CLI addition; skipped to keep the plan focused.
+8. **`GeneticCode` input-validation hardening.** Code review after Task 2 flagged three latent issues in the public API that are inherited from the plan-pinned implementation: (a) `is_transition` and `n_differences` silently accept mismatched-length inputs via `zip` truncation — should validate both args are length 3; (b) `translate` raises a bare `ValueError` with an unhelpful `tuple.index` message on invalid codons — should raise a descriptive `ValueError`; (c) `index_to_codon` accepts negative indices (tuple wrap-around) instead of raising `IndexError`. Also missing tests for transversion-at-single-position, lower-case inputs, `is_transition` with 0 or ≥2 diffs, and `n_sense` for mitochondrial code. Deferred because Tasks 3+ only feed well-formed upper-case codons through the API.
 
 ## Appendix B: Self-review notes
 
