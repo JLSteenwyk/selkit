@@ -148,3 +148,47 @@ def test_strip_stop_codons_with_terminal_and_mid_combined(tmp_path: Path) -> Non
     assert 1 in aln.stripped_sites
     assert 3 in aln.stripped_sites
     assert aln.codons.shape == (2, 2)
+
+
+from selkit.io.alignment import read_phylip, read_alignment
+
+
+def test_read_sequential_phylip(tmp_path: Path) -> None:
+    content = "2 6\na         ATGAAA\nb         ATGAAG\n"
+    path = _write(tmp_path, "s.phy", content)
+    aln = read_phylip(path, genetic_code=GeneticCode.standard())
+    assert aln.taxa == ("a", "b")
+    assert aln.codons.shape == (2, 2)
+
+
+def test_read_interleaved_phylip(tmp_path: Path) -> None:
+    content = (
+        "2 9\n"
+        "a         ATG AAA\n"
+        "b         ATG AAG\n"
+        "\n"
+        "          ATG\n"
+        "          ATG\n"
+    )
+    path = _write(tmp_path, "i.phy", content)
+    aln = read_phylip(path, genetic_code=GeneticCode.standard())
+    assert aln.taxa == ("a", "b")
+    assert aln.codons.shape == (2, 3)
+
+
+def test_read_alignment_dispatches_to_fasta(tmp_path: Path) -> None:
+    path = _write(tmp_path, "x.fa", ">a\nATGAAA\n>b\nATGAAG\n")
+    aln = read_alignment(path, genetic_code=GeneticCode.standard())
+    assert aln.taxa == ("a", "b")
+
+
+def test_read_alignment_dispatches_to_phylip(tmp_path: Path) -> None:
+    path = _write(tmp_path, "x.phy", "2 6\na ATGAAA\nb ATGAAG\n")
+    aln = read_alignment(path, genetic_code=GeneticCode.standard())
+    assert aln.taxa == ("a", "b")
+
+
+def test_read_alignment_garbage_errors(tmp_path: Path) -> None:
+    path = _write(tmp_path, "x.txt", "this is not an alignment\n")
+    with pytest.raises(SelkitInputError, match=r"unrecognized"):
+        read_alignment(path, genetic_code=GeneticCode.standard())
