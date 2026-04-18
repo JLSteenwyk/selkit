@@ -1253,7 +1253,8 @@ class LabeledTree:
         while stack:
             n = stack.pop()
             out.append(n)
-            stack.extend(n.children)
+            # reversed() preserves left-to-right document order under stack-based DFS.
+            stack.extend(reversed(n.children))
         return out
 
 
@@ -1361,7 +1362,8 @@ def _iter_nodes(root: Node) -> Iterator[Node]:
     while stack:
         n = stack.pop()
         yield n
-        stack.extend(n.children)
+        # reversed() preserves document order under stack-based DFS.
+        stack.extend(reversed(n.children))
 
 
 def _canonicalize(root: Node) -> str:
@@ -5229,6 +5231,7 @@ git push origin main
 7. **`--warnings-as-errors` flag.** One-line CLI addition; skipped to keep the plan focused.
 8. **`GeneticCode` input-validation hardening.** Code review after Task 2 flagged three latent issues in the public API that are inherited from the plan-pinned implementation: (a) `is_transition` and `n_differences` silently accept mismatched-length inputs via `zip` truncation — should validate both args are length 3; (b) `translate` raises a bare `ValueError` with an unhelpful `tuple.index` message on invalid codons — should raise a descriptive `ValueError`; (c) `index_to_codon` accepts negative indices (tuple wrap-around) instead of raising `IndexError`. Also missing tests for transversion-at-single-position, lower-case inputs, `is_transition` with 0 or ≥2 diffs, and `n_sense` for mitochondrial code. Deferred because Tasks 3+ only feed well-formed upper-case codons through the API.
 9. **FASTA parser nice-to-haves (from Task 3 code review, deferred).** (a) Partial terminal stop (some taxa end in TAA/TAG/TGA but not all) currently raises a "mid-sequence stop" error pointing at the terminal column; a dedicated "partial terminal stop, likely frame/length drift" error with taxon names would be more actionable. (b) IUPAC ambiguity codes (`R`, `Y`, `W`, etc.) are silently collapsed to `-1`, indistinguishable from true gaps; document this behavior on `_encode_sequence` and surface the count in the `validate` subcommand (Task 25). (c) Semicolon comment-line support (`;` inside a record currently leaks into the sequence via upcase path). (d) Explicit detection of empty records (currently raises "same length" rather than a clearer "taxon has no sequence"). (e) Add a module docstring to `selkit/io/alignment.py` stating gap/stop sentinel semantics and `stripped_sites` accounting. None of these affect correctness on well-formed inputs. The BOM, bare-`>`, and mid+terminal-stop-guard bugs were fixed in-place during Task 3 (commit `5bddaaa`) because they caused silent data corruption or IndexError leaks.
+10. **Newick parser hardening (from Task 5 code review, deferred).** (a) Recursion-depth ceiling: the parser and `_canonicalize` hit Python's default `RecursionError` at ~1000-deep trees, raising a raw `RecursionError` instead of `SelkitInputError`. Wrap the entry point or document the practical ceiling. (b) Branch-length canonicalization uses `{bl:g}` which truncates to 6 significant digits, so `LabeledTree.newick` is a lossy serialization vs. `LabeledTree.root`. Either switch to `{bl!r}` / `{bl:.15g}` or document as lossy. (c) Silent acceptance of malformed inputs: empty `()` produces a degenerate unnamed tip; stray `)` is ignored; tokens after `;` are discarded; `(a,,b)` yields empty-name tips. Add a post-parse validation that consumes all remaining tokens and rejects empty subtrees / empty names. (d) Negative, `nan`, and `inf` branch lengths parse as valid floats — defer either to this task (with `math.isfinite` guard) or Task 8 (Felsenstein); pick one. (e) Error messages for `(a #,b)` and `(a:,b)` report the confusing follow-on token rather than "expected integer after '#'" / "expected float after ':'". (f) Mark `Node.parent` as `compare=False, repr=False` to avoid cyclic `__eq__` / `__repr__` pitfalls if future code compares `Node` instances. (g) Additional test coverage for: bad branch length, unclosed paren, internal node names, root-level comment, `tip_order` explicit check, canonical round-trip stability, scientific-notation branch lengths.
 
 ## Appendix B: Self-review notes
 
