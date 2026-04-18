@@ -81,21 +81,21 @@ def test_missing_taxon_in_order_raises() -> None:
 
 
 def test_lnl_finite_on_large_tree_where_naive_underflows() -> None:
-    # 80-taxon star tree. With naive (un-scaled) pruning, site_L underflows
-    # to 0 on branch lengths near 1 and lnL is reported as ~-690 per site.
-    # With running-scale pruning, lnL should be a small finite negative number.
+    # 300-taxon star tree, long branches (t=10). With this many branches each
+    # contributing ~1/61 to the product, the pre-scaled site_L is far below
+    # 1e-300 (theoretically ~10^-534). The naive clip-based pruner would
+    # substitute 1e-300 and report lnL ~= -690 (the clip floor). Running-scale
+    # pruning should return a lnL strictly less than -690, proving partial
+    # likelihoods below the float floor are handled correctly.
     gc = GeneticCode.standard()
-    n_taxa = 80
+    n_taxa = 300
     taxa = tuple(f"t{i}" for i in range(n_taxa))
-    newick = "(" + ",".join(f"{name}:1.0" for name in taxa) + "):0.0;"
+    newick = "(" + ",".join(f"{name}:10.0" for name in taxa) + "):0.0;"
     tree = parse_newick(newick)
     pi = _uniform_pi(gc)
     Q = build_q(gc, omega=0.5, kappa=2.0, pi=pi)
     idx_atg = gc.codon_to_index("ATG")
-    # one site; all taxa share the same codon to keep the math tractable
     codons = np.full((n_taxa, 1), idx_atg, dtype=np.int16)
     lnL = tree_log_likelihood(tree, codons, taxa, Q=Q, pi=pi)
     assert np.isfinite(lnL)
-    # Naive (un-scaled) pruning would report ~-690 per site due to 1e-300 clip.
-    # Any value strictly greater than -300 proves the scaling is working.
-    assert lnL > -300.0
+    assert lnL < -690.0
