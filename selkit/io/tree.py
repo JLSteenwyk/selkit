@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Iterator
 
 from selkit.errors import SelkitInputError
@@ -174,3 +175,81 @@ def _canonicalize(root: Node) -> str:
             base += f":{n.branch_length:g}"
         return base
     return fmt(root) + ";"
+
+
+@dataclass(frozen=True)
+class ForegroundSpec:
+    tips: tuple[str, ...] = ()
+    mrca: tuple[str, ...] = ()
+    labels: dict[int, int] = field(default_factory=dict)
+
+    @property
+    def is_empty(self) -> bool:
+        return not (self.tips or self.mrca or self.labels)
+
+
+def _mrca(tree: LabeledTree, names: tuple[str, ...]) -> Node:
+    target = set(names)
+
+    def contains_all(n: Node) -> bool:
+        return target.issubset({t.name for t in n.tips_beneath() if t.name})
+
+    candidates = [n for n in tree.all_nodes() if contains_all(n)]
+    if not candidates:
+        raise SelkitInputError(f"no node covers tips {names}")
+    candidates.sort(key=lambda n: sum(1 for _ in n.tips_beneath()))
+    return candidates[0]
+
+
+def apply_foreground_spec(tree: LabeledTree, spec: ForegroundSpec) -> LabeledTree:
+    if spec.is_empty:
+        return tree
+    has_in_tree_label = any(n.label != 0 for n in tree.all_nodes())
+    if has_in_tree_label and (spec.tips or spec.mrca or spec.labels):
+        raise SelkitInputError(
+            "conflicting branch labels: tree already has #-labels and an external "
+            "ForegroundSpec was also provided"
+        )
+    known_tips = {n.name for n in tree.tips if n.name}
+    for t in (*spec.tips, *spec.mrca):
+        if t not in known_tips:
+            raise SelkitInputError(f"unknown tip in foreground spec: {t!r}")
+    if spec.tips:
+        target = set(spec.tips)
+        for n in tree.all_nodes():
+            if n.is_tip and n.name in target:
+                n.label = 1
+    if spec.mrca:
+        _mrca(tree, spec.mrca).label = 1
+    for node_id, lab in spec.labels.items():
+        for n in tree.all_nodes():
+            if n.id == node_id:
+                n.label = lab
+                break
+    new_labels = {n.id: n.label for n in tree.all_nodes() if n.label}
+    return LabeledTree(
+        root=tree.root,
+        newick=tree.newick,
+        labels=new_labels,
+        tip_order=tree.tip_order,
+    )
+
+
+def load_labels_file(path: Path) -> ForegroundSpec:
+    lines = Path(path).read_text().splitlines()
+    if not lines:
+        raise SelkitInputError(f"empty labels file: {path}")
+    header = lines[0].split("\t")
+    if header != ["taxon", "label"]:
+        raise SelkitInputError(
+            f"labels file must have header 'taxon\\tlabel', got {header}"
+        )
+    tips: list[str] = []
+    for line in lines[1:]:
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        if len(parts) != 2 or parts[1].strip() != "1":
+            raise SelkitInputError(f"labels file only supports label=1 rows; got {line!r}")
+        tips.append(parts[0].strip())
+    return ForegroundSpec(tips=tuple(tips))

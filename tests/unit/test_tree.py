@@ -65,3 +65,54 @@ def test_labeled_tree_has_unique_node_ids() -> None:
     tree = parse_newick("((a,b),(c,d));")
     ids = [n.id for n in tree.all_nodes()]
     assert len(ids) == len(set(ids))
+
+
+from selkit.io.tree import (
+    ForegroundSpec,
+    apply_foreground_spec,
+    load_labels_file,
+)
+
+
+def test_apply_foreground_tips() -> None:
+    tree = parse_newick("((a,b),(c,d));")
+    spec = ForegroundSpec(tips=("a", "c"))
+    out = apply_foreground_spec(tree, spec)
+    labels_by_name = {n.name: n.label for n in out.tips}
+    assert labels_by_name["a"] == 1
+    assert labels_by_name["c"] == 1
+    assert labels_by_name["b"] == 0
+    assert labels_by_name["d"] == 0
+
+
+def test_apply_foreground_mrca() -> None:
+    tree = parse_newick("((a,b),(c,d));")
+    spec = ForegroundSpec(mrca=("a", "b"))
+    out = apply_foreground_spec(tree, spec)
+    clade = next(n for n in out.internal_nodes if n.label == 1)
+    assert {n.name for n in clade.tips_beneath()} == {"a", "b"}
+
+
+def test_conflicting_spec_errors() -> None:
+    tree = parse_newick("((a #1,b),(c,d));")
+    with pytest.raises(SelkitInputError, match=r"conflict"):
+        apply_foreground_spec(tree, ForegroundSpec(tips=("c",)))
+
+
+def test_labels_file_round_trip(tmp_path: Path) -> None:
+    p = tmp_path / "labels.tsv"
+    p.write_text("taxon\tlabel\na\t1\nc\t1\n")
+    spec = load_labels_file(p)
+    assert spec.tips == ("a", "c")
+
+
+def test_empty_spec_is_noop() -> None:
+    tree = parse_newick("((a,b),(c,d));")
+    out = apply_foreground_spec(tree, ForegroundSpec())
+    assert all(n.label == 0 for n in out.all_nodes())
+
+
+def test_unknown_tip_name_errors() -> None:
+    tree = parse_newick("((a,b),(c,d));")
+    with pytest.raises(SelkitInputError, match=r"unknown tip"):
+        apply_foreground_spec(tree, ForegroundSpec(tips=("z",)))
