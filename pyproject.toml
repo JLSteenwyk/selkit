@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "selkit"
+version = "0.0.1"
+description = "Python reimplementation of PAML's selection-analysis workflows (codeml, yn00)"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Jacob Steenwyk" }]
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.12",
+    "rich>=13.7",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "mypy>=1.8",
+    "ruff>=0.3",
+]
+
+[project.scripts]
+selkit = "selkit.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["selkit*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "validation: PAML-comparison corpus tests (nightly)",
+    "simulation: simulation-based tests (tagged releases only)",
+]
