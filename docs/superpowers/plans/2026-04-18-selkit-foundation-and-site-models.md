@@ -609,6 +609,57 @@ def test_codon_alignment_codons_dtype_is_int16() -> None:
         taxa=("a",), codons=arr, genetic_code="standard", stripped_sites=()
     )
     assert aln.codons.dtype == np.int16
+
+
+def test_bom_prefixed_fasta_does_not_drop_first_taxon(tmp_path: Path) -> None:
+    p = tmp_path / "bom.fa"
+    p.write_bytes("\ufeff>a\nATGAAA\n>b\nATGAAG\n".encode("utf-8"))
+    aln = read_fasta(p, genetic_code=GeneticCode.standard())
+    assert aln.taxa == ("a", "b")
+    assert aln.codons.shape == (2, 2)
+
+
+def test_bare_gt_header_raises_selkit_input_error(tmp_path: Path) -> None:
+    path = _write(tmp_path, "bare.fa", ">\nATGAAA\n>b\nATGAAG\n")
+    with pytest.raises(SelkitInputError, match=r"(?i)header"):
+        read_fasta(path, genetic_code=GeneticCode.standard())
+
+
+def test_terminal_stop_stripped_even_when_mid_stops_exist(tmp_path: Path) -> None:
+    path = _write(
+        tmp_path, "both.fa",
+        ">a\nATGTAAAAATAA\n>b\nATGAAAAAATAA\n",
+    )
+    with pytest.raises(SelkitInputError, match=r"(?i)stop") as ei:
+        read_fasta(path, genetic_code=GeneticCode.standard())
+    assert "codon 2" in str(ei.value)
+
+
+def test_strip_stop_codons_drops_columns_without_leakage(tmp_path: Path) -> None:
+    path = _write(
+        tmp_path, "midstop.fa",
+        ">a\nATGTAAATG\n>b\nATGAAAATG\n",
+    )
+    aln = read_fasta(
+        path, genetic_code=GeneticCode.standard(), strip_stop_codons=True
+    )
+    assert aln.codons.shape == (2, 2)
+    assert 1 in aln.stripped_sites
+    assert -2 not in aln.codons.tolist()
+
+
+def test_strip_stop_codons_with_terminal_and_mid_combined(tmp_path: Path) -> None:
+    path = _write(
+        tmp_path, "combo.fa",
+        ">a\nATGTAAAAATAA\n>b\nATGAAAAAATAA\n",
+    )
+    aln = read_fasta(
+        path, genetic_code=GeneticCode.standard(), strip_stop_codons=True
+    )
+    assert -2 not in aln.codons.tolist()
+    assert 1 in aln.stripped_sites
+    assert 3 in aln.stripped_sites
+    assert aln.codons.shape == (2, 2)
 ```
 
 - [ ] **Step 3.3: Run tests to verify failure**
@@ -647,14 +698,18 @@ def _parse_fasta(path: Path) -> list[tuple[str, str]]:
     records: list[tuple[str, str]] = []
     name: str | None = None
     buf: list[str] = []
-    for line in path.read_text().splitlines():
+    # utf-8-sig strips a leading UTF-8 BOM (otherwise it swallows the first header).
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
         line = line.strip()
         if not line:
             continue
         if line.startswith(">"):
             if name is not None:
                 records.append((name, "".join(buf).upper()))
-            name = line[1:].split()[0]
+            tokens = line[1:].split()
+            if not tokens:
+                raise SelkitInputError(f"FASTA header missing taxon name in {path}")
+            name = tokens[0]
             buf = []
         else:
             buf.append(line)
@@ -720,11 +775,12 @@ def read_fasta(
             if c == -2:
                 stops_at.setdefault(i, []).append(taxon)
 
-    # Terminal stop handling.
+    # Terminal stop handling. Strip a universal terminal stop unconditionally;
+    # then re-evaluate remaining mid-sequence stops on the shortened alignment.
     stripped_sites: list[int] = []
     if strip_terminal_stop and stops_at:
         last = n_codons - 1
-        if last in stops_at and len(stops_at[last]) == len(encoded) and len(stops_at) == 1:
+        if last in stops_at and len(stops_at[last]) == len(encoded):
             stripped_sites.append(last)
             for _, seq in encoded:
                 seq.pop()
@@ -767,7 +823,7 @@ def read_fasta(
 pytest tests/unit/test_alignment.py -v
 ```
 
-Expected: all 10 tests PASS.
+Expected: all 15 tests PASS.
 
 - [ ] **Step 3.6: Commit**
 
@@ -5172,6 +5228,7 @@ git push origin main
 6. **Intra-model vectorization / numba.** After first real-world benchmarks.
 7. **`--warnings-as-errors` flag.** One-line CLI addition; skipped to keep the plan focused.
 8. **`GeneticCode` input-validation hardening.** Code review after Task 2 flagged three latent issues in the public API that are inherited from the plan-pinned implementation: (a) `is_transition` and `n_differences` silently accept mismatched-length inputs via `zip` truncation — should validate both args are length 3; (b) `translate` raises a bare `ValueError` with an unhelpful `tuple.index` message on invalid codons — should raise a descriptive `ValueError`; (c) `index_to_codon` accepts negative indices (tuple wrap-around) instead of raising `IndexError`. Also missing tests for transversion-at-single-position, lower-case inputs, `is_transition` with 0 or ≥2 diffs, and `n_sense` for mitochondrial code. Deferred because Tasks 3+ only feed well-formed upper-case codons through the API.
+9. **FASTA parser nice-to-haves (from Task 3 code review, deferred).** (a) Partial terminal stop (some taxa end in TAA/TAG/TGA but not all) currently raises a "mid-sequence stop" error pointing at the terminal column; a dedicated "partial terminal stop, likely frame/length drift" error with taxon names would be more actionable. (b) IUPAC ambiguity codes (`R`, `Y`, `W`, etc.) are silently collapsed to `-1`, indistinguishable from true gaps; document this behavior on `_encode_sequence` and surface the count in the `validate` subcommand (Task 25). (c) Semicolon comment-line support (`;` inside a record currently leaks into the sequence via upcase path). (d) Explicit detection of empty records (currently raises "same length" rather than a clearer "taxon has no sequence"). (e) Add a module docstring to `selkit/io/alignment.py` stating gap/stop sentinel semantics and `stripped_sites` accounting. None of these affect correctness on well-formed inputs. The BOM, bare-`>`, and mid+terminal-stop-guard bugs were fixed in-place during Task 3 (commit `5bddaaa`) because they caused silent data corruption or IndexError leaks.
 
 ## Appendix B: Self-review notes
 
