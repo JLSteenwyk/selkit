@@ -87,3 +87,64 @@ def test_codon_alignment_codons_dtype_is_int16() -> None:
         taxa=("a",), codons=arr, genetic_code="standard", stripped_sites=()
     )
     assert aln.codons.dtype == np.int16
+
+
+def test_bom_prefixed_fasta_does_not_drop_first_taxon(tmp_path: Path) -> None:
+    p = tmp_path / "bom.fa"
+    p.write_bytes("\ufeff>a\nATGAAA\n>b\nATGAAG\n".encode("utf-8"))
+    aln = read_fasta(p, genetic_code=GeneticCode.standard())
+    assert aln.taxa == ("a", "b")
+    assert aln.codons.shape == (2, 2)
+
+
+def test_bare_gt_header_raises_selkit_input_error(tmp_path: Path) -> None:
+    path = _write(tmp_path, "bare.fa", ">\nATGAAA\n>b\nATGAAG\n")
+    with pytest.raises(SelkitInputError, match=r"(?i)header"):
+        read_fasta(path, genetic_code=GeneticCode.standard())
+
+
+def test_terminal_stop_stripped_even_when_mid_stops_exist(tmp_path: Path) -> None:
+    # Universal terminal TAA + a mid-stop in taxon a at codon 2.
+    # With strip_stop_codons=False (default), terminal should be stripped,
+    # then mid-stop should raise.
+    path = _write(
+        tmp_path, "both.fa",
+        ">a\nATGTAAAAATAA\n>b\nATGAAAAAATAA\n",
+    )
+    with pytest.raises(SelkitInputError, match=r"(?i)stop") as ei:
+        read_fasta(path, genetic_code=GeneticCode.standard())
+    # The error should name codon 2 (the mid-stop), not codon 4 (the terminal).
+    assert "codon 2" in str(ei.value)
+
+
+def test_strip_stop_codons_drops_columns_without_leakage(tmp_path: Path) -> None:
+    path = _write(
+        tmp_path, "midstop.fa",
+        ">a\nATGTAAATG\n>b\nATGAAAATG\n",
+    )
+    aln = read_fasta(
+        path, genetic_code=GeneticCode.standard(), strip_stop_codons=True
+    )
+    # Column 1 (the TAA/AAA column) is dropped from every taxon.
+    assert aln.codons.shape == (2, 2)
+    assert 1 in aln.stripped_sites
+    # The internal -2 stop sentinel must never surface in the returned array.
+    assert -2 not in aln.codons.tolist()
+
+
+def test_strip_stop_codons_with_terminal_and_mid_combined(tmp_path: Path) -> None:
+    # Universal terminal TAA + a mid-stop in taxon a; with strip_stop_codons=True
+    # terminal is stripped AND the mid column is dropped. Both indices appear in
+    # stripped_sites, and no -2 leaks.
+    path = _write(
+        tmp_path, "combo.fa",
+        ">a\nATGTAAAAATAA\n>b\nATGAAAAAATAA\n",
+    )
+    aln = read_fasta(
+        path, genetic_code=GeneticCode.standard(), strip_stop_codons=True
+    )
+    assert -2 not in aln.codons.tolist()
+    # Terminal (index 3) and mid (index 1) are both recorded.
+    assert 1 in aln.stripped_sites
+    assert 3 in aln.stripped_sites
+    assert aln.codons.shape == (2, 2)

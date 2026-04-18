@@ -23,14 +23,17 @@ def _parse_fasta(path: Path) -> list[tuple[str, str]]:
     records: list[tuple[str, str]] = []
     name: str | None = None
     buf: list[str] = []
-    for line in path.read_text().splitlines():
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
         line = line.strip()
         if not line:
             continue
         if line.startswith(">"):
             if name is not None:
                 records.append((name, "".join(buf).upper()))
-            name = line[1:].split()[0]
+            tokens = line[1:].split()
+            if not tokens:
+                raise SelkitInputError(f"FASTA header missing taxon name in {path}")
+            name = tokens[0]
             buf = []
         else:
             buf.append(line)
@@ -101,7 +104,7 @@ def read_fasta(
     stripped_sites: list[int] = []
     if strip_terminal_stop and stops_at:
         last = n_codons - 1
-        if last in stops_at and len(stops_at[last]) == len(encoded) and len(stops_at) == 1:
+        if last in stops_at and len(stops_at[last]) == len(encoded):
             stripped_sites.append(last)
             for _, seq in encoded:
                 seq.pop()
