@@ -1,0 +1,154 @@
+from __future__ import annotations
+
+from typing import Callable, Optional
+
+import numpy as np
+
+from selkit.engine.beb import compute_neb
+from selkit.engine.codon_model import M0, M1a, M2a, M7, M8, M8a, SiteModel
+from selkit.engine.fit import EngineFit, fit_model
+from selkit.engine.genetic_code import GeneticCode
+from selkit.engine.likelihood import per_class_site_log_likelihood
+from selkit.engine.rate_matrix import estimate_f3x4
+from selkit.io.config import RunConfig
+from selkit.io.results import (
+    BEBSite,
+    LRTResult,
+    ModelFit,
+    RunResult,
+    StartResult,
+)
+from selkit.services.codeml.lrt import STANDARD_SITE_LRTS, compute_lrt
+from selkit.services.validate import ValidatedInputs
+
+_MODEL_CTORS: dict[str, Callable[[GeneticCode, np.ndarray], SiteModel]] = {
+    "M0":  lambda gc, pi: M0(gc=gc, pi=pi),
+    "M1a": lambda gc, pi: M1a(gc=gc, pi=pi),
+    "M2a": lambda gc, pi: M2a(gc=gc, pi=pi),
+    "M7":  lambda gc, pi: M7(gc=gc, pi=pi),
+    "M8":  lambda gc, pi: M8(gc=gc, pi=pi),
+    "M8a": lambda gc, pi: M8a(gc=gc, pi=pi),
+}
+
+_BUNDLE_DEFAULT: tuple[str, ...] = ("M0", "M1a", "M2a", "M7", "M8", "M8a")
+
+
+def _engine_to_public(fit: EngineFit) -> ModelFit:
+    starts = [
+        StartResult(
+            seed=i,
+            final_lnL=-s.final_lnL,
+            iterations=s.iterations,
+            params=s.params,
+        )
+        for i, s in enumerate(fit.multi_start.starts)
+    ]
+    return ModelFit(
+        model=fit.model,
+        lnL=fit.lnL,
+        n_params=fit.n_params,
+        params=fit.params,
+        branch_lengths=fit.branch_lengths,
+        starts=starts,
+        converged=fit.multi_start.converged,
+        runtime_s=fit.runtime_s,
+    )
+
+
+def _run_one(
+    name: str,
+    *,
+    inputs: ValidatedInputs,
+    pi: np.ndarray,
+    cfg: RunConfig,
+) -> EngineFit:
+    gc = GeneticCode.by_name(cfg.genetic_code)
+    model = _MODEL_CTORS[name](gc, pi)
+    return fit_model(
+        model=model,
+        alignment_codons=inputs.alignment.codons,
+        taxon_order=inputs.alignment.taxa,
+        tree=inputs.tree,
+        n_starts=cfg.n_starts,
+        seed=cfg.seed + hash(name) % 10_000,
+        convergence_tol=cfg.convergence_tol,
+    )
+
+
+def _compute_beb_for(
+    name: str, *, fit: EngineFit, inputs: ValidatedInputs, pi: np.ndarray,
+    gc: GeneticCode,
+) -> list[BEBSite]:
+    model = _MODEL_CTORS[name](gc, pi)
+    weights, Qs = model.build(params=fit.params)
+    if name == "M2a":
+        omegas = [fit.params["omega0"], 1.0, fit.params["omega2"]]
+    elif name == "M8":
+        from selkit.engine.codon_model import _beta_quantiles
+        beta_omegas = _beta_quantiles(fit.params["p_beta"], fit.params["q_beta"], 10).tolist()
+        omegas = [float(o) for o in beta_omegas] + [fit.params["omega2"]]
+    else:
+        raise ValueError(f"NEB not supported for {name}")
+    per_class = per_class_site_log_likelihood(
+        tree=inputs.tree,
+        codons=inputs.alignment.codons,
+        taxon_order=inputs.alignment.taxa,
+        Qs=Qs, pi=pi,
+    )
+    return compute_neb(
+        per_class_site_logL=per_class, weights=weights, omegas=omegas,
+    )
+
+
+def run_site_models(
+    *,
+    inputs: ValidatedInputs,
+    config: RunConfig,
+    parallel: bool,
+    progress: Optional[Callable[[str, str], None]] = None,
+) -> RunResult:
+    gc = GeneticCode.by_name(config.genetic_code)
+    pi = estimate_f3x4(inputs.alignment.codons, gc)
+    models_to_fit = config.models or _BUNDLE_DEFAULT
+
+    engine_fits: dict[str, EngineFit] = {}
+    for name in models_to_fit:
+        if name not in _MODEL_CTORS:
+            raise ValueError(f"unknown model {name!r}")
+        if progress:
+            progress("start", name)
+        engine_fits[name] = _run_one(name, inputs=inputs, pi=pi, cfg=config)
+        if progress:
+            progress("done", name)
+
+    fits = {name: _engine_to_public(f) for name, f in engine_fits.items()}
+
+    lrts: list[LRTResult] = []
+    for null, alt, df, test_type in STANDARD_SITE_LRTS:
+        if null in fits and alt in fits:
+            r = compute_lrt(
+                null=null, alt=alt,
+                lnL_null=fits[null].lnL, lnL_alt=fits[alt].lnL,
+                df=df, test_type=test_type,
+            )
+            lrts.append(LRTResult(
+                null=r.null, alt=r.alt, delta_lnL=r.delta_lnL,
+                df=r.df, p_value=r.p_value, test_type=r.test_type,
+                significant_at_0_05=r.significant_at_0_05,
+            ))
+
+    beb: dict[str, list[BEBSite]] = {}
+    for name in ("M2a", "M8"):
+        if name in engine_fits:
+            beb[name] = _compute_beb_for(
+                name, fit=engine_fits[name], inputs=inputs, pi=pi, gc=gc,
+            )
+
+    warnings: list[str] = []
+    for name, f in fits.items():
+        if not f.converged:
+            warnings.append(f"{name}: multi-start disagreement > {config.convergence_tol} lnL")
+
+    return RunResult(
+        config=config, fits=fits, lrts=lrts, beb=beb, warnings=warnings,
+    )
