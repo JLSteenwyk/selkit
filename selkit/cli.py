@@ -15,6 +15,7 @@ from selkit.io.config import (
     RunConfig,
     StrictFlags,
     dump_config,
+    load_config,
 )
 from selkit.io.results import emit_tsv_files, to_json
 from selkit.io.tree import ForegroundSpec, load_labels_file
@@ -163,4 +164,45 @@ def handle_codeml_site_models(ns: argparse.Namespace) -> int:
 
 
 def handle_rerun(ns: argparse.Namespace) -> int:
-    raise NotImplementedError
+    cfg = load_config(Path(ns.config))
+    if ns.output_dir:
+        cfg = RunConfig(**{**cfg.__dict__, "output_dir": Path(ns.output_dir)})
+    if cfg.subcommand != "codeml.site-models":
+        print(f"ERROR: rerun only supports codeml.site-models; got {cfg.subcommand!r}", file=sys.stderr)
+        return 1
+    if cfg.foreground:
+        if cfg.foreground.labels_file:
+            fg = load_labels_file(cfg.foreground.labels_file)
+        elif cfg.foreground.tips:
+            fg = ForegroundSpec(tips=cfg.foreground.tips)
+        elif cfg.foreground.mrca:
+            fg = ForegroundSpec(mrca=cfg.foreground.mrca)
+        else:
+            fg = ForegroundSpec()
+    else:
+        fg = ForegroundSpec()
+    try:
+        validated = validate_inputs(
+            alignment_path=cfg.alignment, tree_path=cfg.tree,
+            foreground_spec=fg, genetic_code_name=cfg.genetic_code,
+            strip_terminal_stop=cfg.strict.strip_terminal_stop,
+            strip_stop_codons=cfg.strict.strip_stop_codons,
+        )
+    except SelkitInputError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    out = Path(cfg.output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    reporter = ProgressReporter(models=cfg.models)
+    try:
+        result = run_site_models(
+            inputs=validated, config=cfg,
+            parallel=cfg.threads > 1,
+            progress=reporter,
+        )
+    finally:
+        reporter.close()
+    (out / "results.json").write_text(_json.dumps(to_json(result), indent=2))
+    emit_tsv_files(result, out)
+    dump_config(cfg, out / "run.yaml")
+    return 0
