@@ -62,11 +62,9 @@ def fit_model(
 
     transform_spec: dict[str, Transform] = {k: "positive" for k in branch_keys}
     model_transforms: dict[str, Transform] = {}
+    _POSITIVE = {"omega", "omega0", "omega2", "kappa", "q_beta", "p_beta"}
     for p in model.free_params:
-        if p in {"omega", "kappa", "omega0", "omega2", "q_beta", "p_beta"}:
-            model_transforms[p] = "positive"
-        else:
-            model_transforms[p] = "unit"
+        model_transforms[p] = "positive" if p in _POSITIVE else "unit"
     transform_spec.update(model_transforms)
 
     def starting_values(s: int) -> dict[str, float]:
