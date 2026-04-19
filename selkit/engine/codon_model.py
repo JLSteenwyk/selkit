@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 import numpy as np
+from scipy.stats import beta as _beta
 
 from selkit.engine.genetic_code import GeneticCode
 from selkit.engine.rate_matrix import build_q
@@ -88,5 +89,92 @@ class M2a:
             "omega2": float(rng.uniform(1.5, 4.0)),
             "p0": float(rng.uniform(0.4, 0.85)),
             "p1_frac": float(rng.uniform(0.3, 0.7)),
+            "kappa": float(rng.uniform(1.5, 3.5)),
+        }
+
+
+def _beta_quantiles(p_beta: float, q_beta: float, n: int) -> np.ndarray:
+    qs = (np.arange(n) + 0.5) / n
+    return _beta.ppf(qs, p_beta, q_beta)
+
+
+@dataclass
+class M7:
+    gc: GeneticCode
+    pi: np.ndarray
+    name: str = "M7"
+    free_params: tuple[str, ...] = ("p_beta", "q_beta", "kappa")
+    n_categories: int = 10
+
+    def build(self, *, params: dict[str, float]) -> tuple[list[float], list[np.ndarray]]:
+        omegas = _beta_quantiles(params["p_beta"], params["q_beta"], self.n_categories)
+        omegas = np.clip(omegas, 1e-6, 1.0 - 1e-6)
+        kappa = params["kappa"]
+        Qs = [build_q(self.gc, omega=float(o), kappa=kappa, pi=self.pi) for o in omegas]
+        w = 1.0 / self.n_categories
+        return [w] * self.n_categories, Qs
+
+    def starting_values(self, *, seed: int) -> dict[str, float]:
+        rng = np.random.default_rng(seed)
+        return {
+            "p_beta": float(rng.uniform(0.3, 2.0)),
+            "q_beta": float(rng.uniform(0.3, 2.0)),
+            "kappa": float(rng.uniform(1.5, 3.5)),
+        }
+
+
+@dataclass
+class M8:
+    gc: GeneticCode
+    pi: np.ndarray
+    name: str = "M8"
+    free_params: tuple[str, ...] = ("p_beta", "q_beta", "p0", "omega2", "kappa")
+    n_categories: int = 10
+
+    def build(self, *, params: dict[str, float]) -> tuple[list[float], list[np.ndarray]]:
+        omegas = _beta_quantiles(params["p_beta"], params["q_beta"], self.n_categories)
+        omegas = np.clip(omegas, 1e-6, 1.0 - 1e-6)
+        kappa = params["kappa"]
+        p0 = params["p0"]
+        Qs = [build_q(self.gc, omega=float(o), kappa=kappa, pi=self.pi) for o in omegas]
+        Qs.append(build_q(self.gc, omega=params["omega2"], kappa=kappa, pi=self.pi))
+        weights = [p0 / self.n_categories] * self.n_categories + [1.0 - p0]
+        return weights, Qs
+
+    def starting_values(self, *, seed: int) -> dict[str, float]:
+        rng = np.random.default_rng(seed)
+        return {
+            "p_beta": float(rng.uniform(0.3, 2.0)),
+            "q_beta": float(rng.uniform(0.3, 2.0)),
+            "p0": float(rng.uniform(0.7, 0.98)),
+            "omega2": float(rng.uniform(1.5, 4.0)),
+            "kappa": float(rng.uniform(1.5, 3.5)),
+        }
+
+
+@dataclass
+class M8a:
+    gc: GeneticCode
+    pi: np.ndarray
+    name: str = "M8a"
+    free_params: tuple[str, ...] = ("p_beta", "q_beta", "p0", "kappa")
+    n_categories: int = 10
+
+    def build(self, *, params: dict[str, float]) -> tuple[list[float], list[np.ndarray]]:
+        omegas = _beta_quantiles(params["p_beta"], params["q_beta"], self.n_categories)
+        omegas = np.clip(omegas, 1e-6, 1.0 - 1e-6)
+        kappa = params["kappa"]
+        p0 = params["p0"]
+        Qs = [build_q(self.gc, omega=float(o), kappa=kappa, pi=self.pi) for o in omegas]
+        Qs.append(build_q(self.gc, omega=1.0, kappa=kappa, pi=self.pi))
+        weights = [p0 / self.n_categories] * self.n_categories + [1.0 - p0]
+        return weights, Qs
+
+    def starting_values(self, *, seed: int) -> dict[str, float]:
+        rng = np.random.default_rng(seed)
+        return {
+            "p_beta": float(rng.uniform(0.3, 2.0)),
+            "q_beta": float(rng.uniform(0.3, 2.0)),
+            "p0": float(rng.uniform(0.7, 0.98)),
             "kappa": float(rng.uniform(1.5, 3.5)),
         }
