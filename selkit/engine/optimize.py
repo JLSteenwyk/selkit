@@ -6,7 +6,7 @@ from typing import Callable, Literal
 import numpy as np
 from scipy.optimize import minimize
 
-Transform = Literal["positive", "unit"]
+Transform = Literal["positive", "unit", "positive_gt_one"]
 
 
 @dataclass(frozen=True)
@@ -46,6 +46,9 @@ def _apply(u: float, kind: Transform) -> float:
         return softplus(u)
     if kind == "unit":
         return _sigmoid(u)
+    if kind == "positive_gt_one":
+        # x = 1 + softplus(u), so x ∈ (1, ∞)
+        return 1.0 + softplus(u)
     raise ValueError(f"unknown transform kind: {kind}")
 
 
@@ -54,6 +57,10 @@ def _invert(x: float, kind: Transform) -> float:
         return softplus_inv(x)
     if kind == "unit":
         return _logit(x)
+    if kind == "positive_gt_one":
+        if x <= 1.0:
+            raise ValueError("positive_gt_one requires x > 1")
+        return softplus_inv(x - 1.0)
     raise ValueError(f"unknown transform kind: {kind}")
 
 

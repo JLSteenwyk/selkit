@@ -61,11 +61,11 @@ def fit_model(
         )
 
     transform_spec: dict[str, Transform] = {k: "positive" for k in branch_keys}
-    model_transforms: dict[str, Transform] = {}
-    _POSITIVE = {"omega", "omega0", "omega2", "kappa", "q_beta", "p_beta"}
+    # Each SiteModel declares its own parameter-space constraints so that, e.g.,
+    # M1a's ω0 is correctly bounded to (0, 1) and M2a's ω2 to (1, ∞) — enforcing
+    # the model definition rather than letting L-BFGS-B drift into the wrong regime.
     for p in model.free_params:
-        model_transforms[p] = "positive" if p in _POSITIVE else "unit"
-    transform_spec.update(model_transforms)
+        transform_spec[p] = model.transform_spec[p]
 
     def starting_values(s: int) -> dict[str, float]:
         start = dict(bl_init)

@@ -12,10 +12,17 @@ from selkit.services.codeml.site_models import run_site_models
 
 
 def _make_inputs() -> ValidatedInputs:
+    # 4 taxa, 20 codons, observing every nucleotide at every codon position so
+    # raw-count F3X4 (default, PAML-compatible) yields pi > 0 everywhere.
     gc = GeneticCode.standard()
     tree = parse_newick("(a:0.1,b:0.1,c:0.1,d:0.1);")
-    idx = gc.codon_to_index("ATG")
-    codons = np.full((4, 20), idx, dtype=np.int16)
+    codon_strings = [
+        "ACG", "TCA", "GGT", "CAC", "ATG", "TGG", "CCT", "GAT",
+        "AAG", "TTC", "GCA", "CGT", "ATC", "TAC", "GTA", "CAT",
+        "ACC", "TCG", "GGA", "CAA",
+    ]
+    row = [gc.codon_to_index(c) for c in codon_strings]
+    codons = np.array([row, row, row, row], dtype=np.int16)
     aln = CodonAlignment(taxa=("a","b","c","d"), codons=codons, genetic_code="standard", stripped_sites=())
     return ValidatedInputs(alignment=aln, tree=tree)
 

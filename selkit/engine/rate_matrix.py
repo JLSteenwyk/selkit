@@ -1,13 +1,29 @@
 from __future__ import annotations
 
 import numpy as np
+from scipy.linalg import expm
 
 from selkit.engine.genetic_code import NUCS, GeneticCode, PURINES, PYRIMIDINES
 
 
 def build_q(
-    gc: GeneticCode, *, omega: float, kappa: float, pi: np.ndarray
+    gc: GeneticCode,
+    *,
+    omega: float,
+    kappa: float,
+    pi: np.ndarray,
+    unscaled: bool = False,
 ) -> np.ndarray:
+    """GY94 codon rate matrix Q(omega, kappa, pi).
+
+    By default Q is scaled so -sum(pi_i * Q_ii) = 1 (one substitution per
+    unit branch length). For mixture site models (M1a/M2a/M7/M8), pass
+    `unscaled=True` and then scale ALL classes by the weighted-mixture
+    mean rate so the classes share a common time scale — this is PAML's
+    convention and is required for rate heterogeneity to work correctly
+    (otherwise a class with omega=0 would evolve at the same rate as a
+    class with omega=1, defeating the model).
+    """
     n = gc.n_sense
     if pi.shape != (n,):
         raise ValueError(f"pi has wrong shape: {pi.shape}, expected ({n},)")
@@ -32,6 +48,8 @@ def build_q(
                 rate *= omega
             Q[i, j] = rate
     Q[np.diag_indices_from(Q)] = -Q.sum(axis=1)
+    if unscaled:
+        return Q
     mean_rate = float(-(pi @ np.diag(Q)))
     if mean_rate <= 0:
         raise ValueError("non-positive mean substitution rate; check pi/params")
@@ -39,13 +57,34 @@ def build_q(
     return Q
 
 
+def scale_mixture_qs(
+    Qs: list[np.ndarray], weights: list[float], pi: np.ndarray
+) -> list[np.ndarray]:
+    """Scale a mixture of unscaled Q matrices by the weighted mean rate.
+
+    After scaling, sum_c w_c * (-pi @ diag(Q_c)) == 1, so branch lengths are
+    interpretable as expected substitutions per codon site averaged across
+    site classes — matching PAML's convention.
+    """
+    per_class_rates = [float(-(pi @ np.diag(Q))) for Q in Qs]
+    mean_rate = float(sum(w * r for w, r in zip(weights, per_class_rates)))
+    if mean_rate <= 0:
+        raise ValueError("non-positive mixture mean rate; check pi/params/weights")
+    return [Q / mean_rate for Q in Qs]
+
+
 def prob_transition_matrix(Q: np.ndarray, t: float) -> np.ndarray:
+    """P(t) = exp(Q*t) via Padé-13 with scaling-and-squaring.
+
+    Uses scipy.linalg.expm rather than eig+inv because codon Q can be
+    singular or have clustered eigenvalues (e.g. when a site class has
+    omega=0, many off-diagonal entries vanish and the resulting Q is
+    rank-deficient; eigendecomposition returns garbage in that regime,
+    whereas expm remains stable).
+    """
     if t == 0.0:
         return np.eye(Q.shape[0])
-    w, V = np.linalg.eig(Q)
-    Vinv = np.linalg.inv(V)
-    P = (V * np.exp(w * t)) @ Vinv
-    return np.real(P)
+    return expm(Q * t)
 
 
 def estimate_f3x4(
