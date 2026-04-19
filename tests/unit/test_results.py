@@ -10,6 +10,7 @@ from selkit.io.results import (
     ModelFit,
     RunResult,
     StartResult,
+    emit_tsv_files,
     to_json,
 )
 
@@ -46,3 +47,30 @@ def test_run_result_roundtrips_through_json(tmp_path: Path) -> None:
     assert loaded["fits"]["M0"]["lnL"] == -123.4
     assert loaded["fits"]["M0"]["params"]["omega"] == 0.5
     assert loaded["beb"]["M0"][0]["p_positive"] == 0.0
+
+
+def test_emit_tsv_files(tmp_path: Path) -> None:
+    cfg = _minimal_config()
+    fit = ModelFit(
+        model="M0", lnL=-123.4, n_params=5,
+        params={"omega": 0.5, "kappa": 2.0},
+        branch_lengths={"bl_1": 0.1},
+        starts=[], converged=True, runtime_s=0.01,
+    )
+    result = RunResult(
+        config=cfg, fits={"M0": fit},
+        lrts=[LRTResult("M1a", "M2a", 5.0, 2, 0.05, "chi2", True)],
+        beb={"M2a": [BEBSite(1, 0.95, 3.2)]}, warnings=[],
+    )
+    emit_tsv_files(result, tmp_path)
+    fits_tsv = (tmp_path / "fits.tsv").read_text().splitlines()
+    assert fits_tsv[0].split("\t") == [
+        "model", "lnL", "n_params", "converged", "runtime_s", "params"
+    ]
+    assert fits_tsv[1].split("\t")[0] == "M0"
+    lrts_tsv = (tmp_path / "lrts.tsv").read_text().splitlines()
+    assert lrts_tsv[0].split("\t") == [
+        "null", "alt", "delta_lnL", "df", "p_value", "test_type", "significant_at_0_05"
+    ]
+    beb_tsv = (tmp_path / "beb_M2a.tsv").read_text().splitlines()
+    assert beb_tsv[0].split("\t") == ["site", "p_positive", "mean_omega"]

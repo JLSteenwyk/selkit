@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, asdict
+from pathlib import Path
 from typing import Literal
 
 from selkit.io.config import RunConfig
@@ -62,3 +64,28 @@ def to_json(result: RunResult) -> dict:
         "beb": {k: [asdict(s) for s in v] for k, v in result.beb.items()},
         "warnings": list(result.warnings),
     }
+
+
+def emit_tsv_files(result: RunResult, output_dir: Path) -> None:
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    fit_rows = ["\t".join(["model", "lnL", "n_params", "converged", "runtime_s", "params"])]
+    for name, fit in result.fits.items():
+        fit_rows.append("\t".join([
+            fit.model, f"{fit.lnL:.6f}", str(fit.n_params),
+            str(fit.converged).lower(), f"{fit.runtime_s:.3f}",
+            json.dumps(fit.params, sort_keys=True),
+        ]))
+    (output_dir / "fits.tsv").write_text("\n".join(fit_rows) + "\n")
+    lrt_rows = ["\t".join(["null", "alt", "delta_lnL", "df", "p_value", "test_type", "significant_at_0_05"])]
+    for l in result.lrts:
+        lrt_rows.append("\t".join([
+            l.null, l.alt, f"{l.delta_lnL:.6f}", str(l.df),
+            f"{l.p_value:.6g}", l.test_type, str(l.significant_at_0_05).lower(),
+        ]))
+    (output_dir / "lrts.tsv").write_text("\n".join(lrt_rows) + "\n")
+    for model, sites in result.beb.items():
+        rows = ["\t".join(["site", "p_positive", "mean_omega"])]
+        for s in sites:
+            rows.append("\t".join([str(s.site), f"{s.p_positive:.6f}", f"{s.mean_omega:.6f}"]))
+        (output_dir / f"beb_{model}.tsv").write_text("\n".join(rows) + "\n")
