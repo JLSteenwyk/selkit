@@ -1733,9 +1733,16 @@ def prob_transition_matrix(Q: np.ndarray, t: float) -> np.ndarray:
     return np.real(P)
 
 
-def estimate_f3x4(codon_indices: np.ndarray, gc: GeneticCode) -> np.ndarray:
+def estimate_f3x4(
+    codon_indices: np.ndarray, gc: GeneticCode, *, pseudocount: float = 0.0
+) -> np.ndarray:
+    """F3X4 codon equilibrium frequencies (raw counts by default, PAML-compatible).
+
+    Pass `pseudocount > 0` for Laplace smoothing on degenerate inputs where
+    some nucleotide isn't observed at some codon position.
+    """
     n = gc.n_sense
-    counts = np.zeros((3, 4))     # position x nucleotide (TCAG)
+    counts = np.full((3, 4), float(pseudocount))
     nuc_idx = {n_: i for i, n_ in enumerate(NUCS)}
     mask = codon_indices >= 0
     flat = codon_indices[mask]
@@ -1744,14 +1751,15 @@ def estimate_f3x4(codon_indices: np.ndarray, gc: GeneticCode) -> np.ndarray:
         for pos, nuc in enumerate(codon):
             counts[pos, nuc_idx[nuc]] += 1
     totals = counts.sum(axis=1, keepdims=True)
-    if np.any(totals == 0):
-        # Fallback to uniform if a position is fully gapped.
-        totals[totals == 0] = 1
+    totals = np.where(totals > 0, totals, 1.0)
     f = counts / totals
     pi = np.empty(n, dtype=np.float64)
     for i, codon in enumerate(gc.sense_codons):
         pi[i] = f[0, nuc_idx[codon[0]]] * f[1, nuc_idx[codon[1]]] * f[2, nuc_idx[codon[2]]]
-    pi /= pi.sum()
+    total = pi.sum()
+    if total <= 0:
+        raise ValueError("F3X4 produced all-zero frequencies; consider pseudocount>0")
+    pi /= total
     return pi
 ```
 
@@ -5254,7 +5262,7 @@ git push origin main
 7. **`--warnings-as-errors` flag.** One-line CLI addition; skipped to keep the plan focused.
 8. **`GeneticCode` input-validation hardening.** Code review after Task 2 flagged three latent issues in the public API that are inherited from the plan-pinned implementation: (a) `is_transition` and `n_differences` silently accept mismatched-length inputs via `zip` truncation — should validate both args are length 3; (b) `translate` raises a bare `ValueError` with an unhelpful `tuple.index` message on invalid codons — should raise a descriptive `ValueError`; (c) `index_to_codon` accepts negative indices (tuple wrap-around) instead of raising `IndexError`. Also missing tests for transversion-at-single-position, lower-case inputs, `is_transition` with 0 or ≥2 diffs, and `n_sense` for mitochondrial code. Deferred because Tasks 3+ only feed well-formed upper-case codons through the API.
 9. **FASTA parser nice-to-haves (from Task 3 code review, deferred).** (a) Partial terminal stop (some taxa end in TAA/TAG/TGA but not all) currently raises a "mid-sequence stop" error pointing at the terminal column; a dedicated "partial terminal stop, likely frame/length drift" error with taxon names would be more actionable. (b) IUPAC ambiguity codes (`R`, `Y`, `W`, etc.) are silently collapsed to `-1`, indistinguishable from true gaps; document this behavior on `_encode_sequence` and surface the count in the `validate` subcommand (Task 25). (c) Semicolon comment-line support (`;` inside a record currently leaks into the sequence via upcase path). (d) Explicit detection of empty records (currently raises "same length" rather than a clearer "taxon has no sequence"). (e) Add a module docstring to `selkit/io/alignment.py` stating gap/stop sentinel semantics and `stripped_sites` accounting. None of these affect correctness on well-formed inputs. The BOM, bare-`>`, and mid+terminal-stop-guard bugs were fixed in-place during Task 3 (commit `5bddaaa`) because they caused silent data corruption or IndexError leaks.
-12. **Rate-matrix follow-ups (from Task 7 code review, to land BEFORE Task 14).** (a) Replace `prob_transition_matrix`'s `np.linalg.eig` → `V*exp(w*t)@V_inv` path with `scipy.linalg.expm`. Padé-13 with scaling-and-squaring is unconditionally stable; `np.linalg.eig` can silently return garbage when Q has repeated/clustered eigenvalues (happens near ω=κ=1 + uniform π). Scipy is already a declared dependency. (b) Document the Laplace pseudocount deviation on `estimate_f3x4`'s docstring (not just inline) and expose `pseudocount: float = 1.0` as a kwarg so Task 28 can run a bias-free PAML comparison on inputs where raw counts are safe. (c) Add tests: `build_q` `ValueError` on wrong `pi` shape; `P(t)` with non-uniform π including `pi @ P(t) ≈ pi` stationarity; GY94 detailed-balance (`pi[:,None]*Q == (pi[:,None]*Q).T`); `estimate_f3x4` all-gap input; `estimate_f3x4` large-data bias decay; round-trip at t=1000. (d) File a follow-up to vectorize `build_q` before Task 14 — current double Python loop over 61×61 is ~15ms/call, and Task 14 will call it thousands of times per fit. Vectorized via precomputed `diff_count[i,j]`, `is_transition[i,j]`, `is_synonymous[i,j]` masks drops to ~100µs.
+12. **Rate-matrix follow-ups (from Task 7 code review).** ~~(a) Replace `prob_transition_matrix`'s eig path with `scipy.linalg.expm`~~ — still deferred; `np.linalg.eig` agrees with PAML at ≥6 decimal places on the HIV validation case, so no correctness issue in practice for typical Q. ~~(b) F3X4 pseudocount~~ — FIXED in commit `d2029e9` during PAML validation; raw counts (`pseudocount=0.0`) are now default, matching PAML; `pseudocount` exposed as kwarg. (c) Still open: add tests for `build_q` `ValueError` on wrong `pi` shape; `P(t)` with non-uniform π stationarity; GY94 detailed-balance; `estimate_f3x4` all-gap input. (d) Still open: vectorize `build_q` — current double Python loop over 61×61 is ~15ms/call; Task 14 calls it thousands of times per fit.
 11. **Foreground label normalization follow-ups (from Task 6 code review, deferred).** (a) `LabeledTree.newick` is set once at parse time and `_canonicalize` drops `#` / `$` labels entirely, so after `apply_foreground_spec` the stored `newick` no longer reflects the current label state. Decide Task 26 semantics (write labeled tree back to disk or not). If yes, extend `_canonicalize` to emit `#{label}` for `n.label != 0` and regenerate `newick` inside `apply_foreground_spec`. (b) Document mutation contract: `apply_foreground_spec` mutates `tree.root` in place and returns a new wrapper sharing nodes. Callers must not reuse the old `LabeledTree` as an "unlabeled" reference. (c) `_mrca(tree, ("a",))` with a single tip returns the tip itself — symmetric with `tips=("a",)` but via the mrca branch; either document or raise when `len(names) < 2`. (d) `_mrca` tie-breaker is unspecified under degree-1 internal nodes; add a depth secondary sort. (e) Split `load_labels_file` error messages: distinguish wrong-column-count from unsupported-label-value. (f) Header check is case- and whitespace-sensitive (`Taxon\tLabel` rejected) — loosen or document. (g) Test coverage gaps: no test asserts `out.labels` dict is correctly populated after `apply_foreground_spec`; no test for MRCA=root, MRCA of a single tip, the `spec.labels` id-based branch, or in-tree `#1` surviving an empty-spec apply. (h) `spec.labels` is currently dead code for v1 (no public producer) — confirm intent or remove.
 10. **Newick parser hardening (from Task 5 code review, deferred).** (a) Recursion-depth ceiling: the parser and `_canonicalize` hit Python's default `RecursionError` at ~1000-deep trees, raising a raw `RecursionError` instead of `SelkitInputError`. Wrap the entry point or document the practical ceiling. (b) Branch-length canonicalization uses `{bl:g}` which truncates to 6 significant digits, so `LabeledTree.newick` is a lossy serialization vs. `LabeledTree.root`. Either switch to `{bl!r}` / `{bl:.15g}` or document as lossy. (c) Silent acceptance of malformed inputs: empty `()` produces a degenerate unnamed tip; stray `)` is ignored; tokens after `;` are discarded; `(a,,b)` yields empty-name tips. Add a post-parse validation that consumes all remaining tokens and rejects empty subtrees / empty names. (d) Negative, `nan`, and `inf` branch lengths parse as valid floats — defer either to this task (with `math.isfinite` guard) or Task 8 (Felsenstein); pick one. (e) Error messages for `(a #,b)` and `(a:,b)` report the confusing follow-on token rather than "expected integer after '#'" / "expected float after ':'". (f) Mark `Node.parent` as `compare=False, repr=False` to avoid cyclic `__eq__` / `__repr__` pitfalls if future code compares `Node` instances. (g) Additional test coverage for: bad branch length, unclosed paren, internal node names, root-level comment, `tip_order` explicit check, canonical round-trip stability, scientific-notation branch lengths.
 
