@@ -48,9 +48,18 @@ def prob_transition_matrix(Q: np.ndarray, t: float) -> np.ndarray:
     return np.real(P)
 
 
-def estimate_f3x4(codon_indices: np.ndarray, gc: GeneticCode) -> np.ndarray:
+def estimate_f3x4(
+    codon_indices: np.ndarray, gc: GeneticCode, *, pseudocount: float = 0.0
+) -> np.ndarray:
+    """F3X4 codon equilibrium frequencies.
+
+    Uses raw counts by default (matches PAML codeml). Pass `pseudocount > 0`
+    for Laplace smoothing when the input doesn't observe every nucleotide at
+    every codon position — useful only for degenerate test alignments; real
+    runs should use raw counts.
+    """
     n = gc.n_sense
-    counts = np.ones((3, 4))  # pseudocount of 1 per nucleotide per position
+    counts = np.full((3, 4), float(pseudocount))
     nuc_idx = {n_: i for i, n_ in enumerate(NUCS)}
     mask = codon_indices >= 0
     flat = codon_indices[mask]
@@ -59,9 +68,17 @@ def estimate_f3x4(codon_indices: np.ndarray, gc: GeneticCode) -> np.ndarray:
         for pos, nuc in enumerate(codon):
             counts[pos, nuc_idx[nuc]] += 1
     totals = counts.sum(axis=1, keepdims=True)
+    totals = np.where(totals > 0, totals, 1.0)
     f = counts / totals
     pi = np.empty(n, dtype=np.float64)
     for i, codon in enumerate(gc.sense_codons):
         pi[i] = f[0, nuc_idx[codon[0]]] * f[1, nuc_idx[codon[1]]] * f[2, nuc_idx[codon[2]]]
-    pi /= pi.sum()
+    total = pi.sum()
+    if total <= 0:
+        raise ValueError(
+            "F3X4 produced all-zero codon frequencies (likely all-gap or "
+            "mutually-exclusive nucleotide observations per position); "
+            "consider pseudocount>0 for degenerate inputs"
+        )
+    pi /= total
     return pi

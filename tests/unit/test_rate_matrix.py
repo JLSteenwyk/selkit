@@ -65,13 +65,26 @@ def test_prob_transition_at_zero_is_identity() -> None:
 
 
 def test_estimate_f3x4_returns_probabilities() -> None:
+    # Use codons that collectively observe every nucleotide at every position,
+    # so raw-count F3X4 (PAML-compatible, default) produces pi > 0 everywhere.
     gc = GeneticCode.standard()
-    idx = np.array([
-        [gc.codon_to_index("ATG"), gc.codon_to_index("AAA")],
-        [gc.codon_to_index("ATG"), gc.codon_to_index("AAG")],
-        [gc.codon_to_index("ATG"), gc.codon_to_index("AAA")],
-    ], dtype=np.int16)
+    idx = np.array([[
+        gc.codon_to_index(c) for c in (
+            "ACG", "TCA", "GGT", "CAC", "ATG", "TGG", "CCT", "GAT",
+        )
+    ]], dtype=np.int16)
     pi = estimate_f3x4(idx, gc)
+    assert pi.shape == (gc.n_sense,)
+    np.testing.assert_allclose(pi.sum(), 1.0, atol=1e-12)
+    assert np.all(pi > 0)
+
+
+def test_estimate_f3x4_pseudocount_for_degenerate_input() -> None:
+    # Tiny input that doesn't observe every nucleotide at every position:
+    # raw counts would produce zeros, pseudocount>0 keeps pi > 0.
+    gc = GeneticCode.standard()
+    idx = np.array([[gc.codon_to_index("ATG"), gc.codon_to_index("AAA")]], dtype=np.int16)
+    pi = estimate_f3x4(idx, gc, pseudocount=1.0)
     assert pi.shape == (gc.n_sense,)
     np.testing.assert_allclose(pi.sum(), 1.0, atol=1e-12)
     assert np.all(pi > 0)
