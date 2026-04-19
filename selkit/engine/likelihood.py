@@ -119,3 +119,24 @@ def tree_log_likelihood_mixture(
         logW = np.log(np.asarray(weights))[:, None]
     site_log = logsumexp(logL_stack + logW, axis=0)
     return float(site_log.sum())
+
+
+def per_class_site_log_likelihood(
+    tree: LabeledTree,
+    codons: np.ndarray,
+    taxon_order: tuple[str, ...],
+    *,
+    Qs: list[np.ndarray],
+    pi: np.ndarray,
+) -> np.ndarray:
+    """Return per-class per-site log-likelihoods with shape (n_classes, n_sites).
+
+    Uses the same running-scale pruning as tree_log_likelihood_mixture so that
+    sites with very small partial likelihoods do not underflow to zero.
+    """
+    rows = []
+    for Q in Qs:
+        L_root, log_scale = _prune_tree_partials(tree, codons, taxon_order, Q)
+        site_L = L_root @ pi
+        rows.append(np.log(np.clip(site_L, 1e-300, None)) + log_scale)
+    return np.vstack(rows)

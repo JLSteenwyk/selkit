@@ -99,3 +99,20 @@ def test_lnl_finite_on_large_tree_where_naive_underflows() -> None:
     lnL = tree_log_likelihood(tree, codons, taxa, Q=Q, pi=pi)
     assert np.isfinite(lnL)
     assert lnL < -690.0
+
+
+from selkit.engine.likelihood import per_class_site_log_likelihood
+
+
+def test_per_class_site_log_likelihood_shape() -> None:
+    gc = GeneticCode.standard()
+    tree = parse_newick("(a:0.1,b:0.1,c:0.1):0.0;")
+    pi = _uniform_pi(gc)
+    Q0 = build_q(gc, omega=0.2, kappa=2.0, pi=pi)
+    Q1 = build_q(gc, omega=1.0, kappa=2.0, pi=pi)
+    idx = gc.codon_to_index("ATG")
+    codons = np.full((3, 4), idx, dtype=np.int16)
+    out = per_class_site_log_likelihood(
+        tree, codons, ("a", "b", "c"), Qs=[Q0, Q1], pi=pi,
+    )
+    assert out.shape == (2, 4)
