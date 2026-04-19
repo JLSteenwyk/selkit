@@ -2347,7 +2347,7 @@ def test_multi_start_flags_non_convergence() -> None:
         starting_values=starting_values,
         transform_spec=spec,
         n_starts=3,
-        seed=0,
+        seed=3,
         convergence_tol=0.1,
     )
     assert not result.converged
