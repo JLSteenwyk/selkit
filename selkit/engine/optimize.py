@@ -95,3 +95,46 @@ def fit_single_start(
         iterations=int(res.nit),
         converged=bool(res.success),
     )
+
+
+@dataclass(frozen=True)
+class MultiStartResult:
+    starts: list[SingleStartResult]
+    best: SingleStartResult
+    converged: bool
+
+
+def fit_multi_start(
+    *,
+    neg_lnL: Callable[[dict[str, float]], float],
+    starting_values: Callable[[int], dict[str, float]],
+    transform_spec: dict[str, Transform],
+    n_starts: int,
+    seed: int,
+    convergence_tol: float,
+    max_iter: int = 500,
+) -> MultiStartResult:
+    rng = np.random.default_rng(seed)
+    seeds = [int(rng.integers(0, 2**31 - 1)) for _ in range(n_starts)]
+    starts: list[SingleStartResult] = []
+    for s in seeds:
+        start = starting_values(s)
+        try:
+            r = fit_single_start(
+                neg_lnL,
+                start=start,
+                transform_spec=transform_spec,
+                seed=s,
+                max_iter=max_iter,
+            )
+        except Exception:
+            continue
+        starts.append(r)
+    if not starts:
+        raise RuntimeError("all optimization starts failed")
+    starts.sort(key=lambda r: r.final_lnL)
+    best = starts[0]
+    converged = True
+    if len(starts) >= 2:
+        converged = (starts[1].final_lnL - starts[0].final_lnL) <= convergence_tol
+    return MultiStartResult(starts=starts, best=best, converged=converged)
