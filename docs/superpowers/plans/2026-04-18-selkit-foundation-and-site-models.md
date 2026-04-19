@@ -3030,7 +3030,11 @@ def compute_lrt(
         raise ValueError(f"unknown test_type: {test_type}")
     return LRTResult(
         null=null, alt=alt,
-        delta_lnL=max(0.0, lnL_alt - lnL_null),
+        # NOTE: `delta_lnL` actually stores the LRT statistic 2*(lnL_alt - lnL_null),
+        # not the raw difference — the spec's test asserts 10.0 for a 5-unit lnL
+        # diff. The field name is a misnomer; consider renaming to `lrt_stat` when
+        # LRTResult is surfaced in io/results.py (Task 18).
+        delta_lnL=stat,
         df=df, p_value=p,
         test_type=test_type,
         significant_at_0_05=(p < alpha),
