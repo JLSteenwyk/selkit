@@ -1,0 +1,8 @@
+source: PAML 4.10.10 examples/HIVNSsites/HIVenvSweden (Yang et al. 2000)
+description: 13-taxon HIV env V3, 273 nt / 91 codons. Larger dataset where M7/M8 beta parameters are non-degenerate.
+genetic_code: standard
+models: [M0, M1a, M2a, M7, M8]
+tests: [M1a-vs-M2a, M7-vs-M8, M8a-vs-M8]
+seed: 0
+n_starts: 5
+paml_cmd: codeml codeml.ctl  # CodonFreq=2 (F3X4), cleandata=1
