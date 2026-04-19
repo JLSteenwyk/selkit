@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import sys
+from typing import Sequence
 
-def main() -> int:
-    # Real CLI wiring arrives in Task 34. Placeholder keeps the entry point importable.
-    raise SystemExit("selkit CLI not yet implemented")
+
+def main(argv: Sequence[str] | None = None) -> int:
+    from selkit.cli_registry import build_argparser
+    parser = build_argparser()
+    args = parser.parse_args(argv)
+    return args._cmd.handle(args)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
