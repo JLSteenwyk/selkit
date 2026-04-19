@@ -41,3 +41,14 @@ def test_run_site_models_sequential_returns_fits_and_lrts() -> None:
     lrt_names = {(l.null, l.alt) for l in result.lrts}
     assert ("M1a", "M2a") in lrt_names
     assert "M2a" in result.beb
+
+
+def test_run_site_models_parallel_matches_sequential() -> None:
+    inputs = _make_inputs()
+    cfg_seq = _cfg()
+    cfg_par = RunConfig(**{**cfg_seq.__dict__, "threads": 2})
+    r_seq = run_site_models(inputs=inputs, config=cfg_seq, parallel=False, progress=None)
+    r_par = run_site_models(inputs=inputs, config=cfg_par, parallel=True, progress=None)
+    assert set(r_seq.fits) == set(r_par.fits)
+    for name in r_seq.fits:
+        assert abs(r_seq.fits[name].lnL - r_par.fits[name].lnL) < 0.01

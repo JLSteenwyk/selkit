@@ -112,14 +112,30 @@ def run_site_models(
     models_to_fit = config.models or _BUNDLE_DEFAULT
 
     engine_fits: dict[str, EngineFit] = {}
-    for name in models_to_fit:
-        if name not in _MODEL_CTORS:
-            raise ValueError(f"unknown model {name!r}")
-        if progress:
-            progress("start", name)
-        engine_fits[name] = _run_one(name, inputs=inputs, pi=pi, cfg=config)
-        if progress:
-            progress("done", name)
+    if parallel and config.threads > 1 and len(models_to_fit) > 1:
+        from concurrent.futures import ProcessPoolExecutor, as_completed
+        futures = {}
+        with ProcessPoolExecutor(max_workers=config.threads) as ex:
+            for name in models_to_fit:
+                if name not in _MODEL_CTORS:
+                    raise ValueError(f"unknown model {name!r}")
+                if progress:
+                    progress("start", name)
+                futures[ex.submit(_run_one, name, inputs=inputs, pi=pi, cfg=config)] = name
+            for fut in as_completed(futures):
+                name = futures[fut]
+                engine_fits[name] = fut.result()
+                if progress:
+                    progress("done", name)
+    else:
+        for name in models_to_fit:
+            if name not in _MODEL_CTORS:
+                raise ValueError(f"unknown model {name!r}")
+            if progress:
+                progress("start", name)
+            engine_fits[name] = _run_one(name, inputs=inputs, pi=pi, cfg=config)
+            if progress:
+                progress("done", name)
 
     fits = {name: _engine_to_public(f) for name, f in engine_fits.items()}
 
