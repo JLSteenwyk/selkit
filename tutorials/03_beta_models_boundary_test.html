@@ -1,0 +1,477 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beta-discretised ω and the M8a boundary test &mdash; selkit  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=d5a91742" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Batch analysis &amp; library use (many genes, mitochondrial code)" href="04_library_workflow.html" />
+    <link rel="prev" title="Detecting positive selection: the M1a vs M2a test with BEB" href="02_detecting_positive_selection.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            selkit
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#why-selkit">Why selkit?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#correctness">Correctness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#implementation-notes">Implementation notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#the-developers">The developers</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#available-tutorials">Available tutorials</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="01_first_run.html">Your first selkit run: validation + M0 baseline</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-1-install-selkit">Step 1: Install selkit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-2-download-the-toy-dataset">Step 2: Download the toy dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-3-validate-the-inputs">Step 3: Validate the inputs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-4-fit-the-m0-model">Step 4: Fit the M0 model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-5-interpret-the-console-output">Step 5: Interpret the console output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-6-inspect-the-output-files">Step 6: Inspect the output files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="02_detecting_positive_selection.html">Detecting positive selection: the M1a vs M2a test with BEB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#why-m0-is-not-enough">Why M0 is not enough</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#the-models-in-a-nutshell">The models in a nutshell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-2-fit-m0-m1a-and-m2a">Step 2: Fit M0, M1a, and M2a</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-3-interpret-the-console-summary">Step 3: Interpret the console summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-4-which-sites-beb-posterior-probabilities">Step 4: Which sites? BEB posterior probabilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-5-extract-significant-sites">Step 5: Extract significant sites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#python-api-one-liner">Python API one-liner</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Beta-discretised ω and the M8a boundary test</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#background-m7-m8-and-the-boundary-problem">Background: M7, M8, and the boundary problem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-2-fit-the-full-model-suite">Step 2: Fit the full model suite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-3-inspect-fits-tsv">Step 3: Inspect <code class="docutils literal notranslate"><span class="pre">fits.tsv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-4-interpret-lrts-tsv">Step 4: Interpret <code class="docutils literal notranslate"><span class="pre">lrts.tsv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-5-why-the-mixed-2-matters">Step 5: Why the mixed χ² matters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-6-bayes-empirical-bayes-site-posteriors-from-m8">Step 6: Bayes empirical Bayes site posteriors from M8</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-7-what-if-m7-vs-m8-is-significant-but-m8a-vs-m8-is-not">Step 7: What if M7 vs M8 is significant but M8a vs M8 is not?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#decision-summary">Decision summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="04_library_workflow.html">Batch analysis &amp; library use (many genes, mitochondrial code)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#why-use-the-library-instead-of-the-cli">Why use the library instead of the CLI?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#library-entry-point">Library entry point</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#single-gene-library-call">Single-gene library call</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#batch-across-many-genes">Batch across many genes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#gene-level-parallelism">Gene-level parallelism</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#non-standard-genetic-codes">Non-standard genetic codes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#reproducing-a-run-later">Reproducing a run later</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#accessing-the-raw-dataclasses">Accessing the raw dataclasses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#what-next">What next?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#what-you-ll-learn">What you’ll learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#dataset-provenance">Dataset provenance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/index.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#command-line">Command line</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-validate"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">validate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-codeml-site-models"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site-models</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#library">Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#outputs">Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../validation/index.html">PAML validation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#corpus-cases">Corpus cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#extending-the-corpus">Extending the corpus</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#entry-point">Entry point</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#codeml_site_models"><code class="docutils literal notranslate"><span class="pre">codeml_site_models()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#dataclasses">Dataclasses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunResult"><code class="docutils literal notranslate"><span class="pre">RunResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ModelFit"><code class="docutils literal notranslate"><span class="pre">ModelFit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LRTResult"><code class="docutils literal notranslate"><span class="pre">LRTResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#BEBSite"><code class="docutils literal notranslate"><span class="pre">BEBSite</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#CodonAlignment"><code class="docutils literal notranslate"><span class="pre">CodonAlignment</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LabeledTree"><code class="docutils literal notranslate"><span class="pre">LabeledTree</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunConfig"><code class="docutils literal notranslate"><span class="pre">RunConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundConfig"><code class="docutils literal notranslate"><span class="pre">ForegroundConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundSpec"><code class="docutils literal notranslate"><span class="pre">ForegroundSpec</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#errors">Errors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitInputError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitInputError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConfigError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConfigError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitEngineError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitEngineError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConvergenceWarning"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConvergenceWarning</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../change_log/index.html">Change log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently asked questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#models-and-statistics">Models and statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#output">Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#development">Development</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../other_software/index.html">Other software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id1">ClipKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id2">PhyKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id3">BioKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id4">orthofisher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id5">orthosnap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#typical-pipeline">Typical pipeline</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">selkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Beta-discretised ω and the M8a boundary test</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/03_beta_models_boundary_test.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beta-discretised-and-the-m8a-boundary-test">
+<h1>Beta-discretised ω and the M8a boundary test<a class="headerlink" href="#beta-discretised-and-the-m8a-boundary-test" title="Link to this heading"></a></h1>
+<p>Tutorial 02 used M1a and M2a to ask whether any sites are under positive
+selection. M2a’s three-class ω discretisation (one purifying, one neutral,
+one positive) is convenient but crude. This tutorial introduces the more
+flexible <strong>M7 / M8 / M8a</strong> family, which replaces the discrete purifying and
+neutral classes with a continuous <strong>beta distribution on (0, 1)</strong>, and then
+shows how to confirm that an inferred positive-selection class really has
+ω &gt; 1 rather than sitting at the ω = 1 boundary.</p>
+<p><strong>Dataset:</strong> same 13-taxon HIV envelope V3 alignment used in tutorials 01
+and 02 (91 codons, 13 sequences).</p>
+<p><strong>Hypotheses answered:</strong></p>
+<ol class="arabic simple">
+<li><p>Do the HIV sites’ dN/dS values follow a smooth distribution (beta on
+(0, 1)) rather than two or three discrete classes?</p></li>
+<li><p>Given evidence of a ω &gt; 1 class, is that class <em>really</em> &gt; 1 — or could
+it just be ω = 1 (neutral) with sampling noise?</p></li>
+</ol>
+<figure class="align-center" id="id1">
+<a class="reference internal image-reference" href="../_images/lrt_decision.png"><img alt="../_images/lrt_decision.png" src="../_images/lrt_decision.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Decision flow for the three canonical site-model LRTs.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<section id="background-m7-m8-and-the-boundary-problem">
+<h2>Background: M7, M8, and the boundary problem<a class="headerlink" href="#background-m7-m8-and-the-boundary-problem" title="Link to this heading"></a></h2>
+<p><strong>M7</strong> is “beta, no positive class”. The ω distribution across sites is
+modelled as a beta distribution on (0, 1) discretised into 10
+equal-probability bins, each assigned the bin’s median ω. Two free shape
+parameters (p_beta and q_beta) control the distribution. When both are
+small, the beta is U-shaped — strong purifying selection at many sites and
+near-neutrality at others — without any mass above ω = 1. M7 is the null:
+there is no positive selection.</p>
+<p><strong>M8</strong> adds a positive-selection spike on top of M7: a proportion (1 − p₀)
+of sites is assigned a free parameter ω₂, constrained to ω₂ ≥ 1. The M7
+vs M8 likelihood-ratio test (LRT) has 2 degrees of freedom and uses a
+standard χ² critical value. Because the M7 null is more realistic than the
+two-class M1a null used in tutorial 02, many researchers prefer this LRT as
+their primary test.</p>
+<p><strong>The boundary problem.</strong> When M8 fits better than M7, ω₂ is reported as
+the maximum-likelihood estimate — but that estimate could be sitting just
+above 1 due to sampling noise. <strong>M8a</strong> is M8 with ω₂ pinned to exactly 1
+(the lower boundary of the allowed region). The M8a vs M8 LRT asks: <em>given
+that M8 beats M7, is the inferred positive class truly above 1, or is it
+right at the neutral boundary?</em></p>
+<p>Because ω₂ = 1 is a <strong>boundary</strong> of the parameter space (ω₂ ≥ 1), the
+standard χ²₁ distribution overstates significance by a factor of 2. The
+correct null is a 50:50 mixture of a point mass at zero (χ²₀) and a
+standard χ²₁. selkit detects the M8a vs M8 comparison automatically and
+applies the mixed correction, so the reported p-value is already the right
+one.</p>
+</section>
+<section id="step-1-download-the-dataset">
+<h2>Step 1: Download the dataset<a class="headerlink" href="#step-1-download-the-dataset" title="Link to this heading"></a></h2>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># with curl</span>
+curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/hiv_13s/alignment.fa
+curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/hiv_13s/tree.nwk
+
+<span class="c1"># or with wget</span>
+wget<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/hiv_13s/alignment.fa
+wget<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/hiv_13s/tree.nwk
+</pre></div>
+</div>
+</section>
+<section id="step-2-fit-the-full-model-suite">
+<h2>Step 2: Fit the full model suite<a class="headerlink" href="#step-2-fit-the-full-model-suite" title="Link to this heading"></a></h2>
+<p>Run all six models in a single command. The <code class="docutils literal notranslate"><span class="pre">--models</span></code> flag accepts a
+comma-separated list; selkit fits them in parallel across the requested
+thread count.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>selkit<span class="w"> </span>codeml<span class="w"> </span>site-models<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--alignment<span class="w"> </span>alignment.fa<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--tree<span class="w"> </span>tree.nwk<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span>results/<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--models<span class="w"> </span>M0,M1a,M2a,M7,M8,M8a<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--n-starts<span class="w"> </span><span class="m">3</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">0</span><span class="w"> </span>--threads<span class="w"> </span><span class="m">2</span>
+</pre></div>
+</div>
+<p>Flags used:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--models</span> <span class="pre">M0,M1a,M2a,M7,M8,M8a</span></code> — fit all six site models.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--n-starts</span> <span class="pre">3</span></code> — three independent BFGS starts per model; the best is kept.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--seed</span> <span class="pre">0</span></code> — deterministic starting values for reproducibility.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--threads</span> <span class="pre">2</span></code> — run two models concurrently.</p></li>
+</ul>
+<p>Expected runtime: approximately <strong>12 minutes</strong> on a laptop with 2 threads.
+M7, M8, and M8a are each slower than M0/M1a/M2a because every BFGS
+gradient step requires evaluating 10–11 rate matrices (one per beta bin plus
+the positive class).</p>
+</section>
+<section id="step-3-inspect-fits-tsv">
+<h2>Step 3: Inspect <code class="docutils literal notranslate"><span class="pre">fits.tsv</span></code><a class="headerlink" href="#step-3-inspect-fits-tsv" title="Link to this heading"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>model   lnL             n_params  converged  runtime_s  params
+M0      -1137.688190    25        true       7.884      {&quot;kappa&quot;: 2.47, &quot;omega&quot;: 0.90}
+M1a     -1114.641736    26        true       25.875     {&quot;kappa&quot;: 2.59, &quot;omega0&quot;: 0.079, &quot;p0&quot;: 0.484}
+M2a     -1106.445005    28        true       69.339     {&quot;kappa&quot;: 2.79, &quot;omega0&quot;: 0.060, &quot;omega2&quot;: 3.63, &quot;p0&quot;: 0.377, &quot;p1_frac&quot;: 0.709}
+M7      -1115.395312    26        true       116.398    {&quot;kappa&quot;: 2.56, &quot;p_beta&quot;: 0.147, &quot;q_beta&quot;: 0.118}
+M8      -1106.388268    28        true       264.471    {&quot;kappa&quot;: 2.79, &quot;omega2&quot;: 3.47, &quot;p0&quot;: 0.80, &quot;p_beta&quot;: 0.167, &quot;q_beta&quot;: 0.149}
+M8a     -1114.579213    27        true       221.846    {&quot;kappa&quot;: 2.59, &quot;p0&quot;: 0.503, &quot;p_beta&quot;: 1.105, &quot;q_beta&quot;: 10.21}
+</pre></div>
+</div>
+<p>Reading the beta models:</p>
+<dl class="simple">
+<dt><strong>M7</strong> (lnL = −1115.40)</dt><dd><p>p_beta = 0.147 and q_beta = 0.118 — both well below 1. When both shape
+parameters of a beta are less than 1 the distribution is U-shaped, with
+probability mass near 0 <em>and</em> near 1. Biologically: a substantial fraction
+of sites are strongly purifying (ω near 0) and another fraction are nearly
+neutral (ω approaching 1), with relatively few sites at intermediate ω.
+There is no mass above 1; M7 cannot model positive selection.</p>
+</dd>
+<dt><strong>M8</strong> (lnL = −1106.39)</dt><dd><p>Adds a positive-selection class: ω₂ = 3.47 with proportion 1 − p₀ = 1 −
+0.80 = <strong>0.20</strong> of sites. The log-likelihood gain over M7 (−1115.40 →
+−1106.39) is striking and points to a genuine positive-selection signal.</p>
+</dd>
+<dt><strong>M8a</strong> (lnL = −1114.58)</dt><dd><p>The constrained null for the boundary test. The “positive” class is pinned
+to ω₂ = 1. Notice that lnL (−1114.58) is much worse than M8 (−1106.39)
+and nearly identical to M7 (−1115.40) — the data strongly prefer a class
+above 1 rather than at 1.</p>
+</dd>
+</dl>
+</section>
+<section id="step-4-interpret-lrts-tsv">
+<h2>Step 4: Interpret <code class="docutils literal notranslate"><span class="pre">lrts.tsv</span></code><a class="headerlink" href="#step-4-interpret-lrts-tsv" title="Link to this heading"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>null  alt  delta_lnL    df  p_value         test_type   significant_at_0_05
+M1a   M2a  16.393463    2   0.000275553     chi2        true
+M7    M8   18.014088    2   0.000122544     chi2        true
+M8a   M8   16.381891    1   2.58888e-05     mixed_chi2  true
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">delta_lnL</span></code> is the test statistic 2·ΔlnL, not the raw lnL difference.</p>
+<dl class="simple">
+<dt><strong>M1a vs M2a</strong> (p = 2.8 × 10⁻⁴)</dt><dd><p>Site-rate heterogeneity with a positive class fits significantly better
+than the simple two-class nearly-neutral model. This reproduces the
+tutorial 02 conclusion.</p>
+</dd>
+<dt><strong>M7 vs M8</strong> (p = 1.2 × 10⁻⁴)</dt><dd><p>The same positive-selection conclusion holds under the more flexible beta
+null. Because M7 is a more realistic null than M1a for most genes —
+purifying pressure is rarely concentrated at a single ω value — <strong>this
+LRT is the recommended primary positive-selection test</strong> when you want
+statistical robustness.</p>
+</dd>
+<dt><strong>M8a vs M8</strong> (p = 2.6 × 10⁻⁵, mixed χ²)</dt><dd><p>The boundary test. The positive-selection class is firmly above ω = 1;
+it is not explained by sampling noise around neutrality. selkit applied the
+50:50 mixture correction automatically; the p-value shown is already the
+conservative, correct one.</p>
+</dd>
+</dl>
+</section>
+<section id="step-5-why-the-mixed-2-matters">
+<h2>Step 5: Why the mixed χ² matters<a class="headerlink" href="#step-5-why-the-mixed-2-matters" title="Link to this heading"></a></h2>
+<p>When the null hypothesis lies on the <em>boundary</em> of the parameter space —
+here, ω₂ = 1 is the lower bound of the region ω₂ ≥ 1 — the likelihood-ratio
+statistic no longer follows a pure χ²₁ distribution. Under the null, the
+maximum-likelihood estimate of ω₂ is constrained to be ≥ 1, so roughly half
+the time (when the unconstrained optimum would be below 1) the test statistic
+is exactly 0. The correct reference distribution is a 50:50 mixture of a
+point mass at 0 and a standard χ²₁, which makes the critical value at α = 0.05
+approximately 2.71 (the median of χ²₁) rather than 3.84 (the 95th percentile).</p>
+<p>Using an uncorrected χ²₁ would make the p-value roughly <strong>twice</strong> as small as
+it should be and inflate the false-positive rate. selkit detects the M8a vs M8
+pair by name and switches to the mixture distribution automatically. No extra
+flags are needed.</p>
+</section>
+<section id="step-6-bayes-empirical-bayes-site-posteriors-from-m8">
+<h2>Step 6: Bayes empirical Bayes site posteriors from M8<a class="headerlink" href="#step-6-bayes-empirical-bayes-site-posteriors-from-m8" title="Link to this heading"></a></h2>
+<p>M8 produces its own BEB table. Because the M8 null (beta distribution) is
+smoother than M2a’s two-class background, BEB under M8 can have slightly
+more power.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>site  p_positive  mean_omega
+28    0.997807    3.464894
+51    0.950097    3.345570
+66    0.999223    3.468424
+87    0.985611    3.434331
+</pre></div>
+</div>
+<p>Four sites pass the conventional 0.95 posterior-probability threshold. Sites
+28, 66, and 87 are also recovered by M2a (tutorial 02); site 51 is new — it
+just clears 0.95 under M8 but not under M2a. <strong>Best practice:</strong> report
+candidate sites that clear 0.95 under <em>both</em> M2a and M8 as robust hits. Sites
+that appear in only one analysis are worth flagging but interpreting cautiously.</p>
+</section>
+<section id="step-7-what-if-m7-vs-m8-is-significant-but-m8a-vs-m8-is-not">
+<h2>Step 7: What if M7 vs M8 is significant but M8a vs M8 is not?<a class="headerlink" href="#step-7-what-if-m7-vs-m8-is-significant-but-m8a-vs-m8-is-not" title="Link to this heading"></a></h2>
+<p>Suppose the M7 vs M8 LRT is significant (p &lt; 0.05) but the M8a vs M8
+boundary test is not. What does that mean?</p>
+<p>M8 fits significantly better than M7, meaning there is a class of sites with
+ω different from the beta background — but M8a (ω₂ = 1) cannot be ruled out.
+In other words, the data support a separate class of sites, but that class
+could simply be neutral (ω = 1) rather than positively selected. <strong>Do not
+report positive selection in this case.</strong> The M8a vs M8 test exists precisely
+to catch this scenario and avoid the false positive that a naive M7 vs M8
+result would otherwise produce.</p>
+<p>In the HIV V3 dataset both tests are strongly significant, so the conclusion
+of positive selection is secure on two independent criteria.</p>
+</section>
+<section id="decision-summary">
+<h2>Decision summary<a class="headerlink" href="#decision-summary" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>M1a vs M2a</p></th>
+<th class="head"><p>M7 vs M8</p></th>
+<th class="head"><p>M8a vs M8</p></th>
+<th class="head"><p>Conclusion</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>not significant</p></td>
+<td><p>not significant</p></td>
+<td><p>—</p></td>
+<td><p>No positive selection detected.</p></td>
+</tr>
+<tr class="row-odd"><td><p>significant</p></td>
+<td><p>not significant</p></td>
+<td><p>—</p></td>
+<td><p>Positive selection suggested by M2a only; M7/M8 result inconclusive.</p></td>
+</tr>
+<tr class="row-even"><td><p>significant</p></td>
+<td><p>significant</p></td>
+<td><p>not significant</p></td>
+<td><p>A separate ω class exists but may be ω = 1; do <strong>not</strong> claim positive selection.</p></td>
+</tr>
+<tr class="row-odd"><td><p>significant</p></td>
+<td><p>significant</p></td>
+<td><p>significant</p></td>
+<td><p>Positive selection confirmed by all three tests (this HIV example).</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="what-next">
+<h2>What next?<a class="headerlink" href="#what-next" title="Link to this heading"></a></h2>
+<p>Running M7/M8/M8a by hand for a single gene is straightforward. Scaling the
+same workflow to hundreds of genes in a loop — with automated LRT decisions,
+BEB summary tables, and run provenance — is covered in:</p>
+<p><a class="reference internal" href="04_library_workflow.html"><span class="doc">Batch analysis &amp; library use (many genes, mitochondrial code)</span></a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="02_detecting_positive_selection.html" class="btn btn-neutral float-left" title="Detecting positive selection: the M1a vs M2a test with BEB" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="04_library_workflow.html" class="btn btn-neutral float-right" title="Batch analysis &amp; library use (many genes, mitochondrial code)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 Jacob L. Steenwyk.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,526 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Batch analysis &amp; library use (many genes, mitochondrial code) &mdash; selkit  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=d5a91742" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Usage" href="../usage/index.html" />
+    <link rel="prev" title="Beta-discretised ω and the M8a boundary test" href="03_beta_models_boundary_test.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            selkit
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#why-selkit">Why selkit?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#correctness">Correctness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#implementation-notes">Implementation notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#the-developers">The developers</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#available-tutorials">Available tutorials</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="01_first_run.html">Your first selkit run: validation + M0 baseline</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-1-install-selkit">Step 1: Install selkit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-2-download-the-toy-dataset">Step 2: Download the toy dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-3-validate-the-inputs">Step 3: Validate the inputs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-4-fit-the-m0-model">Step 4: Fit the M0 model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-5-interpret-the-console-output">Step 5: Interpret the console output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-6-inspect-the-output-files">Step 6: Inspect the output files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="02_detecting_positive_selection.html">Detecting positive selection: the M1a vs M2a test with BEB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#why-m0-is-not-enough">Why M0 is not enough</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#the-models-in-a-nutshell">The models in a nutshell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-2-fit-m0-m1a-and-m2a">Step 2: Fit M0, M1a, and M2a</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-3-interpret-the-console-summary">Step 3: Interpret the console summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-4-which-sites-beb-posterior-probabilities">Step 4: Which sites? BEB posterior probabilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-5-extract-significant-sites">Step 5: Extract significant sites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#python-api-one-liner">Python API one-liner</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="03_beta_models_boundary_test.html">Beta-discretised ω and the M8a boundary test</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#background-m7-m8-and-the-boundary-problem">Background: M7, M8, and the boundary problem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-2-fit-the-full-model-suite">Step 2: Fit the full model suite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-3-inspect-fits-tsv">Step 3: Inspect <code class="docutils literal notranslate"><span class="pre">fits.tsv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-4-interpret-lrts-tsv">Step 4: Interpret <code class="docutils literal notranslate"><span class="pre">lrts.tsv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-5-why-the-mixed-2-matters">Step 5: Why the mixed χ² matters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-6-bayes-empirical-bayes-site-posteriors-from-m8">Step 6: Bayes empirical Bayes site posteriors from M8</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-7-what-if-m7-vs-m8-is-significant-but-m8a-vs-m8-is-not">Step 7: What if M7 vs M8 is significant but M8a vs M8 is not?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#decision-summary">Decision summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Batch analysis &amp; library use (many genes, mitochondrial code)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#why-use-the-library-instead-of-the-cli">Why use the library instead of the CLI?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#library-entry-point">Library entry point</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#single-gene-library-call">Single-gene library call</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#batch-across-many-genes">Batch across many genes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gene-level-parallelism">Gene-level parallelism</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#non-standard-genetic-codes">Non-standard genetic codes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reproducing-a-run-later">Reproducing a run later</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#accessing-the-raw-dataclasses">Accessing the raw dataclasses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#what-next">What next?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#what-you-ll-learn">What you’ll learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#dataset-provenance">Dataset provenance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/index.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#command-line">Command line</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-validate"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">validate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-codeml-site-models"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site-models</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#library">Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#outputs">Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../validation/index.html">PAML validation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#corpus-cases">Corpus cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#extending-the-corpus">Extending the corpus</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#entry-point">Entry point</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#codeml_site_models"><code class="docutils literal notranslate"><span class="pre">codeml_site_models()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#dataclasses">Dataclasses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunResult"><code class="docutils literal notranslate"><span class="pre">RunResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ModelFit"><code class="docutils literal notranslate"><span class="pre">ModelFit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LRTResult"><code class="docutils literal notranslate"><span class="pre">LRTResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#BEBSite"><code class="docutils literal notranslate"><span class="pre">BEBSite</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#CodonAlignment"><code class="docutils literal notranslate"><span class="pre">CodonAlignment</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LabeledTree"><code class="docutils literal notranslate"><span class="pre">LabeledTree</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunConfig"><code class="docutils literal notranslate"><span class="pre">RunConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundConfig"><code class="docutils literal notranslate"><span class="pre">ForegroundConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundSpec"><code class="docutils literal notranslate"><span class="pre">ForegroundSpec</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#errors">Errors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitInputError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitInputError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConfigError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConfigError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitEngineError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitEngineError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConvergenceWarning"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConvergenceWarning</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../change_log/index.html">Change log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently asked questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#models-and-statistics">Models and statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#output">Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#development">Development</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../other_software/index.html">Other software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id1">ClipKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id2">PhyKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id3">BioKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id4">orthofisher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id5">orthosnap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#typical-pipeline">Typical pipeline</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">selkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Batch analysis &amp; library use (many genes, mitochondrial code)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/04_library_workflow.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="batch-analysis-library-use-many-genes-mitochondrial-code">
+<h1>Batch analysis &amp; library use (many genes, mitochondrial code)<a class="headerlink" href="#batch-analysis-library-use-many-genes-mitochondrial-code" title="Link to this heading"></a></h1>
+<p>This tutorial answers two questions that come up once you have worked through the
+single-gene CLI examples in tutorials 01–03:</p>
+<ol class="arabic simple">
+<li><p><em>I have hundreds or thousands of genes. How do I run selkit across all of them
+and collect the results in a structured way?</em></p></li>
+<li><p><em>My sequences are mitochondrial (or from another non-standard genetic code).
+How do I tell selkit?</em></p></li>
+</ol>
+<p><strong>Dataset:</strong> Same 13-taxon HIV envelope V3 alignment used throughout the tutorial
+series.  For the mitochondrial section the same file is reused as a pedagogical
+stand-in — the point is the flag, not the biology.</p>
+<p><strong>Audience:</strong> Someone comfortable writing Python who wants to move beyond the CLI
+for larger-scale or more customised analyses.</p>
+<section id="why-use-the-library-instead-of-the-cli">
+<h2>Why use the library instead of the CLI?<a class="headerlink" href="#why-use-the-library-instead-of-the-cli" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site-models</span></code> is a thin wrapper over the Python function
+<code class="docutils literal notranslate"><span class="pre">codeml_site_models</span></code>.  For a handful of genes the CLI is perfectly fine.  For
+hundreds or thousands of genes, calling the library directly is cheaper and more
+flexible:</p>
+<ul class="simple">
+<li><p>You control exactly which models are fitted per gene.</p></li>
+<li><p>You collect results directly into Python objects (no round-trip through TSV/JSON).</p></li>
+<li><p>You can customise starting values, convergence tolerances, and error handling.</p></li>
+<li><p>You can feed results straight into pandas, write a custom summary, or branch on
+the output mid-script without shelling out.</p></li>
+</ul>
+</section>
+<section id="library-entry-point">
+<h2>Library entry point<a class="headerlink" href="#library-entry-point" title="Link to this heading"></a></h2>
+<p>The entire public surface is importable from the top-level <code class="docutils literal notranslate"><span class="pre">selkit</span></code> package:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">selkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">codeml_site_models</span><span class="p">,</span> <span class="n">RunResult</span><span class="p">,</span> <span class="n">ModelFit</span><span class="p">,</span> <span class="n">LRTResult</span><span class="p">,</span> <span class="n">BEBSite</span>
+</pre></div>
+</div>
+<p>Brief description of each name:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">codeml_site_models</span></code> — the main entry point; fits one or more site models for a
+single alignment/tree pair and returns a <code class="docutils literal notranslate"><span class="pre">RunResult</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RunResult</span></code> — dataclass holding <code class="docutils literal notranslate"><span class="pre">fits</span></code>, <code class="docutils literal notranslate"><span class="pre">lrts</span></code>, and <code class="docutils literal notranslate"><span class="pre">beb</span></code> for a completed
+run.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ModelFit</span></code> — dataclass for a single fitted model: log-likelihood, parameters,
+branch lengths, convergence flag.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LRTResult</span></code> — dataclass for one likelihood-ratio test: null/alt model names,
+test statistic, p-value, significance flag.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BEBSite</span></code> — dataclass for a single codon’s Bayes Empirical Bayes result: site
+index (1-based), posterior probability of positive selection, posterior-mean ω.</p></li>
+</ul>
+<p>Full signature of <code class="docutils literal notranslate"><span class="pre">codeml_site_models</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">codeml_site_models</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">alignment</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">tree</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">models</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;M0&quot;</span><span class="p">,</span> <span class="s2">&quot;M1a&quot;</span><span class="p">,</span> <span class="s2">&quot;M2a&quot;</span><span class="p">,</span> <span class="s2">&quot;M7&quot;</span><span class="p">,</span> <span class="s2">&quot;M8&quot;</span><span class="p">,</span> <span class="s2">&quot;M8a&quot;</span><span class="p">),</span>
+    <span class="n">genetic_code</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;standard&quot;</span><span class="p">,</span>
+    <span class="n">foreground</span><span class="p">:</span> <span class="n">ForegroundSpec</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">n_starts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">convergence_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunResult</span>
+</pre></div>
+</div>
+<p>All arguments are keyword-only.  <code class="docutils literal notranslate"><span class="pre">output_dir</span></code> is created automatically if it does
+not exist.  <code class="docutils literal notranslate"><span class="pre">threads</span></code> parallelises model fitting <em>within a single gene</em> (see
+<a class="reference internal" href="#gene-level-parallelism">Gene-level parallelism</a> below for the recommended batch pattern).</p>
+</section>
+<section id="single-gene-library-call">
+<h2>Single-gene library call<a class="headerlink" href="#single-gene-library-call" title="Link to this heading"></a></h2>
+<p>Download the tutorial dataset if you have not already done so:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/hiv_13s/alignment.fa
+curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/hiv_13s/tree.nwk
+</pre></div>
+</div>
+<p>Then run selkit from Python:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">selkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">codeml_site_models</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">codeml_site_models</span><span class="p">(</span>
+    <span class="n">alignment</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;alignment.fa&quot;</span><span class="p">),</span>
+    <span class="n">tree</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;tree.nwk&quot;</span><span class="p">),</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;out/hiv_13s&quot;</span><span class="p">),</span>
+    <span class="n">models</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;M1a&quot;</span><span class="p">,</span> <span class="s2">&quot;M2a&quot;</span><span class="p">,</span> <span class="s2">&quot;M7&quot;</span><span class="p">,</span> <span class="s2">&quot;M8&quot;</span><span class="p">,</span> <span class="s2">&quot;M8a&quot;</span><span class="p">),</span>
+    <span class="n">n_starts</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">threads</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Summary of fits</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">fit</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: lnL = </span><span class="si">{</span><span class="n">fit</span><span class="o">.</span><span class="n">lnL</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">  converged = </span><span class="si">{</span><span class="n">fit</span><span class="o">.</span><span class="n">converged</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># LRT results</span>
+<span class="k">for</span> <span class="n">lrt</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">lrts</span><span class="p">:</span>
+    <span class="n">verdict</span> <span class="o">=</span> <span class="s2">&quot;significant&quot;</span> <span class="k">if</span> <span class="n">lrt</span><span class="o">.</span><span class="n">significant_at_0_05</span> <span class="k">else</span> <span class="s2">&quot;ns&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">lrt</span><span class="o">.</span><span class="n">null</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">lrt</span><span class="o">.</span><span class="n">alt</span><span class="si">:</span><span class="s2">&lt;3</span><span class="si">}</span><span class="s2">: p = </span><span class="si">{</span><span class="n">lrt</span><span class="o">.</span><span class="n">p_value</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">  (</span><span class="si">{</span><span class="n">verdict</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+<span class="c1"># Significant sites under M8</span>
+<span class="n">sig_m8</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">beb</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;M8&quot;</span><span class="p">,</span> <span class="p">[])</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">p_positive</span> <span class="o">&gt;=</span> <span class="mf">0.95</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;M8 BEB sites with P &gt;= 0.95: </span><span class="si">{</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">site</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">sig_m8</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Expected output:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>M1a: lnL = -1114.64  converged = True
+M2a: lnL = -1106.45  converged = True
+M7:  lnL = -1115.40  converged = True
+M8:  lnL = -1106.39  converged = True
+M8a: lnL = -1114.58  converged = True
+M1a vs M2a: p = 0.000276  (significant)
+M7  vs M8 : p = 0.000123  (significant)
+M8a vs M8 : p = 2.59e-05  (significant)
+M8 BEB sites with P &gt;= 0.95: [28, 51, 66, 87]
+</pre></div>
+</div>
+<p>The same output files (<code class="docutils literal notranslate"><span class="pre">results.json</span></code>, <code class="docutils literal notranslate"><span class="pre">fits.tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">lrts.tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">beb_*.tsv</span></code>,
+<code class="docutils literal notranslate"><span class="pre">run.yaml</span></code>) are written to <code class="docutils literal notranslate"><span class="pre">out/hiv_13s/</span></code> regardless of whether you use the CLI
+or the library — the two interfaces are identical in every respect except how you
+invoke them.</p>
+</section>
+<section id="batch-across-many-genes">
+<h2>Batch across many genes<a class="headerlink" href="#batch-across-many-genes" title="Link to this heading"></a></h2>
+<p>Assume your genes are laid out as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>genes/
+├── gene_A/
+│   ├── alignment.fa
+│   └── tree.nwk
+├── gene_B/
+│   ├── alignment.fa
+│   └── tree.nwk
+└── ...
+</pre></div>
+</div>
+<p>A sequential loop with basic error handling:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">selkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">codeml_site_models</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">selkit.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SelkitInputError</span>
+
+<span class="n">GENE_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;genes&quot;</span><span class="p">)</span>
+<span class="n">OUT_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;batch_out&quot;</span><span class="p">)</span>
+<span class="n">OUT_DIR</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">summary_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">GENE_DIR</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">gene</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="k">continue</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">codeml_site_models</span><span class="p">(</span>
+            <span class="n">alignment</span><span class="o">=</span><span class="n">gene</span> <span class="o">/</span> <span class="s2">&quot;alignment.fa&quot;</span><span class="p">,</span>
+            <span class="n">tree</span><span class="o">=</span><span class="n">gene</span> <span class="o">/</span> <span class="s2">&quot;tree.nwk&quot;</span><span class="p">,</span>
+            <span class="n">output_dir</span><span class="o">=</span><span class="n">OUT_DIR</span> <span class="o">/</span> <span class="n">gene</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">models</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;M1a&quot;</span><span class="p">,</span> <span class="s2">&quot;M2a&quot;</span><span class="p">,</span> <span class="s2">&quot;M7&quot;</span><span class="p">,</span> <span class="s2">&quot;M8&quot;</span><span class="p">,</span> <span class="s2">&quot;M8a&quot;</span><span class="p">),</span>
+            <span class="n">n_starts</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="n">SelkitInputError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gene</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: skipped — </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">continue</span>
+
+    <span class="n">m7_vs_m8</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">lrts</span> <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">null</span> <span class="o">==</span> <span class="s2">&quot;M7&quot;</span> <span class="ow">and</span> <span class="n">l</span><span class="o">.</span><span class="n">alt</span> <span class="o">==</span> <span class="s2">&quot;M8&quot;</span><span class="p">)</span>
+    <span class="n">sig_sites</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">site</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">beb</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;M8&quot;</span><span class="p">,</span> <span class="p">[])</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">p_positive</span> <span class="o">&gt;=</span> <span class="mf">0.95</span><span class="p">]</span>
+
+    <span class="n">summary_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+        <span class="s2">&quot;gene&quot;</span><span class="p">:</span> <span class="n">gene</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;lnL_M0&quot;</span><span class="p">:</span>  <span class="kc">None</span><span class="p">,</span>  <span class="c1"># not fit in this run</span>
+        <span class="s2">&quot;lnL_M8&quot;</span><span class="p">:</span>  <span class="n">result</span><span class="o">.</span><span class="n">fits</span><span class="p">[</span><span class="s2">&quot;M8&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lnL</span><span class="p">,</span>
+        <span class="s2">&quot;m7_vs_m8_p&quot;</span><span class="p">:</span> <span class="n">m7_vs_m8</span><span class="o">.</span><span class="n">p_value</span><span class="p">,</span>
+        <span class="s2">&quot;m7_vs_m8_sig&quot;</span><span class="p">:</span> <span class="n">m7_vs_m8</span><span class="o">.</span><span class="n">significant_at_0_05</span><span class="p">,</span>
+        <span class="s2">&quot;sig_sites&quot;</span><span class="p">:</span> <span class="n">sig_sites</span><span class="p">,</span>
+    <span class="p">})</span>
+
+<span class="c1"># Dump structured summary</span>
+<span class="p">(</span><span class="n">OUT_DIR</span> <span class="o">/</span> <span class="s2">&quot;summary.json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">summary_rows</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">SelkitInputError</span></code> is raised for problems that can be detected before any
+optimisation runs (malformed alignment, missing taxa, etc.).  Other exceptions
+propagate normally — catch <code class="docutils literal notranslate"><span class="pre">Exception</span></code> if you need a broader safety net for
+production pipelines.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">threads</span></code> parallelises model fitting <strong>within a single gene</strong> — at most six
+models run concurrently, so the ceiling is six threads.  For a batch of hundreds
+of genes, parallelising at the gene level (one selkit call per gene, <code class="docutils literal notranslate"><span class="pre">threads=1</span></code>
+each) almost always gives better total throughput.  See the next section.</p>
+</div>
+</section>
+<section id="gene-level-parallelism">
+<h2>Gene-level parallelism<a class="headerlink" href="#gene-level-parallelism" title="Link to this heading"></a></h2>
+<p>For medium-sized batches (tens to low hundreds of genes) <code class="docutils literal notranslate"><span class="pre">concurrent.futures</span></code>
+is the simplest option:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProcessPoolExecutor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">GENE_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;genes&quot;</span><span class="p">)</span>
+<span class="n">OUT_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;batch_out&quot;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fit_one</span><span class="p">(</span><span class="n">gene_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">selkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">codeml_site_models</span>  <span class="c1"># import inside worker process</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">codeml_site_models</span><span class="p">(</span>
+        <span class="n">alignment</span><span class="o">=</span><span class="n">gene_dir</span> <span class="o">/</span> <span class="s2">&quot;alignment.fa&quot;</span><span class="p">,</span>
+        <span class="n">tree</span><span class="o">=</span><span class="n">gene_dir</span> <span class="o">/</span> <span class="s2">&quot;tree.nwk&quot;</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="o">=</span><span class="n">OUT_DIR</span> <span class="o">/</span> <span class="n">gene_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">models</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;M1a&quot;</span><span class="p">,</span> <span class="s2">&quot;M2a&quot;</span><span class="p">,</span> <span class="s2">&quot;M7&quot;</span><span class="p">,</span> <span class="s2">&quot;M8&quot;</span><span class="p">,</span> <span class="s2">&quot;M8a&quot;</span><span class="p">),</span>
+        <span class="n">n_starts</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">m7_vs_m8</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">lrts</span> <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">null</span> <span class="o">==</span> <span class="s2">&quot;M7&quot;</span> <span class="ow">and</span> <span class="n">l</span><span class="o">.</span><span class="n">alt</span> <span class="o">==</span> <span class="s2">&quot;M8&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;gene&quot;</span><span class="p">:</span> <span class="n">gene_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="n">m7_vs_m8</span><span class="o">.</span><span class="n">p_value</span><span class="p">}</span>
+
+<span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_fit_one</span><span class="p">,</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">GENE_DIR</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]))</span>
+</pre></div>
+</div>
+<p>The import of <code class="docutils literal notranslate"><span class="pre">codeml_site_models</span></code> is placed inside the worker function to avoid
+pickling issues on some platforms.  Each worker runs one gene at <code class="docutils literal notranslate"><span class="pre">threads=1</span></code>; the
+eight workers together keep eight cores busy without contention.</p>
+<p>For large batches (thousands of genes) or HPC environments, use a job scheduler
+(Slurm, Nextflow, Snakemake) rather than <code class="docutils literal notranslate"><span class="pre">ProcessPoolExecutor</span></code>.  Schedulers
+provide checkpointing, job accounting, and automatic retries — none of which
+<code class="docutils literal notranslate"><span class="pre">ProcessPoolExecutor</span></code> offers out of the box.</p>
+</section>
+<section id="non-standard-genetic-codes">
+<h2>Non-standard genetic codes<a class="headerlink" href="#non-standard-genetic-codes" title="Link to this heading"></a></h2>
+<p>selkit currently ships two genetic codes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">standard</span></code> — NCBI translation table 1 (the default).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vertebrate_mitochondrial</span></code> — NCBI translation table 2.</p></li>
+</ul>
+<p>The codes differ in their stop-codon sets.  Under the vertebrate mitochondrial code,
+AGA and AGG are stop codons (they encode Arg in the standard code) and TGA encodes
+Trp (it is a stop in the standard code).</p>
+<p>To analyse mitochondrial-encoded genes, pass <code class="docutils literal notranslate"><span class="pre">--genetic-code</span></code> on the CLI:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>selkit<span class="w"> </span>codeml<span class="w"> </span>site-models<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--alignment<span class="w"> </span>mito_gene.fa<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--tree<span class="w"> </span>species.nwk<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span>out/<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--genetic-code<span class="w"> </span>vertebrate_mitochondrial
+</pre></div>
+</div>
+<p>Or set <code class="docutils literal notranslate"><span class="pre">genetic_code</span></code> in the library call:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">codeml_site_models</span><span class="p">(</span>
+    <span class="n">alignment</span><span class="o">=</span><span class="s2">&quot;mito_gene.fa&quot;</span><span class="p">,</span>
+    <span class="n">tree</span><span class="o">=</span><span class="s2">&quot;species.nwk&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;out/&quot;</span><span class="p">,</span>
+    <span class="n">genetic_code</span><span class="o">=</span><span class="s2">&quot;vertebrate_mitochondrial&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Your alignment must already be translated correctly for the chosen code.
+<code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">validate</span></code> (or the implicit validation inside <code class="docutils literal notranslate"><span class="pre">codeml_site_models</span></code>) will
+raise <code class="docutils literal notranslate"><span class="pre">SelkitInputError</span></code> if any codon that is a stop under the selected code
+appears in a non-terminal position.</p>
+<p>If you need a different NCBI translation table — invertebrate mitochondrial,
+echinoderm mitochondrial, etc. — file an issue on the selkit GitHub repository.
+Additional codes are tracked in Appendix A of the documentation.</p>
+</section>
+<section id="reproducing-a-run-later">
+<h2>Reproducing a run later<a class="headerlink" href="#reproducing-a-run-later" title="Link to this heading"></a></h2>
+<p>Every call to <code class="docutils literal notranslate"><span class="pre">codeml_site_models</span></code> writes a <code class="docutils literal notranslate"><span class="pre">run.yaml</span></code> file inside
+<code class="docutils literal notranslate"><span class="pre">output_dir</span></code>.  That file captures every input path, flag, seed, and tolerance
+used for the run.  To reproduce it exactly:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>selkit<span class="w"> </span>rerun<span class="w"> </span>out/hiv_13s/run.yaml<span class="w"> </span>--output<span class="w"> </span>out/hiv_13s_rerun
+</pre></div>
+</div>
+<p>A rerun on a different machine, or a year later, produces byte-identical log-
+likelihoods (modulo optimiser float-precision drift beyond the fourth decimal place).
+For archival purposes, committing <code class="docutils literal notranslate"><span class="pre">run.yaml</span></code> alongside your results is sufficient
+to document the full analysis.</p>
+</section>
+<section id="accessing-the-raw-dataclasses">
+<h2>Accessing the raw dataclasses<a class="headerlink" href="#accessing-the-raw-dataclasses" title="Link to this heading"></a></h2>
+<p>If you want to skip JSON I/O entirely, work with the <code class="docutils literal notranslate"><span class="pre">RunResult</span></code> object directly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">selkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunResult</span><span class="p">,</span> <span class="n">ModelFit</span>
+
+<span class="c1"># `result` is the object returned by codeml_site_models()</span>
+<span class="n">m2a_fit</span><span class="p">:</span> <span class="n">ModelFit</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">fits</span><span class="p">[</span><span class="s2">&quot;M2a&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">m2a_fit</span><span class="p">))</span>           <span class="c1"># selkit.io.results.ModelFit</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">m2a_fit</span><span class="o">.</span><span class="n">branch_lengths</span><span class="p">)</span>  <span class="c1"># dict keyed by bl_&lt;node_id&gt;</span>
+</pre></div>
+</div>
+<p>All fields are plain Python types (floats, dicts, lists) — no custom serialisation
+required.  See <a class="reference internal" href="../api/index.html"><span class="doc">API reference</span></a> for the complete schema of every dataclass.</p>
+</section>
+<section id="what-next">
+<h2>What next?<a class="headerlink" href="#what-next" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="01_first_run.html"><span class="doc">Your first selkit run: validation + M0 baseline</span></a> — M0 baseline and output file tour.</p></li>
+<li><p><a class="reference internal" href="02_detecting_positive_selection.html"><span class="doc">Detecting positive selection: the M1a vs M2a test with BEB</span></a> — M1a vs M2a LRT and BEB analysis.</p></li>
+<li><p><a class="reference internal" href="03_beta_models_boundary_test.html"><span class="doc">Beta-discretised ω and the M8a boundary test</span></a> — M7/M8/M8a and the boundary test.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="03_beta_models_boundary_test.html" class="btn btn-neutral float-left" title="Beta-discretised ω and the M8a boundary test" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../usage/index.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 Jacob L. Steenwyk.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

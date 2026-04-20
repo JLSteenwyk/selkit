@@ -1,0 +1,385 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your first selkit run: validation + M0 baseline &mdash; selkit  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=d5a91742" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Detecting positive selection: the M1a vs M2a test with BEB" href="02_detecting_positive_selection.html" />
+    <link rel="prev" title="Tutorials" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            selkit
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#why-selkit">Why selkit?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#correctness">Correctness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#implementation-notes">Implementation notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#the-developers">The developers</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#available-tutorials">Available tutorials</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Your first selkit run: validation + M0 baseline</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#step-1-install-selkit">Step 1: Install selkit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-2-download-the-toy-dataset">Step 2: Download the toy dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-3-validate-the-inputs">Step 3: Validate the inputs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-4-fit-the-m0-model">Step 4: Fit the M0 model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-5-interpret-the-console-output">Step 5: Interpret the console output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-6-inspect-the-output-files">Step 6: Inspect the output files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="02_detecting_positive_selection.html">Detecting positive selection: the M1a vs M2a test with BEB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#why-m0-is-not-enough">Why M0 is not enough</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#the-models-in-a-nutshell">The models in a nutshell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-2-fit-m0-m1a-and-m2a">Step 2: Fit M0, M1a, and M2a</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-3-interpret-the-console-summary">Step 3: Interpret the console summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-4-which-sites-beb-posterior-probabilities">Step 4: Which sites? BEB posterior probabilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-5-extract-significant-sites">Step 5: Extract significant sites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#python-api-one-liner">Python API one-liner</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="03_beta_models_boundary_test.html">Beta-discretised ω and the M8a boundary test</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#background-m7-m8-and-the-boundary-problem">Background: M7, M8, and the boundary problem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-2-fit-the-full-model-suite">Step 2: Fit the full model suite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-3-inspect-fits-tsv">Step 3: Inspect <code class="docutils literal notranslate"><span class="pre">fits.tsv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-4-interpret-lrts-tsv">Step 4: Interpret <code class="docutils literal notranslate"><span class="pre">lrts.tsv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-5-why-the-mixed-2-matters">Step 5: Why the mixed χ² matters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-6-bayes-empirical-bayes-site-posteriors-from-m8">Step 6: Bayes empirical Bayes site posteriors from M8</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-7-what-if-m7-vs-m8-is-significant-but-m8a-vs-m8-is-not">Step 7: What if M7 vs M8 is significant but M8a vs M8 is not?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#decision-summary">Decision summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="04_library_workflow.html">Batch analysis &amp; library use (many genes, mitochondrial code)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#why-use-the-library-instead-of-the-cli">Why use the library instead of the CLI?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#library-entry-point">Library entry point</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#single-gene-library-call">Single-gene library call</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#batch-across-many-genes">Batch across many genes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#gene-level-parallelism">Gene-level parallelism</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#non-standard-genetic-codes">Non-standard genetic codes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#reproducing-a-run-later">Reproducing a run later</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#accessing-the-raw-dataclasses">Accessing the raw dataclasses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#what-next">What next?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#what-you-ll-learn">What you’ll learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#dataset-provenance">Dataset provenance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/index.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#command-line">Command line</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-validate"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">validate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-codeml-site-models"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site-models</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#library">Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#outputs">Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../validation/index.html">PAML validation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#corpus-cases">Corpus cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#extending-the-corpus">Extending the corpus</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#entry-point">Entry point</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#codeml_site_models"><code class="docutils literal notranslate"><span class="pre">codeml_site_models()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#dataclasses">Dataclasses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunResult"><code class="docutils literal notranslate"><span class="pre">RunResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ModelFit"><code class="docutils literal notranslate"><span class="pre">ModelFit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LRTResult"><code class="docutils literal notranslate"><span class="pre">LRTResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#BEBSite"><code class="docutils literal notranslate"><span class="pre">BEBSite</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#CodonAlignment"><code class="docutils literal notranslate"><span class="pre">CodonAlignment</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LabeledTree"><code class="docutils literal notranslate"><span class="pre">LabeledTree</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunConfig"><code class="docutils literal notranslate"><span class="pre">RunConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundConfig"><code class="docutils literal notranslate"><span class="pre">ForegroundConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundSpec"><code class="docutils literal notranslate"><span class="pre">ForegroundSpec</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#errors">Errors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitInputError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitInputError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConfigError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConfigError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitEngineError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitEngineError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConvergenceWarning"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConvergenceWarning</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../change_log/index.html">Change log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently asked questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#models-and-statistics">Models and statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#output">Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#development">Development</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../other_software/index.html">Other software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id1">ClipKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id2">PhyKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id3">BioKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id4">orthofisher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id5">orthosnap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#typical-pipeline">Typical pipeline</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">selkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Your first selkit run: validation + M0 baseline</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/01_first_run.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="your-first-selkit-run-validation-m0-baseline">
+<h1>Your first selkit run: validation + M0 baseline<a class="headerlink" href="#your-first-selkit-run-validation-m0-baseline" title="Link to this heading"></a></h1>
+<p>This tutorial walks you from <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">selkit</span></code> to a validated codon alignment
+and a fitted M0 (one-ratio) model. By the end you will know the average dN/dS (ω)
+across the alignment and understand what that number means — and what it does <em>not</em>
+tell you about site-specific selection.</p>
+<p><strong>Dataset:</strong> 13-taxon HIV envelope V3 codon alignment (91 codons) from the
+<code class="docutils literal notranslate"><span class="pre">HIVNSsites</span></code> example distributed with PAML.</p>
+<p><strong>Hypothesis answered:</strong> <em>What is the average ω across my alignment? Is there a
+single signal of purifying, neutral, or positive selection averaged over all sites?</em></p>
+<section id="step-1-install-selkit">
+<h2>Step 1: Install selkit<a class="headerlink" href="#step-1-install-selkit" title="Link to this heading"></a></h2>
+<p>Requires Python 3.11 or newer.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>selkit
+</pre></div>
+</div>
+<p>Confirm the install:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>selkit<span class="w"> </span>--version
+</pre></div>
+</div>
+</section>
+<section id="step-2-download-the-toy-dataset">
+<h2>Step 2: Download the toy dataset<a class="headerlink" href="#step-2-download-the-toy-dataset" title="Link to this heading"></a></h2>
+<p>The tutorial uses a 13-taxon, 91-codon HIV envelope alignment (roughly 8 KB each).</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># with curl</span>
+curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/hiv_13s/alignment.fa
+curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/hiv_13s/tree.nwk
+
+<span class="c1"># or with wget</span>
+wget<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/hiv_13s/alignment.fa
+wget<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/hiv_13s/tree.nwk
+</pre></div>
+</div>
+<p>After downloading you should have two files in the current directory:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">alignment.fa</span></code> — 13 sequences, each 273 nucleotides (91 codons).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tree.nwk</span></code> — unrooted Newick tree with 13 tips.</p></li>
+</ul>
+</section>
+<section id="step-3-validate-the-inputs">
+<h2>Step 3: Validate the inputs<a class="headerlink" href="#step-3-validate-the-inputs" title="Link to this heading"></a></h2>
+<p>Always validate before fitting. Validation is fast (milliseconds) and catches
+problems before you spend minutes or hours on an optimisation run.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>selkit<span class="w"> </span>validate<span class="w"> </span>--alignment<span class="w"> </span>alignment.fa<span class="w"> </span>--tree<span class="w"> </span>tree.nwk
+</pre></div>
+</div>
+<p>Expected output:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>OK: 13 taxa, 91 codons, genetic code = standard
+</pre></div>
+</div>
+<p>This single line confirms all four of:</p>
+<ol class="arabic simple">
+<li><p>The alignment parses as a valid codon alignment (FASTA auto-detected).</p></li>
+<li><p>Every sequence length is a multiple of 3.</p></li>
+<li><p>No mid-sequence stop codons are present.</p></li>
+<li><p>The set of taxon names in the alignment exactly matches the tip labels in the tree.</p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">validate</span></code> exits with code <strong>0</strong> on success and <strong>1</strong> on any error, making
+it composable in shell pipelines and CI. If your alignment has a problem — a taxon
+name typo, a frame-shifted sequence, an accidental stop codon — the error message
+names the exact issue before any model is fitted.</p>
+<figure class="align-center" id="id1">
+<a class="reference internal image-reference" href="../_images/workflow.png"><img alt="../_images/workflow.png" src="../_images/workflow.png" style="width: 90%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">selkit pipeline: inputs → validate → fit → outputs.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="step-4-fit-the-m0-model">
+<h2>Step 4: Fit the M0 model<a class="headerlink" href="#step-4-fit-the-m0-model" title="Link to this heading"></a></h2>
+<p>M0 (the “one-ratio” model) estimates a single ω shared by every site and every
+branch. It is the simplest possible model and the right starting point.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>selkit<span class="w"> </span>codeml<span class="w"> </span>site-models<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--alignment<span class="w"> </span>alignment.fa<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--tree<span class="w"> </span>tree.nwk<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span>results/<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--models<span class="w"> </span>M0<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--n-starts<span class="w"> </span><span class="m">3</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">0</span>
+</pre></div>
+</div>
+<p>Flags used:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--models</span> <span class="pre">M0</span></code> — fit M0 only (default bundle is M0 + M1a + M2a + M7 + M8 + M8a).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--n-starts</span> <span class="pre">3</span></code> — run 3 independent L-BFGS-B starts and keep the best.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--seed</span> <span class="pre">0</span></code> — deterministic starting values; reproduce this exact run anytime.</p></li>
+</ul>
+<p>Expected runtime: approximately <strong>8 seconds</strong> on a laptop.</p>
+</section>
+<section id="step-5-interpret-the-console-output">
+<h2>Step 5: Interpret the console output<a class="headerlink" href="#step-5-interpret-the-console-output" title="Link to this heading"></a></h2>
+<p>selkit prints a summary table when the run completes:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>              selkit codeml site-models
+┏━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┓
+┃ model ┃ lnL       ┃ omega (or omega2) ┃ converged ┃
+┡━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━┩
+│ M0    │ -1137.688 │ 0.9013            │ yes       │
+└───────┴───────────┴───────────────────┴───────────┘
+</pre></div>
+</div>
+<p>Reading the columns:</p>
+<ul class="simple">
+<li><p><strong>lnL</strong> — log-likelihood at the optimum (−1137.688).</p></li>
+<li><p><strong>omega</strong> — the single fitted ω (0.9013).</p></li>
+<li><p><strong>converged</strong> — the top-2 starts agreed within the convergence tolerance.</p></li>
+</ul>
+<p><strong>What does ω ≈ 0.90 mean?</strong></p>
+<p>ω is the ratio of non-synonymous to synonymous substitution rates (dN/dS). A value
+just below 1 means the <em>average</em> substitution rate across all sites is nearly
+neutral. This is a common pattern for surface-exposed viral genes: most sites are
+under purifying selection (ω &lt;&lt; 1), a few are effectively neutral (ω ≈ 1), and a
+subset may be under positive selection (ω &gt; 1). M0 collapses all of that into one
+number, so ω = 0.90 does not rule out positive selection at individual sites.</p>
+<p>Additional fitted parameters: κ (transition/transversion ratio) = 2.47. The model
+also optimises 23 branch lengths jointly with ω and κ, for 25 free parameters total.</p>
+</section>
+<section id="step-6-inspect-the-output-files">
+<h2>Step 6: Inspect the output files<a class="headerlink" href="#step-6-inspect-the-output-files" title="Link to this heading"></a></h2>
+<p>selkit writes four files to <code class="docutils literal notranslate"><span class="pre">results/</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>results/
+├── results.json     # canonical output (all fits, params, branch lengths)
+├── fits.tsv         # tabular summary of model fits
+├── lrts.tsv         # likelihood-ratio tests (empty for a single-model run)
+└── run.yaml         # full config; reproduce with: selkit rerun run.yaml
+</pre></div>
+</div>
+<p>The TSV is convenient for quick inspection:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cat<span class="w"> </span>results/fits.tsv
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>model       lnL     n_params        converged       runtime_s       params
+M0  -1137.688190    25      true    7.884   {&quot;kappa&quot;: 2.4717276201319955, &quot;omega&quot;: 0.9012852324746679}
+</pre></div>
+</div>
+<p>Notes on the columns:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">n_params</span> <span class="pre">=</span> <span class="pre">25</span></code> — 1 ω + 1 κ + 23 branch lengths, all optimised jointly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lrts.tsv</span></code> is empty because a single-model run has no null/alt pair to test.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run.yaml</span></code> captures every flag and seed; run <code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span> <span class="pre">results/run.yaml</span></code>
+to reproduce this exact analysis on any machine.</p></li>
+</ul>
+</section>
+<section id="what-next">
+<h2>What next?<a class="headerlink" href="#what-next" title="Link to this heading"></a></h2>
+<p>M0 answers the question “what is the average ω?” but a per-site heterogeneity test
+is needed to answer “are <em>some</em> sites under positive selection even when the average
+is not above 1?”. That is the subject of the next tutorial, which fits M1a and M2a
+and runs the likelihood-ratio test:</p>
+<p><a class="reference internal" href="02_detecting_positive_selection.html"><span class="doc">Detecting positive selection: the M1a vs M2a test with BEB</span></a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="02_detecting_positive_selection.html" class="btn btn-neutral float-right" title="Detecting positive selection: the M1a vs M2a test with BEB" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 Jacob L. Steenwyk.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
