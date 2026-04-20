@@ -1,0 +1,40 @@
+{
+  "source": "PAML 4.10.10 codeml on examples/HIVNSsites/HIVenvSweden.txt (13 taxa, 91 codons)",
+  "fits": {
+    "M0": {
+      "lnL": -1137.688190,
+      "params": {
+        "omega": 0.90129,
+        "kappa": 2.47175
+      }
+    },
+    "M1a": {
+      "lnL": -1114.641736,
+      "params": {
+        "omega0": 0.07885,
+        "kappa": 2.59461
+      }
+    },
+    "M2a": {
+      "lnL": -1106.445004,
+      "params": {
+        "omega0": 0.05998,
+        "omega2": 3.62564,
+        "kappa": 2.78555
+      }
+    },
+    "M7": {
+      "lnL": -1115.395312,
+      "params": {
+        "kappa": 2.56066
+      }
+    },
+    "M8": {
+      "lnL": -1106.388268,
+      "params": {
+        "omega2": 3.47036,
+        "kappa": 2.78690
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "source": "PAML 4.10.10 codeml on examples/HIVNSsites/HIVenvSweden4s.txt",
+  "fits": {
+    "M0": {
+      "lnL": -519.411597,
+      "params": {
+        "omega": 1.45661,
+        "kappa": 3.00807
+      }
+    },
+    "M1a": {
+      "lnL": -519.227259,
+      "params": {
+        "omega0": 0.00000,
+        "kappa": 3.01566
+      }
+    },
+    "M2a": {
+      "lnL": -517.562046,
+      "params": {
+        "omega0": 0.86612,
+        "omega2": 6.85808,
+        "kappa": 3.37068
+      }
+    }
+  }
+}

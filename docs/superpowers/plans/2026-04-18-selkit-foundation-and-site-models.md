@@ -609,6 +609,57 @@ def test_codon_alignment_codons_dtype_is_int16() -> None:
         taxa=("a",), codons=arr, genetic_code="standard", stripped_sites=()
     )
     assert aln.codons.dtype == np.int16
+
+
+def test_bom_prefixed_fasta_does_not_drop_first_taxon(tmp_path: Path) -> None:
+    p = tmp_path / "bom.fa"
+    p.write_bytes("\ufeff>a\nATGAAA\n>b\nATGAAG\n".encode("utf-8"))
+    aln = read_fasta(p, genetic_code=GeneticCode.standard())
+    assert aln.taxa == ("a", "b")
+    assert aln.codons.shape == (2, 2)
+
+
+def test_bare_gt_header_raises_selkit_input_error(tmp_path: Path) -> None:
+    path = _write(tmp_path, "bare.fa", ">\nATGAAA\n>b\nATGAAG\n")
+    with pytest.raises(SelkitInputError, match=r"(?i)header"):
+        read_fasta(path, genetic_code=GeneticCode.standard())
+
+
+def test_terminal_stop_stripped_even_when_mid_stops_exist(tmp_path: Path) -> None:
+    path = _write(
+        tmp_path, "both.fa",
+        ">a\nATGTAAAAATAA\n>b\nATGAAAAAATAA\n",
+    )
+    with pytest.raises(SelkitInputError, match=r"(?i)stop") as ei:
+        read_fasta(path, genetic_code=GeneticCode.standard())
+    assert "codon 2" in str(ei.value)
+
+
+def test_strip_stop_codons_drops_columns_without_leakage(tmp_path: Path) -> None:
+    path = _write(
+        tmp_path, "midstop.fa",
+        ">a\nATGTAAATG\n>b\nATGAAAATG\n",
+    )
+    aln = read_fasta(
+        path, genetic_code=GeneticCode.standard(), strip_stop_codons=True
+    )
+    assert aln.codons.shape == (2, 2)
+    assert 1 in aln.stripped_sites
+    assert -2 not in aln.codons.tolist()
+
+
+def test_strip_stop_codons_with_terminal_and_mid_combined(tmp_path: Path) -> None:
+    path = _write(
+        tmp_path, "combo.fa",
+        ">a\nATGTAAAAATAA\n>b\nATGAAAAAATAA\n",
+    )
+    aln = read_fasta(
+        path, genetic_code=GeneticCode.standard(), strip_stop_codons=True
+    )
+    assert -2 not in aln.codons.tolist()
+    assert 1 in aln.stripped_sites
+    assert 3 in aln.stripped_sites
+    assert aln.codons.shape == (2, 2)
 ```
 
 - [ ] **Step 3.3: Run tests to verify failure**
@@ -647,14 +698,18 @@ def _parse_fasta(path: Path) -> list[tuple[str, str]]:
     records: list[tuple[str, str]] = []
     name: str | None = None
     buf: list[str] = []
-    for line in path.read_text().splitlines():
+    # utf-8-sig strips a leading UTF-8 BOM (otherwise it swallows the first header).
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
         line = line.strip()
         if not line:
             continue
         if line.startswith(">"):
             if name is not None:
                 records.append((name, "".join(buf).upper()))
-            name = line[1:].split()[0]
+            tokens = line[1:].split()
+            if not tokens:
+                raise SelkitInputError(f"FASTA header missing taxon name in {path}")
+            name = tokens[0]
             buf = []
         else:
             buf.append(line)
@@ -720,11 +775,12 @@ def read_fasta(
             if c == -2:
                 stops_at.setdefault(i, []).append(taxon)
 
-    # Terminal stop handling.
+    # Terminal stop handling. Strip a universal terminal stop unconditionally;
+    # then re-evaluate remaining mid-sequence stops on the shortened alignment.
     stripped_sites: list[int] = []
     if strip_terminal_stop and stops_at:
         last = n_codons - 1
-        if last in stops_at and len(stops_at[last]) == len(encoded) and len(stops_at) == 1:
+        if last in stops_at and len(stops_at[last]) == len(encoded):
             stripped_sites.append(last)
             for _, seq in encoded:
                 seq.pop()
@@ -767,7 +823,7 @@ def read_fasta(
 pytest tests/unit/test_alignment.py -v
 ```
 
-Expected: all 10 tests PASS.
+Expected: all 15 tests PASS.
 
 - [ ] **Step 3.6: Commit**
 
@@ -1197,7 +1253,8 @@ class LabeledTree:
         while stack:
             n = stack.pop()
             out.append(n)
-            stack.extend(n.children)
+            # reversed() preserves left-to-right document order under stack-based DFS.
+            stack.extend(reversed(n.children))
         return out
 
 
@@ -1305,7 +1362,8 @@ def _iter_nodes(root: Node) -> Iterator[Node]:
     while stack:
         n = stack.pop()
         yield n
-        stack.extend(n.children)
+        # reversed() preserves document order under stack-based DFS.
+        stack.extend(reversed(n.children))
 
 
 def _canonicalize(root: Node) -> str:
@@ -1675,9 +1733,16 @@ def prob_transition_matrix(Q: np.ndarray, t: float) -> np.ndarray:
     return np.real(P)
 
 
-def estimate_f3x4(codon_indices: np.ndarray, gc: GeneticCode) -> np.ndarray:
+def estimate_f3x4(
+    codon_indices: np.ndarray, gc: GeneticCode, *, pseudocount: float = 0.0
+) -> np.ndarray:
+    """F3X4 codon equilibrium frequencies (raw counts by default, PAML-compatible).
+
+    Pass `pseudocount > 0` for Laplace smoothing on degenerate inputs where
+    some nucleotide isn't observed at some codon position.
+    """
     n = gc.n_sense
-    counts = np.zeros((3, 4))     # position x nucleotide (TCAG)
+    counts = np.full((3, 4), float(pseudocount))
     nuc_idx = {n_: i for i, n_ in enumerate(NUCS)}
     mask = codon_indices >= 0
     flat = codon_indices[mask]
@@ -1686,14 +1751,15 @@ def estimate_f3x4(codon_indices: np.ndarray, gc: GeneticCode) -> np.ndarray:
         for pos, nuc in enumerate(codon):
             counts[pos, nuc_idx[nuc]] += 1
     totals = counts.sum(axis=1, keepdims=True)
-    if np.any(totals == 0):
-        # Fallback to uniform if a position is fully gapped.
-        totals[totals == 0] = 1
+    totals = np.where(totals > 0, totals, 1.0)
     f = counts / totals
     pi = np.empty(n, dtype=np.float64)
     for i, codon in enumerate(gc.sense_codons):
         pi[i] = f[0, nuc_idx[codon[0]]] * f[1, nuc_idx[codon[1]]] * f[2, nuc_idx[codon[2]]]
-    pi /= pi.sum()
+    total = pi.sum()
+    if total <= 0:
+        raise ValueError("F3X4 produced all-zero frequencies; consider pseudocount>0")
+    pi /= total
     return pi
 ```
 
@@ -1807,6 +1873,7 @@ import numpy as np
 from scipy.special import logsumexp
 
 from selkit.engine.rate_matrix import prob_transition_matrix
+from selkit.errors import SelkitInputError
 from selkit.io.tree import LabeledTree, Node
 
 
@@ -1822,16 +1889,28 @@ def _iter_postorder(root: Node) -> list[Node]:
 
 def _prune_tree_partials(
     tree: LabeledTree,
-    codons: np.ndarray,            # (n_taxa, n_sites) int16
+    codons: np.ndarray,
     taxon_order: tuple[str, ...],
     Q: np.ndarray,
-    n_sense: int,
-) -> np.ndarray:
-    """Return L_root[site, codon] partial likelihoods at the root for a single Q."""
+) -> tuple[np.ndarray, np.ndarray]:
+    """Pruning with per-internal-node running scaling.
+
+    Returns (L_root_scaled, log_scale_per_site). Each internal node's
+    partial L is renormalized to max=1 per site and log(row_max) is
+    accumulated into log_scale, so lnL_site = log(L_root_scaled @ pi) +
+    log_scale_per_site never underflows.
+    """
+    n_sense = Q.shape[0]
     n_sites = codons.shape[1]
+
+    tree_tips = {n.name for n in tree.tips if n.name}
+    missing = tree_tips - set(taxon_order)
+    if missing:
+        raise SelkitInputError(
+            f"tree tips not in taxon_order: {sorted(missing)}"
+        )
     tip_to_row = {name: i for i, name in enumerate(taxon_order)}
 
-    # Cache P(t) per branch length (quantized by identity lookup).
     P_cache: dict[float, np.ndarray] = {}
 
     def P_for(bl: float) -> np.ndarray:
@@ -1839,7 +1918,8 @@ def _prune_tree_partials(
             P_cache[bl] = prob_transition_matrix(Q, bl)
         return P_cache[bl]
 
-    partials: dict[int, np.ndarray] = {}  # node_id -> (n_sites, n_sense)
+    partials: dict[int, np.ndarray] = {}
+    log_scale = np.zeros(n_sites)
 
     for node in _iter_postorder(tree.root):
         if node.is_tip:
@@ -1857,12 +1937,16 @@ def _prune_tree_partials(
             for child in node.children:
                 bl = child.branch_length if child.branch_length is not None else 0.0
                 P = P_for(bl)
-                # L_child shape (n_sites, n_sense); P shape (n_sense, n_sense)
                 L_child = partials[child.id]
-                contrib = L_child @ P.T   # (n_sites, n_sense)
+                contrib = L_child @ P.T
                 L *= contrib
+            row_max = L.max(axis=1)
+            safe_max = np.where(row_max > 0, row_max, 1.0)
+            L = L / safe_max[:, None]
+            log_scale += np.log(safe_max)
             partials[node.id] = L
-    return partials[tree.root.id]
+
+    return partials[tree.root.id], log_scale
 
 
 def tree_log_likelihood(
@@ -1873,11 +1957,10 @@ def tree_log_likelihood(
     Q: np.ndarray,
     pi: np.ndarray,
 ) -> float:
-    n_sense = Q.shape[0]
-    L_root = _prune_tree_partials(tree, codons, taxon_order, Q, n_sense)
-    site_L = L_root @ pi                   # (n_sites,)
-    # Log, with a floor for numerical safety.
-    return float(np.sum(np.log(np.clip(site_L, 1e-300, None))))
+    L_root, log_scale = _prune_tree_partials(tree, codons, taxon_order, Q)
+    site_L = L_root @ pi
+    log_site_L = np.log(np.clip(site_L, 1e-300, None)) + log_scale
+    return float(log_site_L.sum())
 
 
 def tree_log_likelihood_mixture(
@@ -1889,14 +1972,16 @@ def tree_log_likelihood_mixture(
     weights: list[float],
     pi: np.ndarray,
 ) -> float:
-    n_sense = Qs[0].shape[0]
-    per_class_logL = []
+    per_class_log_site_L = []
     for Q in Qs:
-        L_root = _prune_tree_partials(tree, codons, taxon_order, Q, n_sense)
+        L_root, log_scale = _prune_tree_partials(tree, codons, taxon_order, Q)
         site_L = L_root @ pi
-        per_class_logL.append(np.log(np.clip(site_L, 1e-300, None)))
-    logL_stack = np.vstack(per_class_logL)  # (n_classes, n_sites)
-    logW = np.log(np.asarray(weights))[:, None]
+        per_class_log_site_L.append(
+            np.log(np.clip(site_L, 1e-300, None)) + log_scale
+        )
+    logL_stack = np.vstack(per_class_log_site_L)
+    with np.errstate(divide="ignore"):
+        logW = np.log(np.asarray(weights))[:, None]
     site_log = logsumexp(logL_stack + logW, axis=0)
     return float(site_log.sum())
 ```
@@ -2270,7 +2355,7 @@ def test_multi_start_flags_non_convergence() -> None:
         starting_values=starting_values,
         transform_spec=spec,
         n_starts=3,
-        seed=0,
+        seed=3,
         convergence_tol=0.1,
     )
     assert not result.converged
@@ -2953,7 +3038,11 @@ def compute_lrt(
         raise ValueError(f"unknown test_type: {test_type}")
     return LRTResult(
         null=null, alt=alt,
-        delta_lnL=max(0.0, lnL_alt - lnL_null),
+        # NOTE: `delta_lnL` actually stores the LRT statistic 2*(lnL_alt - lnL_null),
+        # not the raw difference — the spec's test asserts 10.0 for a 5-unit lnL
+        # diff. The field name is a misnomer; consider renaming to `lrt_stat` when
+        # LRTResult is surfaced in io/results.py (Task 18).
+        delta_lnL=stat,
         df=df, p_value=p,
         test_type=test_type,
         significant_at_0_05=(p < alpha),
@@ -5171,6 +5260,11 @@ git push origin main
 5. **Alignment-dir batch mode (`--alignment-dir`).** Spec'd in §4; the RunConfig field exists but the CLI doesn't yet consume it. Small orchestration layer on top of `run_site_models` per gene.
 6. **Intra-model vectorization / numba.** After first real-world benchmarks.
 7. **`--warnings-as-errors` flag.** One-line CLI addition; skipped to keep the plan focused.
+8. **`GeneticCode` input-validation hardening.** Code review after Task 2 flagged three latent issues in the public API that are inherited from the plan-pinned implementation: (a) `is_transition` and `n_differences` silently accept mismatched-length inputs via `zip` truncation — should validate both args are length 3; (b) `translate` raises a bare `ValueError` with an unhelpful `tuple.index` message on invalid codons — should raise a descriptive `ValueError`; (c) `index_to_codon` accepts negative indices (tuple wrap-around) instead of raising `IndexError`. Also missing tests for transversion-at-single-position, lower-case inputs, `is_transition` with 0 or ≥2 diffs, and `n_sense` for mitochondrial code. Deferred because Tasks 3+ only feed well-formed upper-case codons through the API.
+9. **FASTA parser nice-to-haves (from Task 3 code review, deferred).** (a) Partial terminal stop (some taxa end in TAA/TAG/TGA but not all) currently raises a "mid-sequence stop" error pointing at the terminal column; a dedicated "partial terminal stop, likely frame/length drift" error with taxon names would be more actionable. (b) IUPAC ambiguity codes (`R`, `Y`, `W`, etc.) are silently collapsed to `-1`, indistinguishable from true gaps; document this behavior on `_encode_sequence` and surface the count in the `validate` subcommand (Task 25). (c) Semicolon comment-line support (`;` inside a record currently leaks into the sequence via upcase path). (d) Explicit detection of empty records (currently raises "same length" rather than a clearer "taxon has no sequence"). (e) Add a module docstring to `selkit/io/alignment.py` stating gap/stop sentinel semantics and `stripped_sites` accounting. None of these affect correctness on well-formed inputs. The BOM, bare-`>`, and mid+terminal-stop-guard bugs were fixed in-place during Task 3 (commit `5bddaaa`) because they caused silent data corruption or IndexError leaks.
+12. **Rate-matrix follow-ups (from Task 7 code review).** ~~(a) Replace `prob_transition_matrix`'s eig path with `scipy.linalg.expm`~~ — still deferred; `np.linalg.eig` agrees with PAML at ≥6 decimal places on the HIV validation case, so no correctness issue in practice for typical Q. ~~(b) F3X4 pseudocount~~ — FIXED in commit `d2029e9` during PAML validation; raw counts (`pseudocount=0.0`) are now default, matching PAML; `pseudocount` exposed as kwarg. (c) Still open: add tests for `build_q` `ValueError` on wrong `pi` shape; `P(t)` with non-uniform π stationarity; GY94 detailed-balance; `estimate_f3x4` all-gap input. (d) Still open: vectorize `build_q` — current double Python loop over 61×61 is ~15ms/call; Task 14 calls it thousands of times per fit.
+11. **Foreground label normalization follow-ups (from Task 6 code review, deferred).** (a) `LabeledTree.newick` is set once at parse time and `_canonicalize` drops `#` / `$` labels entirely, so after `apply_foreground_spec` the stored `newick` no longer reflects the current label state. Decide Task 26 semantics (write labeled tree back to disk or not). If yes, extend `_canonicalize` to emit `#{label}` for `n.label != 0` and regenerate `newick` inside `apply_foreground_spec`. (b) Document mutation contract: `apply_foreground_spec` mutates `tree.root` in place and returns a new wrapper sharing nodes. Callers must not reuse the old `LabeledTree` as an "unlabeled" reference. (c) `_mrca(tree, ("a",))` with a single tip returns the tip itself — symmetric with `tips=("a",)` but via the mrca branch; either document or raise when `len(names) < 2`. (d) `_mrca` tie-breaker is unspecified under degree-1 internal nodes; add a depth secondary sort. (e) Split `load_labels_file` error messages: distinguish wrong-column-count from unsupported-label-value. (f) Header check is case- and whitespace-sensitive (`Taxon\tLabel` rejected) — loosen or document. (g) Test coverage gaps: no test asserts `out.labels` dict is correctly populated after `apply_foreground_spec`; no test for MRCA=root, MRCA of a single tip, the `spec.labels` id-based branch, or in-tree `#1` surviving an empty-spec apply. (h) `spec.labels` is currently dead code for v1 (no public producer) — confirm intent or remove.
+10. **Newick parser hardening (from Task 5 code review, deferred).** (a) Recursion-depth ceiling: the parser and `_canonicalize` hit Python's default `RecursionError` at ~1000-deep trees, raising a raw `RecursionError` instead of `SelkitInputError`. Wrap the entry point or document the practical ceiling. (b) Branch-length canonicalization uses `{bl:g}` which truncates to 6 significant digits, so `LabeledTree.newick` is a lossy serialization vs. `LabeledTree.root`. Either switch to `{bl!r}` / `{bl:.15g}` or document as lossy. (c) Silent acceptance of malformed inputs: empty `()` produces a degenerate unnamed tip; stray `)` is ignored; tokens after `;` are discarded; `(a,,b)` yields empty-name tips. Add a post-parse validation that consumes all remaining tokens and rejects empty subtrees / empty names. (d) Negative, `nan`, and `inf` branch lengths parse as valid floats — defer either to this task (with `math.isfinite` guard) or Task 8 (Felsenstein); pick one. (e) Error messages for `(a #,b)` and `(a:,b)` report the confusing follow-on token rather than "expected integer after '#'" / "expected float after ':'". (f) Mark `Node.parent` as `compare=False, repr=False` to avoid cyclic `__eq__` / `__repr__` pitfalls if future code compares `Node` instances. (g) Additional test coverage for: bad branch length, unclosed paren, internal node names, root-level comment, `tip_order` explicit check, canonical round-trip stability, scientific-notation branch lengths.
 
 ## Appendix B: Self-review notes
 

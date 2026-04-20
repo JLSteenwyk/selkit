@@ -1,0 +1,13 @@
+source: PAML 4.10.10 examples/HIVNSsites/HIVenvSweden4s (Yang et al. 2000)
+description: 4-taxon HIV env V3 subset, 273 nt / 91 codons
+genetic_code: standard
+models: [M0, M1a, M2a]
+tests: [M1a-vs-M2a]
+# M7 and M8 omitted: on this 4-taxon case PAML's M7 fit lands on the beta
+# boundary (all omega quantiles at 1.0, q_beta ~= 0.005) and M8 inherits
+# the same degeneracy. Optimizer-dependent boundary artifacts don't make
+# a meaningful numeric comparison. Use a case with ω < 1 somewhere to test
+# M7/M8 properly.
+seed: 0
+n_starts: 5
+paml_cmd: codeml codeml.ctl  # CodonFreq=2 (F3X4), cleandata=1
