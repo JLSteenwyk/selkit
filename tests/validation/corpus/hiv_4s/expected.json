@@ -1,27 +1,31 @@
 {
   "source": "PAML 4.10.10 codeml on examples/HIVNSsites/HIVenvSweden4s.txt",
+  "note": "Per-model newick_with_bls + params captured verbatim from PAML's mlc output. Tests evaluate selkit's lnL at PAML's exact point (no optimizer), so fits where PAML's optimum hit a numeric boundary (e.g. M7 q_beta=0.005 or M8 p_beta=99) are still valid evaluation cases — the likelihood calculation is invariant to how we reached those values.",
   "fits": {
     "M0": {
       "lnL": -519.411597,
-      "params": {
-        "omega": 1.45661,
-        "kappa": 3.00807
-      }
+      "params": {"omega": 1.45661, "kappa": 3.00807},
+      "newick_with_bls": "((U68496:0.026148, U68497:0.076179):0.140514, U68498:0.074210, U68499:0.085906);"
     },
     "M1a": {
       "lnL": -519.227259,
-      "params": {
-        "omega0": 0.00000,
-        "kappa": 3.01566
-      }
+      "params": {"omega0": 1e-8, "p0": 0.22803, "kappa": 3.01566},
+      "newick_with_bls": "((U68496:0.025858, U68497:0.079355):0.148024, U68498:0.076612, U68499:0.088864);"
     },
     "M2a": {
       "lnL": -517.562046,
-      "params": {
-        "omega0": 0.86612,
-        "omega2": 6.85808,
-        "kappa": 3.37068
-      }
+      "params": {"omega0": 0.86612, "omega2": 6.85808, "p0": 0.81448, "p1_frac": 0.0, "kappa": 3.37068},
+      "newick_with_bls": "((U68496:0.032000, U68497:0.084927):0.165106, U68498:0.085864, U68499:0.093554);"
+    },
+    "M7": {
+      "lnL": -519.619312,
+      "params": {"p_beta": 0.57754, "q_beta": 0.00500, "kappa": 2.97775},
+      "newick_with_bls": "((U68496:0.025531, U68497:0.076929):0.141561, U68498:0.074526, U68499:0.086531);"
+    },
+    "M8": {
+      "lnL": -517.562169,
+      "params": {"p_beta": 99.0, "q_beta": 15.21132, "p0": 0.81465, "omega2": 6.86333, "kappa": 3.37069},
+      "newick_with_bls": "((U68496:0.032002, U68497:0.084928):0.165103, U68498:0.085865, U68499:0.093555);"
     }
   }
 }
