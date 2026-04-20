@@ -36,6 +36,12 @@ jobs:
 
   docs:
     runs-on: ubuntu-latest
+    # Required so JamesIves/github-pages-deploy-action can push to gh-pages.
+    # Default GITHUB_TOKEN is read-only on this repo; granting contents:write
+    # here keeps the scope minimal and is preferred over flipping the repo-
+    # wide "Read and write permissions" setting.
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
