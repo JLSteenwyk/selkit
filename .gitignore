@@ -51,3 +51,6 @@ Thumbs.db
 
 # Internal dev artifacts (plans, specs, review notes)
 docs/superpowers/
+
+# Sphinx build output
+docs/_build/
