@@ -109,6 +109,7 @@ Yang Z. (2007). PAML 4: Phylogenetic analysis by maximum likelihood. *Molecular 
     :maxdepth: 2
 
     about/index
+    tutorials/index
     usage/index
     validation/index
     api/index
