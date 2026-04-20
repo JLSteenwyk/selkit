@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "selkit"
-version = "0.0.1"
+version = "0.1.0"
 description = "Python reimplementation of PAML's selection-analysis workflows (codeml, yn00)"
 readme = "README.md"
 license = { text = "MIT" }
