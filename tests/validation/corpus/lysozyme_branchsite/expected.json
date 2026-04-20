@@ -1,0 +1,30 @@
+{
+  "source": "PAML 4.10.10 codeml on examples/lysozyme/lysozymeLarge (19 taxa, 130 codons). Branch-site Model A + Model A null, colobine clade as foreground.",
+  "foreground_mrca": [
+    "5.colobus_Cgu&Can", "6.langur_Sen&Sve", "7.langur_Tob&Tfr",
+    "8.Douc_langur_Pne", "9.probiscis_Nla"
+  ],
+  "fits": {
+    "ModelA": {
+      "lnL": -1035.533916,
+      "params": {
+        "omega0": 1e-08,
+        "omega2": 4.809761,
+        "p0": 0.326512,
+        "p1_frac": 0.39985706028929636,
+        "kappa": 4.154928
+      },
+      "newick_with_bls": "(((((6.langur_Sen&Sve: 0.007767, 7.langur_Tob&Tfr: 0.000004, 8.Douc_langur_Pne: 0.023339): 0.008019, 9.probiscis_Nla: 0.007530): 0.026520, 5.colobus_Cgu&Can: 0.037779): 0.075622, (((10.baboon_Pcy: 0.007957, 11.mangabey_Cat: 0.000004): 0.000004, 12.rhesus_Mmu: 0.007935): 0.000004, 13.Allen_Ani: 0.016006, (14.talapoin_Mta: 0.016154, (15.patas_Epa: 0.016186, 16.vervet_Cae: 0.008059): 0.007906): 0.008104): 0.023589): 0.042333, (((1.human: 0.015966, 2.chimp_bonobo_gorilla: 0.000004): 0.008004, 3.orangutan_Ppy: 0.000004): 0.006258, 4.gibbon_Ggo: 0.034475): 0.069643, (17.squirrel_m: 0.027063, (18.tamarin_Soe: 0.032959, 19.Marmoset_Cja: 0.040867): 0.000004): 0.135219);"
+    },
+    "ModelA_null": {
+      "lnL": -1036.270846,
+      "params": {
+        "omega0": 1e-08,
+        "p0": 0.214341,
+        "p1_frac": 0.22547515826117753,
+        "kappa": 4.062117
+      },
+      "newick_with_bls": "(((((6.langur_Sen&Sve: 0.007764, 7.langur_Tob&Tfr: 0.000004, 8.Douc_langur_Pne: 0.023333): 0.008005, 9.probiscis_Nla: 0.007539): 0.026564, 5.colobus_Cgu&Can: 0.037827): 0.073418, (((10.baboon_Pcy: 0.007953, 11.mangabey_Cat: 0.000004): 0.000004, 12.rhesus_Mmu: 0.007932): 0.000004, 13.Allen_Ani: 0.015998, (14.talapoin_Mta: 0.016144, (15.patas_Epa: 0.016177, 16.vervet_Cae: 0.008055): 0.007903): 0.008099): 0.024079): 0.042503, (((1.human: 0.015958, 2.chimp_bonobo_gorilla: 0.000004): 0.008000, 3.orangutan_Ppy: 0.000004): 0.006285, 4.gibbon_Ggo: 0.034426): 0.068861, (17.squirrel_m: 0.027005, (18.tamarin_Soe: 0.032936, 19.Marmoset_Cja: 0.040873): 0.000004): 0.135795);"
+    }
+  }
+}

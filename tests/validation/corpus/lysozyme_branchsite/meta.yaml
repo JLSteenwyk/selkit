@@ -1,0 +1,14 @@
+source: PAML 4.10.10 examples/lysozyme/lysozymeLarge (Messier & Stewart 1997; Yang 1998; Yang et al. 2005; Zhang et al. 2005)
+description: |
+  19-taxon primate lysozyme coding alignment, 390 nt / 130 codons. The
+  #1 foreground is the branch ancestral to the colobine clade (colobus +
+  langurs + probiscis — tips 5, 6, 7, 8, 9). This is the canonical
+  branch-site dataset used in the PAML tutorial.
+genetic_code: standard
+models: [ModelA, ModelA_null]
+tests: [ModelA_null-vs-ModelA]
+foreground:
+  mrca: [5.colobus_Cgu&Can, 6.langur_Sen&Sve, 7.langur_Tob&Tfr, 8.Douc_langur_Pne, 9.probiscis_Nla]
+seed: 0
+n_starts: 3
+paml_cmd: codeml codeml.ctl  # model=2 NSsites=2 CodonFreq=2 (F3X4) cleandata=1; fix_omega=1 omega=1 for null

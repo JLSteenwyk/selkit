@@ -18,12 +18,12 @@ from pathlib import Path
 
 import pytest
 
-from selkit.engine.codon_model import M0, M1a, M2a, M7, M8
+from selkit.engine.codon_model import M0, M1a, M2a, M7, M8, ModelA, ModelANull
 from selkit.engine.genetic_code import GeneticCode
 from selkit.engine.likelihood import tree_log_likelihood_mixture
 from selkit.engine.rate_matrix import estimate_f3x4
 from selkit.io.alignment import read_alignment
-from selkit.io.tree import parse_newick
+from selkit.io.tree import ForegroundSpec, apply_foreground_spec, parse_newick
 
 _CORPUS = Path(__file__).parent.parent / "validation" / "corpus"
 
@@ -33,6 +33,8 @@ _MODEL_CTORS = {
     "M2a": M2a,
     "M7": M7,
     "M8": M8,
+    "ModelA": ModelA,
+    "ModelA_null": ModelANull,
 }
 
 
@@ -66,6 +68,12 @@ def test_lnl_matches_paml_at_reported_point(case_id: str, model_name: str) -> No
     aln = read_alignment(case_dir / "alignment.fa", genetic_code=gc)
     pi = estimate_f3x4(aln.codons, gc)
     tree = parse_newick(fit_spec["newick_with_bls"])
+
+    # Branch-site models need a foreground-labelled tree. The corpus-level
+    # expected.json encodes the mrca tips; apply them here.
+    fg_mrca = expected.get("foreground_mrca")
+    if fg_mrca:
+        tree = apply_foreground_spec(tree, ForegroundSpec(mrca=tuple(fg_mrca)))
 
     model = _MODEL_CTORS[model_name](gc=gc, pi=pi)
     weights, Qs = model.build(params=fit_spec["params"])

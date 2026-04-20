@@ -73,6 +73,47 @@ def scale_mixture_qs(
     return [Q / mean_rate for Q in Qs]
 
 
+def scale_branch_site_qs(
+    Qs_by_class_by_label: list[dict[int, np.ndarray]],
+    weights: list[float],
+    pi: np.ndarray,
+) -> list[dict[int, np.ndarray]]:
+    """Scale branch-site Qs per-label by the class-averaged mean rate on that label.
+
+    For each branch label ℓ, compute the site-class-averaged mean rate using
+    each class's Q at label ℓ, then divide every class's Q at label ℓ by that
+    rate. This matches PAML's branch-site convention that a branch length t is
+    "expected substitutions per codon, averaged over site classes, on that
+    branch" — verified against codeml for Model A on the lysozyme dataset.
+
+    Note this differs from :func:`scale_mixture_qs` (site models), which uses a
+    single scalar. Site models have a homogeneous Q across branches per class,
+    so per-branch and global scaling coincide; branch-site models genuinely
+    need the per-label distinction because foreground classes 2a/2b change
+    their Q based on branch label.
+    """
+    all_labels: set[int] = set()
+    for class_qs in Qs_by_class_by_label:
+        all_labels.update(class_qs.keys())
+
+    mean_rate_by_label: dict[int, float] = {}
+    for label in all_labels:
+        rate = float(sum(
+            w * float(-(pi @ np.diag(class_qs[label])))
+            for w, class_qs in zip(weights, Qs_by_class_by_label)
+        ))
+        if rate <= 0:
+            raise ValueError(
+                f"non-positive mean rate on label {label}; check pi/params/weights"
+            )
+        mean_rate_by_label[label] = rate
+
+    return [
+        {label: Q / mean_rate_by_label[label] for label, Q in class_qs.items()}
+        for class_qs in Qs_by_class_by_label
+    ]
+
+
 def prob_transition_matrix(Q: np.ndarray, t: float) -> np.ndarray:
     """P(t) = exp(Q*t) via Padé-13 with scaling-and-squaring.
 

@@ -1,11 +1,19 @@
 from __future__ import annotations
 
+from typing import Union
+
 import numpy as np
 from scipy.special import logsumexp
 
 from selkit.engine.rate_matrix import prob_transition_matrix
 from selkit.errors import SelkitInputError
 from selkit.io.tree import LabeledTree, Node
+
+
+# A "class Q" is either a single ndarray (homogeneous across branches — site
+# models) or a dict mapping branch label to an ndarray (per-label — branch-site
+# models). Callers use whichever is natural; _prune_tree_partials normalises.
+ClassQ = Union[np.ndarray, dict[int, np.ndarray]]
 
 
 def _iter_postorder(root: Node) -> list[Node]:
@@ -20,19 +28,42 @@ def _iter_postorder(root: Node) -> list[Node]:
     return out
 
 
+def _normalize_class_q(class_q: ClassQ, tree: LabeledTree) -> dict[int, np.ndarray]:
+    """Return a {label: Q} dict covering every label present in the tree.
+
+    A plain ndarray is broadcast — same Q on every branch. A dict must already
+    contain an entry for every label seen in the tree.
+    """
+    labels_in_tree = {n.label for n in tree.all_nodes()}
+    if isinstance(class_q, np.ndarray):
+        return {label: class_q for label in labels_in_tree}
+    missing = labels_in_tree - set(class_q.keys())
+    if missing:
+        raise ValueError(
+            f"branch-site Qs missing entries for labels {sorted(missing)}"
+        )
+    return class_q
+
+
 def _prune_tree_partials(
     tree: LabeledTree,
     codons: np.ndarray,
     taxon_order: tuple[str, ...],
-    Q: np.ndarray,
+    Q: ClassQ,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Pruning with per-internal-node running scaling.
+
+    ``Q`` is either a single ndarray (site model: same Q on all branches) or a
+    dict[label, ndarray] (branch-site model: Q depends on ``Node.label`` of the
+    branch below the parent).
 
     Returns (L_root_scaled, log_scale_per_site) where L_root_scaled has each
     site's row normalized to max=1 across all codon states. lnL_site is then
     log(L_root_scaled @ pi) + log_scale_per_site, which never underflows.
     """
-    n_sense = Q.shape[0]
+    Qs_by_label = _normalize_class_q(Q, tree)
+    any_Q = next(iter(Qs_by_label.values()))
+    n_sense = any_Q.shape[0]
     n_sites = codons.shape[1]
 
     tree_tips = {n.name for n in tree.tips if n.name}
@@ -43,12 +74,15 @@ def _prune_tree_partials(
         )
     tip_to_row = {name: i for i, name in enumerate(taxon_order)}
 
-    P_cache: dict[float, np.ndarray] = {}
+    # Cache P(t) by (label, branch length) so branches that share both reuse
+    # the same matrix exponential across site classes.
+    P_cache: dict[tuple[int, float], np.ndarray] = {}
 
-    def P_for(bl: float) -> np.ndarray:
-        if bl not in P_cache:
-            P_cache[bl] = prob_transition_matrix(Q, bl)
-        return P_cache[bl]
+    def P_for(label: int, bl: float) -> np.ndarray:
+        key = (label, bl)
+        if key not in P_cache:
+            P_cache[key] = prob_transition_matrix(Qs_by_label[label], bl)
+        return P_cache[key]
 
     partials: dict[int, np.ndarray] = {}
     log_scale = np.zeros(n_sites)
@@ -68,7 +102,8 @@ def _prune_tree_partials(
             L = np.ones((n_sites, n_sense))
             for child in node.children:
                 bl = child.branch_length if child.branch_length is not None else 0.0
-                P = P_for(bl)
+                # The branch leading into ``child`` carries the label on ``child``.
+                P = P_for(child.label, bl)
                 L_child = partials[child.id]
                 contrib = L_child @ P.T
                 L *= contrib
@@ -87,7 +122,7 @@ def tree_log_likelihood(
     codons: np.ndarray,
     taxon_order: tuple[str, ...],
     *,
-    Q: np.ndarray,
+    Q: ClassQ,
     pi: np.ndarray,
 ) -> float:
     L_root, log_scale = _prune_tree_partials(tree, codons, taxon_order, Q)
@@ -103,7 +138,7 @@ def tree_log_likelihood_mixture(
     codons: np.ndarray,
     taxon_order: tuple[str, ...],
     *,
-    Qs: list[np.ndarray],
+    Qs: list[ClassQ],
     weights: list[float],
     pi: np.ndarray,
 ) -> float:
@@ -126,7 +161,7 @@ def per_class_site_log_likelihood(
     codons: np.ndarray,
     taxon_order: tuple[str, ...],
     *,
-    Qs: list[np.ndarray],
+    Qs: list[ClassQ],
     pi: np.ndarray,
 ) -> np.ndarray:
     """Return per-class per-site log-likelihoods with shape (n_classes, n_sites).

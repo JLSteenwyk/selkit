@@ -46,9 +46,16 @@ def test_case_matches_paml(paml_case: Path) -> None:
         strict=StrictFlags(True, False, False, False),
         selkit_version=__version__, git_sha=None,
     )
+    # Branch-site corpus cases encode their foreground in meta.yaml; pass it
+    # through so apply_foreground_spec labels the tree before the fit.
+    fg_meta = meta.get("foreground") or {}
+    fg_spec = ForegroundSpec(
+        tips=tuple(fg_meta.get("tips") or ()),
+        mrca=tuple(fg_meta.get("mrca") or ()),
+    )
     validated = validate_inputs(
         alignment_path=aln, tree_path=tree,
-        foreground_spec=ForegroundSpec(),
+        foreground_spec=fg_spec,
         genetic_code_name=cfg.genetic_code,
     )
     result = run_site_models(

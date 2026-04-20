@@ -5,11 +5,22 @@ from typing import Callable, Optional
 import numpy as np
 
 from selkit.engine.beb import compute_neb
-from selkit.engine.codon_model import M0, M1a, M2a, M7, M8, M8a, SiteModel
+from selkit.engine.codon_model import (
+    M0,
+    M1a,
+    M2a,
+    M7,
+    M8,
+    M8a,
+    ModelA,
+    ModelANull,
+    SiteModel,
+)
 from selkit.engine.fit import EngineFit, fit_model
 from selkit.engine.genetic_code import GeneticCode
 from selkit.engine.likelihood import per_class_site_log_likelihood
 from selkit.engine.rate_matrix import estimate_f3x4
+from selkit.errors import SelkitConfigError
 from selkit.io.config import RunConfig
 from selkit.io.results import (
     BEBSite,
@@ -28,7 +39,12 @@ _MODEL_CTORS: dict[str, Callable[[GeneticCode, np.ndarray], SiteModel]] = {
     "M7":  lambda gc, pi: M7(gc=gc, pi=pi),
     "M8":  lambda gc, pi: M8(gc=gc, pi=pi),
     "M8a": lambda gc, pi: M8a(gc=gc, pi=pi),
+    "ModelA": lambda gc, pi: ModelA(gc=gc, pi=pi),
+    "ModelA_null": lambda gc, pi: ModelANull(gc=gc, pi=pi),
 }
+
+# Models that require a foreground-branch designation to be meaningful.
+_BRANCH_SITE_MODELS: frozenset[str] = frozenset({"ModelA", "ModelA_null"})
 
 _BUNDLE_DEFAULT: tuple[str, ...] = ("M0", "M1a", "M2a", "M7", "M8", "M8a")
 
@@ -110,6 +126,18 @@ def run_site_models(
     gc = GeneticCode.by_name(config.genetic_code)
     pi = estimate_f3x4(inputs.alignment.codons, gc)
     models_to_fit = config.models or _BUNDLE_DEFAULT
+
+    # Branch-site models (Model A, Model A null) require a foreground label on
+    # the tree. Guard against the common mistake of requesting ModelA without
+    # also passing --foreground / --labels-file / an in-Newick #1.
+    has_foreground = any(n.label != 0 for n in inputs.tree.all_nodes())
+    bs_requested = [m for m in models_to_fit if m in _BRANCH_SITE_MODELS]
+    if bs_requested and not has_foreground:
+        raise SelkitConfigError(
+            f"branch-site models {bs_requested} require a foreground clade "
+            "on the tree; supply --foreground / --foreground-tips / "
+            "--labels-file, or use an in-Newick #1 annotation."
+        )
 
     engine_fits: dict[str, EngineFit] = {}
     if parallel and config.threads > 1 and len(models_to_fit) > 1:

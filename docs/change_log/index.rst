@@ -6,6 +6,15 @@ Change log
 
 Major changes to selkit are summarised here.
 
+**0.2.0**
+
+- **Branch-site Model A and Model A null.** The branch-site test of positive selection (Zhang *et al.* 2005; Yang *et al.* 2005) — tests whether a pre-designated foreground lineage experienced episodic adaptation at some codons. Fit via ``--models ModelA,ModelA_null``. The LRT is automatic, 1 df, mixed 50:50 χ² (boundary test).
+- Engine gained per-label Q dispatch: a site class's Q can now be either a single ndarray (site models) or a ``dict[int, ndarray]`` keyed by branch label (branch-site). Backward compatible with every existing call site.
+- ``scale_branch_site_qs`` scales each label's Qs by that label's class-averaged mean rate — matches PAML's convention that branch lengths are "expected substitutions per codon averaged over site classes on that branch". Verified against PAML 4.10.10 on the lysozyme dataset.
+- New PAML corpus case ``tests/validation/corpus/lysozyme_branchsite/`` (19-taxon primate lysozyme, colobine clade foreground). Static lnL match to better than 10⁻³ at PAML's reported point for both Model A and Model A null; end-to-end optimiser fit agrees with PAML to better than 10⁻².
+- Tutorial 05 walks through the branch-site workflow end-to-end with the lysozyme example.
+- Orchestrator refuses to fit ``ModelA`` / ``ModelA_null`` when no foreground is labelled on the tree (previously the fit would silently succeed as an ordinary site model).
+
 **0.1.0**
 
 - First public release. Pure-Python reimplementation of PAML's codeml site-model workflow.

@@ -48,4 +48,7 @@ STANDARD_SITE_LRTS: tuple[tuple[str, str, int, str], ...] = (
     ("M1a", "M2a", 2, "chi2"),
     ("M7", "M8", 2, "chi2"),
     ("M8a", "M8", 1, "mixed_chi2"),
+    # Branch-site test of positive selection (Zhang et al. 2005).
+    # 1 df because ModelA_null fixes omega2 = 1; boundary test → mixed 50:50 chi2.
+    ("ModelA_null", "ModelA", 1, "mixed_chi2"),
 )

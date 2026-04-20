@@ -23,6 +23,7 @@ Available tutorials
    02_detecting_positive_selection
    03_beta_models_boundary_test
    04_library_workflow
+   05_branch_site_test
 
 
 What you'll learn
@@ -32,6 +33,7 @@ What you'll learn
 - :doc:`02_detecting_positive_selection` — The most common selkit workflow: the M1a vs M2a LRT plus per-site BEB posteriors. Answers "are any codons under positive selection?".
 - :doc:`03_beta_models_boundary_test` — The more statistically robust M7 / M8 / M8a workflow, including the mixed-χ² boundary test that prevents false positives when the ω class is really at ω = 1.
 - :doc:`04_library_workflow` — Embed selkit in a script to batch-process many genes, run with non-standard genetic codes (mitochondrial), and work with selkit's dataclasses directly.
+- :doc:`05_branch_site_test` — The branch-site test of positive selection: Model A / Model A null. Tests whether a pre-designated lineage (the "foreground") experienced episodic adaptation, using the PAML lysozyme dataset (Yang 1998; Zhang et al. 2005).
 
 
 Dataset provenance
