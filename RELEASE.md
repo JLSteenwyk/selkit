@@ -1,46 +1,34 @@
-# Release Automation
+# Releasing selkit
 
-Selkit releases are automated with GitHub Actions via `.github/workflows/release.yml`.
+Releases are published manually to PyPI. The flow follows ClipKIT.
 
-## Supported release triggers
+## Pre-release checklist
 
-1. Push a version tag (recommended): `vX.Y.Z`
-2. Manually run the `Release` workflow from GitHub Actions (optional `version` input)
+1. Bump `selkit/version.py` → `__version__ = "X.Y.Z"`.
+2. Add a new `## X.Y.Z` entry to the top of `CHANGELOG.md` describing what's in the release.
+3. Verify the two are in sync: `make release-check` (or `python3 scripts/check_version_sync.py`). The `Version Consistency` GitHub Action also runs this on every PR and push.
+4. Run the full test suite locally: `make test.fast`.
+5. Commit the bump + changelog entry and push to `main`.
 
-## Behavior
-
-The workflow will:
-
-1. Validate that `selkit/version.py` matches the requested/tagged version.
-2. Validate that the top entry of `CHANGELOG.md` matches `selkit/version.py`
-   (same check that runs on every PR via `version-consistency.yml`).
-3. Build source and wheel distributions with `python -m build`.
-4. Run `twine check` on built artifacts.
-5. Upload the distributions as workflow-run artifacts.
-6. Create a GitHub Release and attach `dist/*` (sdist + wheel) to it.
-
-The workflow does **not** publish to PyPI automatically — no PyPI credentials
-are required to run it. To publish a release:
-
-1. Let the workflow run and produce a GitHub Release.
-2. Download the `sdist` (`.tar.gz`) and `wheel` (`.whl`) from the release page.
-3. Locally: `twine upload selkit-<ver>.tar.gz selkit-<ver>-py3-none-any.whl`.
-
-## Cutting a release
+## Publish to PyPI
 
 ```
-# 1. Bump the version
-#    - selkit/version.py
-#    - add a new "## X.Y.Z" entry to the top of CHANGELOG.md
-make release-check   # runs check_version_sync.py locally
+rm -rf dist
+python3 setup.py sdist bdist_wheel --universal
+twine upload dist/* -r pypi
+```
 
-# 2. Commit + push the bump
-git commit -am "chore: bump to vX.Y.Z"
-git push origin main
+Or simply: `make release` (which runs the version-sync check first).
 
-# 3. Tag and push
+This expects a configured `~/.pypirc` or `TWINE_USERNAME` / `TWINE_PASSWORD` environment variables for your PyPI account.
+
+## Tag the release on GitHub
+
+After the PyPI upload succeeds:
+
+```
 git tag vX.Y.Z
 git push origin vX.Y.Z
-
-# The Release workflow handles the rest.
 ```
+
+Then create a GitHub Release for `vX.Y.Z` referencing the CHANGELOG entry.

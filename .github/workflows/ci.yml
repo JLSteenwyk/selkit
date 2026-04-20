@@ -18,10 +18,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install selkit with dev extras
+      - name: Install selkit with dev dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          pip install -r requirements.txt
+          make install
       - name: Run unit + integration tests
         run: |
           pytest tests/unit tests/integration -v --cov=selkit --cov-report=xml --cov-report=term

@@ -2,7 +2,8 @@ install:
 	python3 -m pip install .
 
 develop:
-	python3 -m pip install -e ".[dev]"
+	python3 -m pip install -r requirements.txt
+	python3 -m pip install -e .
 
 test: test.unit test.integration
 
@@ -27,8 +28,11 @@ test.coverage:
 release-check:
 	python3 scripts/check_version_sync.py
 
-build:
+# Manual release: run locally after bumping version + CHANGELOG, pushing to
+# main, and tagging. Pushes to PyPI (requires ~/.pypirc or env credentials).
+release: release-check
 	rm -rf dist
-	python3 -m build
+	python3 setup.py sdist bdist_wheel --universal
+	twine upload dist/* -r pypi
 
-.PHONY: install develop test test.unit test.integration test.fast test.validation test.coverage release-check build
+.PHONY: install develop test test.unit test.integration test.fast test.validation test.coverage release-check release
