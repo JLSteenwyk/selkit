@@ -1,0 +1,306 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usage &mdash; selkit  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=d5a91742" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PAML validation" href="../validation/index.html" />
+    <link rel="prev" title="About" href="../about/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            selkit
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#why-selkit">Why selkit?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#correctness">Correctness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#implementation-notes">Implementation notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#the-developers">The developers</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#command-line">Command line</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#selkit-validate"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">validate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#selkit-codeml-site-models"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site-models</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#library">Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#outputs">Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../validation/index.html">PAML validation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#corpus-cases">Corpus cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#extending-the-corpus">Extending the corpus</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#entry-point">Entry point</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#codeml_site_models"><code class="docutils literal notranslate"><span class="pre">codeml_site_models()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#dataclasses">Dataclasses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunResult"><code class="docutils literal notranslate"><span class="pre">RunResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ModelFit"><code class="docutils literal notranslate"><span class="pre">ModelFit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LRTResult"><code class="docutils literal notranslate"><span class="pre">LRTResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#BEBSite"><code class="docutils literal notranslate"><span class="pre">BEBSite</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#CodonAlignment"><code class="docutils literal notranslate"><span class="pre">CodonAlignment</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LabeledTree"><code class="docutils literal notranslate"><span class="pre">LabeledTree</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunConfig"><code class="docutils literal notranslate"><span class="pre">RunConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundConfig"><code class="docutils literal notranslate"><span class="pre">ForegroundConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundSpec"><code class="docutils literal notranslate"><span class="pre">ForegroundSpec</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#errors">Errors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitInputError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitInputError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConfigError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConfigError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitEngineError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitEngineError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConvergenceWarning"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConvergenceWarning</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../change_log/index.html">Change log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently asked questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#models-and-statistics">Models and statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#output">Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#development">Development</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../other_software/index.html">Other software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id1">ClipKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id2">PhyKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id3">BioKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id4">orthofisher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id5">orthosnap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#typical-pipeline">Typical pipeline</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">selkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Usage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/usage/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<p>selkit has three subcommands and one library entry point. The CLI is a thin wrapper around the library.</p>
+<section id="command-line">
+<h2>Command line<a class="headerlink" href="#command-line" title="Link to this heading"></a></h2>
+<section id="selkit-validate">
+<h3><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">validate</span></code><a class="headerlink" href="#selkit-validate" title="Link to this heading"></a></h3>
+<p>Runs the pre-flight validation checks without fitting any models. Useful before long runs.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>selkit<span class="w"> </span>validate<span class="w"> </span>--alignment<span class="w"> </span>gene.fa<span class="w"> </span>--tree<span class="w"> </span>species.nwk
+</pre></div>
+</div>
+<p>Output on success:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>OK: 13 taxa, 91 codons, genetic code = standard
+</pre></div>
+</div>
+<p>Exits 1 with a structured error on failure (taxon mismatch, length not a multiple of 3, mid-sequence stop codon, duplicate taxon, etc.).</p>
+<p>Options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--alignment</span> <span class="pre">PATH</span></code> — FASTA or relaxed-Phylip codon alignment. Format auto-detected.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--tree</span> <span class="pre">PATH</span></code> — Newick tree.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--genetic-code</span> <span class="pre">NAME</span></code> — <code class="docutils literal notranslate"><span class="pre">standard</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">vertebrate_mitochondrial</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--foreground</span> <span class="pre">TIP1,TIP2,...</span></code> — MRCA clade becomes foreground.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--foreground-tips</span> <span class="pre">TIP1,TIP2,...</span></code> — exactly the listed tips become foreground.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--labels-file</span> <span class="pre">PATH</span></code> — TSV of <code class="docutils literal notranslate"><span class="pre">taxon&lt;TAB&gt;label</span></code> rows (only <code class="docutils literal notranslate"><span class="pre">label=1</span></code> rows supported in v0.1).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--strip-stop-codons</span></code> — drop any codon column containing a mid-sequence stop from every taxon.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--no-strip-terminal-stop</span></code> — do not automatically strip a universally-shared terminal stop codon column.</p></li>
+</ul>
+</section>
+<section id="selkit-codeml-site-models">
+<h3><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site-models</span></code><a class="headerlink" href="#selkit-codeml-site-models" title="Link to this heading"></a></h3>
+<p>Fits the site-model bundle, computes LRTs, and emits BEB posteriors for M2a and M8.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>selkit<span class="w"> </span>codeml<span class="w"> </span>site-models<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--alignment<span class="w"> </span>gene.fa<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--tree<span class="w"> </span>species.nwk<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span>results/gene1<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--threads<span class="w"> </span><span class="m">4</span>
+</pre></div>
+</div>
+<p>Default bundle: <code class="docutils literal notranslate"><span class="pre">M0,</span> <span class="pre">M1a,</span> <span class="pre">M2a,</span> <span class="pre">M7,</span> <span class="pre">M8,</span> <span class="pre">M8a</span></code>. Default LRTs: M1a-vs-M2a, M7-vs-M8, M8a-vs-M8 (mixed 50:50 χ²).</p>
+<p>Key options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--models</span> <span class="pre">M0,M1a,M2a</span></code> — fit only these models.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--threads</span> <span class="pre">N</span></code> — fit up to <code class="docutils literal notranslate"><span class="pre">N</span></code> models in parallel (default 1).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--n-starts</span> <span class="pre">K</span></code> — multi-start L-BFGS-B with <code class="docutils literal notranslate"><span class="pre">K</span></code> independent seeds per model (default 3).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--seed</span> <span class="pre">N</span></code> — top-level random seed; sub-seeds are derived deterministically.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--allow-unconverged</span></code> — exit 0 even if the multi-start convergence gate flags disagreement between the top-2 log-likelihoods.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--foreground</span></code> / <code class="docutils literal notranslate"><span class="pre">--foreground-tips</span></code> / <code class="docutils literal notranslate"><span class="pre">--labels-file</span></code> — same semantics as <code class="docutils literal notranslate"><span class="pre">validate</span></code>. Note: v0.1 ships site models only, so foreground labels are accepted but currently unused by the fit. They will become load-bearing when branch and branch-site models land.</p></li>
+</ul>
+<p>Exit codes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code> — success, all models converged.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code> — input validation error.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code> — fits completed but one or more models failed the convergence gate. Use <code class="docutils literal notranslate"><span class="pre">--allow-unconverged</span></code> to downgrade to 0.</p></li>
+</ul>
+</section>
+<section id="selkit-rerun">
+<h3><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code><a class="headerlink" href="#selkit-rerun" title="Link to this heading"></a></h3>
+<p>Re-executes a previous analysis from its <code class="docutils literal notranslate"><span class="pre">run.yaml</span></code> manifest, producing byte-identical fits (modulo optimiser float-precision drift).</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>selkit<span class="w"> </span>rerun<span class="w"> </span>results/gene1/run.yaml<span class="w"> </span>--output<span class="w"> </span>results/gene1_rerun
+</pre></div>
+</div>
+<p>The manifest captures every input path, flag, seed, and tolerance, so a rerun on a different machine or a year later reproduces the same analysis.</p>
+</section>
+</section>
+<section id="library">
+<h2>Library<a class="headerlink" href="#library" title="Link to this heading"></a></h2>
+<p>The library entry point is <code class="docutils literal notranslate"><span class="pre">codeml_site_models</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">selkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">codeml_site_models</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">codeml_site_models</span><span class="p">(</span>
+    <span class="n">alignment</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;gene.fa&quot;</span><span class="p">),</span>
+    <span class="n">tree</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;species.nwk&quot;</span><span class="p">),</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;out/&quot;</span><span class="p">),</span>
+    <span class="n">models</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;M0&quot;</span><span class="p">,</span> <span class="s2">&quot;M1a&quot;</span><span class="p">,</span> <span class="s2">&quot;M2a&quot;</span><span class="p">,</span> <span class="s2">&quot;M7&quot;</span><span class="p">,</span> <span class="s2">&quot;M8&quot;</span><span class="p">,</span> <span class="s2">&quot;M8a&quot;</span><span class="p">),</span>
+    <span class="n">n_starts</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">threads</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>It returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">selkit.RunResult</span></code> with:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">result.fits</span></code> — <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">ModelFit]</span></code> keyed by model name. Each <code class="xref py py-class docutils literal notranslate"><span class="pre">selkit.ModelFit</span></code> carries <code class="docutils literal notranslate"><span class="pre">lnL</span></code>, <code class="docutils literal notranslate"><span class="pre">params</span></code>, <code class="docutils literal notranslate"><span class="pre">branch_lengths</span></code>, <code class="docutils literal notranslate"><span class="pre">starts</span></code> (per-start results for convergence diagnosis), <code class="docutils literal notranslate"><span class="pre">converged</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime_s</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result.lrts</span></code> — <code class="docutils literal notranslate"><span class="pre">list[LRTResult]</span></code> with null/alt names, <code class="docutils literal notranslate"><span class="pre">delta_lnL</span></code> (2·Δ lnL — the test statistic, despite the field name), <code class="docutils literal notranslate"><span class="pre">p_value</span></code>, <code class="docutils literal notranslate"><span class="pre">test_type</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;chi2&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;mixed_chi2&quot;</span></code>), <code class="docutils literal notranslate"><span class="pre">significant_at_0_05</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result.beb</span></code> — <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">list[BEBSite]]</span></code> for M2a and M8, each site carrying 1-indexed position, <code class="docutils literal notranslate"><span class="pre">p_positive</span></code> (posterior of ω &gt; 1), and <code class="docutils literal notranslate"><span class="pre">mean_omega</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result.warnings</span></code> — unconverged models.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result.config</span></code> — the reconstructible <code class="xref py py-class docutils literal notranslate"><span class="pre">selkit.RunConfig</span></code>.</p></li>
+</ul>
+<p>Short worked example: flag sites with posterior &gt; 0.95 in M2a:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sig_sites</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">beb</span><span class="p">[</span><span class="s2">&quot;M2a&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">p_positive</span> <span class="o">&gt;</span> <span class="mf">0.95</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sig_sites</span><span class="p">)</span><span class="si">}</span><span class="s2"> sites with P(ω &gt; 1) &gt; 0.95 under M2a&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="inputs">
+<h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading"></a></h2>
+<p><strong>Codon alignment</strong> — FASTA or relaxed-Phylip, auto-detected. Sequence length must be a multiple of 3. Stop codons:</p>
+<ul class="simple">
+<li><p>A universally shared terminal stop codon is automatically stripped (this preserves frame and does not bias the fit).</p></li>
+<li><p>Mid-sequence stop codons are an error by default. Pass <code class="docutils literal notranslate"><span class="pre">--strip-stop-codons</span></code> to drop any codon column containing a mid-sequence stop across any taxon.</p></li>
+<li><p>Gaps / <code class="docutils literal notranslate"><span class="pre">N</span></code> / <code class="docutils literal notranslate"><span class="pre">?</span></code> are encoded as missing data and marginalised in the pruning recursion.</p></li>
+</ul>
+<p><strong>Tree</strong> — Newick, optionally with PAML <code class="docutils literal notranslate"><span class="pre">#N</span></code> / <code class="docutils literal notranslate"><span class="pre">$N</span></code> branch-label syntax (<code class="docutils literal notranslate"><span class="pre">#1</span></code> marks the foreground clade). Branch lengths in the input tree are used as starting values; they are re-optimised jointly with the model parameters.</p>
+<p><strong>Foreground spec</strong> — three mutually-exclusive ways to designate foreground branches:</p>
+<ul class="simple">
+<li><p>Inline <code class="docutils literal notranslate"><span class="pre">#1</span></code> in the Newick.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--foreground</span> <span class="pre">TIP1,TIP2,...</span></code> — foreground = MRCA clade of the listed tips.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--foreground-tips</span> <span class="pre">TIP1,TIP2,...</span></code> — foreground = exactly the listed tip branches.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--labels-file</span> <span class="pre">labels.tsv</span></code> — TSV of <code class="docutils literal notranslate"><span class="pre">taxon&lt;TAB&gt;label</span></code> rows.</p></li>
+</ul>
+<p>Passing more than one is an error.</p>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading"></a></h2>
+<p>An output directory after a site-models run contains:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>results/gene1/
+├── results.json         # canonical, all fits + LRTs + BEB + warnings
+├── fits.tsv             # model, lnL, n_params, converged, runtime_s, params
+├── lrts.tsv             # null, alt, delta_lnL (2·ΔlnL), df, p, sig.
+├── beb_M2a.tsv          # site, p_positive, mean_omega
+├── beb_M8.tsv           # same columns, per site
+└── run.yaml             # full manifest for reproducibility
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">results.json</span></code> is the canonical output. The TSVs are convenience views — everything in them is also in the JSON.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../about/index.html" class="btn btn-neutral float-left" title="About" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../validation/index.html" class="btn btn-neutral float-right" title="PAML validation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 Jacob L. Steenwyk.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

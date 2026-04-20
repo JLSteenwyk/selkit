@@ -1,0 +1,250 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PAML validation &mdash; selkit  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=d5a91742" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API reference" href="../api/index.html" />
+    <link rel="prev" title="Usage" href="../usage/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            selkit
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#why-selkit">Why selkit?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#correctness">Correctness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#implementation-notes">Implementation notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#the-developers">The developers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/index.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#command-line">Command line</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-validate"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">validate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-codeml-site-models"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site-models</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#library">Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#outputs">Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">PAML validation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#corpus-cases">Corpus cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extending-the-corpus">Extending the corpus</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#entry-point">Entry point</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#codeml_site_models"><code class="docutils literal notranslate"><span class="pre">codeml_site_models()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#dataclasses">Dataclasses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunResult"><code class="docutils literal notranslate"><span class="pre">RunResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ModelFit"><code class="docutils literal notranslate"><span class="pre">ModelFit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LRTResult"><code class="docutils literal notranslate"><span class="pre">LRTResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#BEBSite"><code class="docutils literal notranslate"><span class="pre">BEBSite</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#CodonAlignment"><code class="docutils literal notranslate"><span class="pre">CodonAlignment</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LabeledTree"><code class="docutils literal notranslate"><span class="pre">LabeledTree</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunConfig"><code class="docutils literal notranslate"><span class="pre">RunConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundConfig"><code class="docutils literal notranslate"><span class="pre">ForegroundConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundSpec"><code class="docutils literal notranslate"><span class="pre">ForegroundSpec</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#errors">Errors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitInputError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitInputError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConfigError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConfigError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitEngineError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitEngineError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConvergenceWarning"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConvergenceWarning</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../change_log/index.html">Change log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently asked questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#models-and-statistics">Models and statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#output">Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#development">Development</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../other_software/index.html">Other software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id1">ClipKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id2">PhyKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id3">BioKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id4">orthofisher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id5">orthosnap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#typical-pipeline">Typical pipeline</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">selkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">PAML validation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/validation/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="paml-validation">
+<h1>PAML validation<a class="headerlink" href="#paml-validation" title="Link to this heading"></a></h1>
+<p>selkit’s central correctness claim is numerical agreement with the reference PAML implementation. This page summarises how that claim is made concrete in the test suite.</p>
+<section id="corpus-cases">
+<h2>Corpus cases<a class="headerlink" href="#corpus-cases" title="Link to this heading"></a></h2>
+<p>Two corpus cases are checked in under <code class="docutils literal notranslate"><span class="pre">tests/validation/corpus/</span></code>. Both are drawn from the <code class="docutils literal notranslate"><span class="pre">HIVNSsites</span></code> example distributed with PAML 4.10.10 (Yang <em>et al.</em> 2000).</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hiv_4s</span></code> — 4 taxa × 91 codons (the 4-taxon HIVenvSweden subset). Small, fast to run end-to-end.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hiv_13s</span></code> — 13 taxa × 91 codons (the full HIVenvSweden alignment). Larger, exercises the beta-discretised ω machinery in M7 and M8 on non-degenerate data.</p></li>
+</ul>
+<p>Each corpus directory contains:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>tests/validation/corpus/&lt;case&gt;/
+├── alignment.fa          # FASTA codon alignment
+├── tree.nwk              # Newick tree (topology; BLs are starting values)
+├── meta.yaml             # case metadata + which models to fit
+└── expected.json         # PAML&#39;s reported lnL, per-model parameters,
+                          # per-model optimised Newick (BLs in substitutions
+                          # per codon averaged over site classes)
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">expected.json</span></code> captures PAML’s reported fit at the precision of its <code class="docutils literal notranslate"><span class="pre">mlc</span></code> output (typically 6 decimals on lnL; 5 decimals on ω / κ / p0).</p>
+</section>
+<section id="static-lnl-match-fast-runs-in-ci">
+<h2>Static lnL match (fast, runs in CI)<a class="headerlink" href="#static-lnl-match-fast-runs-in-ci" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">tests/integration/test_paml_lnl_match.py</span></code> is parametrised over every (corpus-case, model) pair and runs on every push via the standard CI job. It:</p>
+<ol class="arabic simple">
+<li><p>Loads the alignment, estimates F3X4 equilibrium frequencies.</p></li>
+<li><p>Parses the <strong>per-model</strong> Newick (with PAML’s optimised branch lengths) from <code class="docutils literal notranslate"><span class="pre">expected.json</span></code>.</p></li>
+<li><p>Builds the site-model Q matrices at PAML’s reported ω / κ / p0 / p_beta / q_beta.</p></li>
+<li><p>Calls <code class="docutils literal notranslate"><span class="pre">tree_log_likelihood_mixture</span></code> (Felsenstein pruning with running per-node scaling).</p></li>
+<li><p>Asserts <code class="docutils literal notranslate"><span class="pre">|selkit.lnL</span> <span class="pre">-</span> <span class="pre">PAML.lnL|</span> <span class="pre">&lt;</span> <span class="pre">10⁻³</span></code>.</p></li>
+</ol>
+<p>Current status: <strong>10 / 10 pass in ~1.4 seconds</strong> (5 site models × 2 corpus cases).</p>
+<p>What this test catches: any regression in <code class="docutils literal notranslate"><span class="pre">build_q</span></code> (the GY94 codon Q construction), <code class="docutils literal notranslate"><span class="pre">prob_transition_matrix</span></code> (scipy’s Padé-13 <code class="docutils literal notranslate"><span class="pre">expm</span></code>), <code class="docutils literal notranslate"><span class="pre">estimate_f3x4</span></code>, mixture-Q scaling, or Felsenstein pruning. In other words, the core likelihood calculation.</p>
+<p>What it does <em>not</em> catch: optimiser regressions (convergence, starting-values). That is covered by the slower test below.</p>
+</section>
+<section id="end-to-end-fit-match-opt-in-15-minutes-locally">
+<h2>End-to-end fit match (opt-in, ~15 minutes locally)<a class="headerlink" href="#end-to-end-fit-match-opt-in-15-minutes-locally" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">tests/validation/test_paml_corpus.py</span></code> runs <code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site-models</span></code> against each corpus case from scratch — multi-start L-BFGS-B included — and asserts both the lnL and the fitted parameters agree with PAML within published tolerances:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">|Δ</span> <span class="pre">lnL|</span> <span class="pre">&lt;</span> <span class="pre">10⁻²</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">|Δ</span> <span class="pre">ω|</span> <span class="pre">&lt;</span> <span class="pre">max(10⁻³,</span> <span class="pre">0.5</span> <span class="pre">%</span> <span class="pre">relative)</span></code> (relative tolerance because large-ω classes on flat likelihood ridges are optimiser-stopping-point dependent).</p></li>
+</ul>
+<p>This test is marked <code class="docutils literal notranslate"><span class="pre">pytest.mark.validation</span></code> and is not run by default. Trigger it locally with:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>tests/validation<span class="w"> </span>-v<span class="w"> </span>-m<span class="w"> </span>validation
+</pre></div>
+</div>
+<p>or via the Makefile:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>test.validation
+</pre></div>
+</div>
+<p>CI does not run the end-to-end fit; the static lnL match is the authoritative automated gate.</p>
+</section>
+<section id="caveats-and-methodology-notes">
+<h2>Caveats and methodology notes<a class="headerlink" href="#caveats-and-methodology-notes" title="Link to this heading"></a></h2>
+<p><strong>F3X4 codon frequencies</strong> — selkit uses the same F3X4 estimator PAML uses (raw per-position nucleotide counts, with the product normalised over sense codons). An optional <code class="docutils literal notranslate"><span class="pre">pseudocount</span></code> keyword on <code class="docutils literal notranslate"><span class="pre">estimate_f3x4</span></code> is available for degenerate inputs where some nucleotide isn’t observed at some codon position; the default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>, matching PAML.</p>
+<p><strong>Mixture Q scaling</strong> — Under PAML’s convention, branch lengths are in units of expected codon substitutions averaged over site classes. selkit scales all classes of a mixture by a single weighted-average mean rate, preserving rate heterogeneity between classes (a slow class with ω=0 runs slower than a neutral class with ω=1 along the same branch). Early development of selkit used per-class scaling and produced silently wrong lnLs on mixtures; the current implementation is verified against PAML.</p>
+<p><strong>Matrix exponential</strong> — selkit computes P(t) = exp(Q·t) via <code class="docutils literal notranslate"><span class="pre">scipy.linalg.expm</span></code> (Padé-13 with scaling-and-squaring). An earlier implementation used eigendecomposition + inversion and returned garbage on rank-deficient Q (e.g. when ω=0 zeroes out many off-diagonal entries). This has been fixed; the current implementation is numerically stable.</p>
+<p><strong>BEB vs NEB</strong> — selkit’s “BEB” output is technically naïve empirical Bayes: the posterior is evaluated at the MLE of the hyperparameters (p0, p_beta, q_beta, etc.), not integrated over them. This matches PAML’s <code class="docutils literal notranslate"><span class="pre">BEB</span></code> option in <em>most</em> practical cases, but true BEB (full integration) is a scoped follow-up.</p>
+</section>
+<section id="extending-the-corpus">
+<h2>Extending the corpus<a class="headerlink" href="#extending-the-corpus" title="Link to this heading"></a></h2>
+<p>Adding a new case is mechanical:</p>
+<ol class="arabic simple">
+<li><p>Run PAML’s <code class="docutils literal notranslate"><span class="pre">codeml</span></code> on (alignment, tree) with your preferred <code class="docutils literal notranslate"><span class="pre">codeml.ctl</span></code>.</p></li>
+<li><p>Create <code class="docutils literal notranslate"><span class="pre">tests/validation/corpus/&lt;case&gt;/</span></code> and copy in <code class="docutils literal notranslate"><span class="pre">alignment.fa</span></code> and <code class="docutils literal notranslate"><span class="pre">tree.nwk</span></code>.</p></li>
+<li><p>Extract per-model lnL, parameters, and the optimised Newick (with branch lengths) from the <code class="docutils literal notranslate"><span class="pre">mlc</span></code> output, and write them to <code class="docutils literal notranslate"><span class="pre">expected.json</span></code> in the schema described above.</p></li>
+<li><p>Write <code class="docutils literal notranslate"><span class="pre">meta.yaml</span></code> specifying <code class="docutils literal notranslate"><span class="pre">models</span></code>, <code class="docutils literal notranslate"><span class="pre">n_starts</span></code>, <code class="docutils literal notranslate"><span class="pre">seed</span></code>, etc.</p></li>
+<li><p>The static test (<code class="docutils literal notranslate"><span class="pre">test_paml_lnl_match</span></code>) automatically discovers the new case via parametrisation.</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../usage/index.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api/index.html" class="btn btn-neutral float-right" title="API reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 Jacob L. Steenwyk.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

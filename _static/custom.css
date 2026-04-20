@@ -1,0 +1,20 @@
+/* selkit docs — minimal custom overrides on top of sphinx_rtd_theme. */
+
+.wy-side-nav-search {
+    background-color: #1f4e79;
+}
+
+.wy-nav-top {
+    background-color: #1f4e79;
+}
+
+/* Keep code blocks visually distinct on the landing page. */
+.highlight {
+    border-radius: 4px;
+}
+
+/* Slightly roomier tables. */
+table.docutils td,
+table.docutils th {
+    padding: 6px 10px;
+}

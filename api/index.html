@@ -1,0 +1,370 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API reference &mdash; selkit  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=d5a91742" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Change log" href="../change_log/index.html" />
+    <link rel="prev" title="PAML validation" href="../validation/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            selkit
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#why-selkit">Why selkit?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#correctness">Correctness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#implementation-notes">Implementation notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#the-developers">The developers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/index.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#command-line">Command line</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-validate"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">validate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-codeml-site-models"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site-models</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#library">Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#outputs">Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../validation/index.html">PAML validation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#corpus-cases">Corpus cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#extending-the-corpus">Extending the corpus</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#entry-point">Entry point</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#codeml_site_models"><code class="docutils literal notranslate"><span class="pre">codeml_site_models()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#dataclasses">Dataclasses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#RunResult"><code class="docutils literal notranslate"><span class="pre">RunResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ModelFit"><code class="docutils literal notranslate"><span class="pre">ModelFit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#LRTResult"><code class="docutils literal notranslate"><span class="pre">LRTResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#BEBSite"><code class="docutils literal notranslate"><span class="pre">BEBSite</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#CodonAlignment"><code class="docutils literal notranslate"><span class="pre">CodonAlignment</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#LabeledTree"><code class="docutils literal notranslate"><span class="pre">LabeledTree</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#RunConfig"><code class="docutils literal notranslate"><span class="pre">RunConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ForegroundConfig"><code class="docutils literal notranslate"><span class="pre">ForegroundConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ForegroundSpec"><code class="docutils literal notranslate"><span class="pre">ForegroundSpec</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#errors">Errors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#selkit.errors.SelkitError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#selkit.errors.SelkitInputError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitInputError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#selkit.errors.SelkitConfigError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConfigError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#selkit.errors.SelkitEngineError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitEngineError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#selkit.errors.SelkitConvergenceWarning"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConvergenceWarning</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../change_log/index.html">Change log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently asked questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#models-and-statistics">Models and statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#output">Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#development">Development</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../other_software/index.html">Other software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id1">ClipKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id2">PhyKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id3">BioKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id4">orthofisher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id5">orthosnap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#typical-pipeline">Typical pipeline</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">selkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-reference">
+<h1>API reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
+<p>selkit exposes a small, stable public surface at the package root. All names below are importable as <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">selkit</span> <span class="pre">import</span> <span class="pre">...</span></code>.</p>
+<section id="entry-point">
+<h2>Entry point<a class="headerlink" href="#entry-point" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="codeml_site_models">
+<span class="sig-name descname"><span class="pre">codeml_site_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('M0',</span> <span class="pre">'M1a',</span> <span class="pre">'M2a',</span> <span class="pre">'M7',</span> <span class="pre">'M8',</span> <span class="pre">'M8a')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genetic_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'standard'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foreground</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_starts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convergence_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#codeml_site_models" title="Link to this definition"></a></dt>
+<dd><p>Fit a bundle of codeml site models against a codon alignment and tree.</p>
+<p>Creates <code class="docutils literal notranslate"><span class="pre">output_dir</span></code> if it doesn’t exist and returns a <a class="reference internal" href="#RunResult" title="RunResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunResult</span></code></a> carrying every fit, every LRT, BEB posteriors for M2a / M8 (where those models were fit), the <code class="docutils literal notranslate"><span class="pre">RunConfig</span></code> manifest, and any convergence warnings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alignment</strong> – Path to a FASTA or relaxed-Phylip codon alignment.</p></li>
+<li><p><strong>tree</strong> – Path to a Newick tree. Optional PAML <code class="docutils literal notranslate"><span class="pre">#N</span></code> / <code class="docutils literal notranslate"><span class="pre">$N</span></code> branch labels.</p></li>
+<li><p><strong>output_dir</strong> – Directory where <code class="docutils literal notranslate"><span class="pre">run.yaml</span></code> and intermediate artefacts will be written.</p></li>
+<li><p><strong>models</strong> – Tuple of model names to fit. Available: <code class="docutils literal notranslate"><span class="pre">M0</span></code>, <code class="docutils literal notranslate"><span class="pre">M1a</span></code>, <code class="docutils literal notranslate"><span class="pre">M2a</span></code>, <code class="docutils literal notranslate"><span class="pre">M7</span></code>, <code class="docutils literal notranslate"><span class="pre">M8</span></code>, <code class="docutils literal notranslate"><span class="pre">M8a</span></code>.</p></li>
+<li><p><strong>genetic_code</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;standard&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;vertebrate_mitochondrial&quot;</span></code>.</p></li>
+<li><p><strong>foreground</strong> – Optional <a class="reference internal" href="#ForegroundSpec" title="ForegroundSpec"><code class="xref py py-class docutils literal notranslate"><span class="pre">ForegroundSpec</span></code></a>. Accepted in v0.1 but not yet consumed by site models; reserved for branch / branch-site models.</p></li>
+<li><p><strong>n_starts</strong> – Number of random starts per model for multi-start L-BFGS-B.</p></li>
+<li><p><strong>seed</strong> – Top-level random seed. Sub-seeds for multi-start are derived deterministically.</p></li>
+<li><p><strong>threads</strong> – If &gt; 1, fits multiple models concurrently via <code class="docutils literal notranslate"><span class="pre">ProcessPoolExecutor</span></code>.</p></li>
+<li><p><strong>convergence_tol</strong> – lnL tolerance used to flag multi-start disagreement.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#RunResult" title="RunResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunResult</span></code></a></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#selkit.errors.SelkitInputError" title="selkit.errors.SelkitInputError"><strong>selkit.errors.SelkitInputError</strong></a> – on alignment, tree, or configuration errors.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="dataclasses">
+<h2>Dataclasses<a class="headerlink" href="#dataclasses" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="RunResult">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RunResult</span></span><a class="headerlink" href="#RunResult" title="Link to this definition"></a></dt>
+<dd><p>Top-level result returned by <a class="reference internal" href="#codeml_site_models" title="codeml_site_models"><code class="xref py py-func docutils literal notranslate"><span class="pre">codeml_site_models()</span></code></a>. Frozen.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – the <a class="reference internal" href="#RunConfig" title="RunConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunConfig</span></code></a> used for this run (reconstructible via <code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code>).</p></li>
+<li><p><strong>fits</strong> – <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">ModelFit]</span></code> keyed by model name.</p></li>
+<li><p><strong>lrts</strong> – <code class="docutils literal notranslate"><span class="pre">list[LRTResult]</span></code>.</p></li>
+<li><p><strong>beb</strong> – <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">list[BEBSite]]</span></code> for M2a and M8 (if fit).</p></li>
+<li><p><strong>warnings</strong> – <code class="docutils literal notranslate"><span class="pre">list[str]</span></code> of non-fatal convergence issues.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ModelFit">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ModelFit</span></span><a class="headerlink" href="#ModelFit" title="Link to this definition"></a></dt>
+<dd><p>Per-model fit result. Frozen.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – Model name (<code class="docutils literal notranslate"><span class="pre">&quot;M0&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;M1a&quot;</span></code>, …).</p></li>
+<li><p><strong>lnL</strong> – Maximum log-likelihood (natural log).</p></li>
+<li><p><strong>n_params</strong> – Total free parameters (model params + branch lengths).</p></li>
+<li><p><strong>params</strong> – <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">float]</span></code> — model-specific free parameters (<code class="docutils literal notranslate"><span class="pre">omega</span></code>, <code class="docutils literal notranslate"><span class="pre">kappa</span></code>, <code class="docutils literal notranslate"><span class="pre">omega0</span></code>, <code class="docutils literal notranslate"><span class="pre">omega2</span></code>, <code class="docutils literal notranslate"><span class="pre">p0</span></code>, <code class="docutils literal notranslate"><span class="pre">p_beta</span></code>, <code class="docutils literal notranslate"><span class="pre">q_beta</span></code>, <code class="docutils literal notranslate"><span class="pre">p1_frac</span></code>).</p></li>
+<li><p><strong>branch_lengths</strong> – <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">float]</span></code> — per-branch lengths keyed by internal node id (<code class="docutils literal notranslate"><span class="pre">bl_1</span></code>, <code class="docutils literal notranslate"><span class="pre">bl_2</span></code>, …).</p></li>
+<li><p><strong>starts</strong> – <code class="docutils literal notranslate"><span class="pre">list[StartResult]</span></code> — per-start result, useful for convergence diagnosis.</p></li>
+<li><p><strong>converged</strong> – <code class="docutils literal notranslate"><span class="pre">True</span></code> if the top-2 starts’ lnLs agree within <code class="docutils literal notranslate"><span class="pre">convergence_tol</span></code>.</p></li>
+<li><p><strong>runtime_s</strong> – Wall-clock time to fit this model.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="LRTResult">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">LRTResult</span></span><a class="headerlink" href="#LRTResult" title="Link to this definition"></a></dt>
+<dd><p>Likelihood-ratio test result. Frozen.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>null</strong> – Null-model name (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;M1a&quot;</span></code>).</p></li>
+<li><p><strong>alt</strong> – Alternative-model name (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;M2a&quot;</span></code>).</p></li>
+<li><p><strong>delta_lnL</strong> – The LRT statistic 2·(lnL_alt - lnL_null). Despite the field name, this is the χ² statistic, not the raw lnL difference.</p></li>
+<li><p><strong>df</strong> – Degrees of freedom.</p></li>
+<li><p><strong>p_value</strong> – p-value under the test distribution.</p></li>
+<li><p><strong>test_type</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;chi2&quot;</span></code> (standard) or <code class="docutils literal notranslate"><span class="pre">&quot;mixed_chi2&quot;</span></code> (50:50 mixture of χ²₀ and χ²₁ for boundary tests like M8a-vs-M8).</p></li>
+<li><p><strong>significant_at_0_05</strong> – <code class="docutils literal notranslate"><span class="pre">p_value</span> <span class="pre">&lt;</span> <span class="pre">0.05</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="BEBSite">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BEBSite</span></span><a class="headerlink" href="#BEBSite" title="Link to this definition"></a></dt>
+<dd><p>Per-site NEB posterior. Frozen.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>site</strong> – 1-indexed codon position.</p></li>
+<li><p><strong>p_positive</strong> – P(ω &gt; 1 | site data, MLE hyperparameters).</p></li>
+<li><p><strong>mean_omega</strong> – Posterior-mean ω at this site.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="CodonAlignment">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">CodonAlignment</span></span><a class="headerlink" href="#CodonAlignment" title="Link to this definition"></a></dt>
+<dd><p>Validated codon alignment. Frozen.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>taxa</strong> – <code class="docutils literal notranslate"><span class="pre">tuple[str,</span> <span class="pre">...]</span></code> of taxon names in row order.</p></li>
+<li><p><strong>codons</strong> – <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> shape <code class="docutils literal notranslate"><span class="pre">(n_taxa,</span> <span class="pre">n_codons)</span></code>, dtype <code class="docutils literal notranslate"><span class="pre">int16</span></code>. Integer codon codes; gaps / ambiguous → <code class="docutils literal notranslate"><span class="pre">-1</span></code>.</p></li>
+<li><p><strong>genetic_code</strong> – Name of the genetic code used to encode (<code class="docutils literal notranslate"><span class="pre">&quot;standard&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;vertebrate_mitochondrial&quot;</span></code>).</p></li>
+<li><p><strong>stripped_sites</strong> – <code class="docutils literal notranslate"><span class="pre">tuple[int,</span> <span class="pre">...]</span></code> — 0-indexed codon positions that were stripped (terminal stop, <code class="docutils literal notranslate"><span class="pre">--strip-stop-codons</span></code> drops).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="LabeledTree">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">LabeledTree</span></span><a class="headerlink" href="#LabeledTree" title="Link to this definition"></a></dt>
+<dd><p>Parsed Newick tree with optional branch labels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> – Root <code class="xref py py-class docutils literal notranslate"><span class="pre">selkit.io.tree.Node</span></code>.</p></li>
+<li><p><strong>newick</strong> – Canonical Newick string (branch lengths preserved; labels not currently round-tripped).</p></li>
+<li><p><strong>labels</strong> – <code class="docutils literal notranslate"><span class="pre">dict[int,</span> <span class="pre">int]</span></code> — <code class="docutils literal notranslate"><span class="pre">{node_id:</span> <span class="pre">label}</span></code>; only entries with non-zero labels.</p></li>
+<li><p><strong>tip_order</strong> – <code class="docutils literal notranslate"><span class="pre">tuple[str,</span> <span class="pre">...]</span></code> — tip names in pre-order traversal.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="RunConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RunConfig</span></span><a class="headerlink" href="#RunConfig" title="Link to this definition"></a></dt>
+<dd><p>Exact configuration of an analysis, serialisable to <code class="docutils literal notranslate"><span class="pre">run.yaml</span></code>. Used by <code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ForegroundConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ForegroundConfig</span></span><a class="headerlink" href="#ForegroundConfig" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ForegroundSpec">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ForegroundSpec</span></span><a class="headerlink" href="#ForegroundSpec" title="Link to this definition"></a></dt>
+<dd><p>Normalised foreground-branch specification. <code class="docutils literal notranslate"><span class="pre">ForegroundConfig</span></code> is the serialisable form stored in <code class="docutils literal notranslate"><span class="pre">RunConfig</span></code>; <code class="docutils literal notranslate"><span class="pre">ForegroundSpec</span></code> is the engine-side shape (tips, MRCA, explicit labels dict).</p>
+</dd></dl>
+
+</section>
+<section id="errors">
+<h2>Errors<a class="headerlink" href="#errors" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="selkit.errors.SelkitError">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">selkit.errors.</span></span><span class="sig-name descname"><span class="pre">SelkitError</span></span><a class="headerlink" href="#selkit.errors.SelkitError" title="Link to this definition"></a></dt>
+<dd><p>Base class for all selkit exceptions.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="selkit.errors.SelkitInputError">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">selkit.errors.</span></span><span class="sig-name descname"><span class="pre">SelkitInputError</span></span><a class="headerlink" href="#selkit.errors.SelkitInputError" title="Link to this definition"></a></dt>
+<dd><p>Malformed input files (alignment, tree, labels).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="selkit.errors.SelkitConfigError">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">selkit.errors.</span></span><span class="sig-name descname"><span class="pre">SelkitConfigError</span></span><a class="headerlink" href="#selkit.errors.SelkitConfigError" title="Link to this definition"></a></dt>
+<dd><p>Invalid configuration (unknown model name, conflicting flags).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="selkit.errors.SelkitEngineError">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">selkit.errors.</span></span><span class="sig-name descname"><span class="pre">SelkitEngineError</span></span><a class="headerlink" href="#selkit.errors.SelkitEngineError" title="Link to this definition"></a></dt>
+<dd><p>Numerical failure inside the ML engine.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="selkit.errors.SelkitConvergenceWarning">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">selkit.errors.</span></span><span class="sig-name descname"><span class="pre">SelkitConvergenceWarning</span></span><a class="headerlink" href="#selkit.errors.SelkitConvergenceWarning" title="Link to this definition"></a></dt>
+<dd><p>Warning (not an exception) emitted when the multi-start convergence gate fails. Flagged on <code class="xref py py-attr docutils literal notranslate"><span class="pre">RunResult.warnings</span></code>.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../validation/index.html" class="btn btn-neutral float-left" title="PAML validation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../change_log/index.html" class="btn btn-neutral float-right" title="Change log" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 Jacob L. Steenwyk.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
