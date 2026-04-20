@@ -48,3 +48,6 @@ Thumbs.db
 # Project-local runs
 /out/
 /scratch/
+
+# Internal dev artifacts (plans, specs, review notes)
+docs/superpowers/
