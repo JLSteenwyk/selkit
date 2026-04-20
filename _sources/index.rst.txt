@@ -87,12 +87,16 @@ Implemented and PAML-validated:
 - **Outputs:** canonical JSON, per-table TSV, and ``run.yaml`` manifest for full reproducibility.
 - **CLI:** ``selkit validate``, ``selkit codeml site-models``, ``selkit rerun``.
 
+v0.2 adds:
+
+- **Branch-site Model A and Model A null** (:doc:`tutorials/05_branch_site_test`) — the branch-site test of positive selection. PAML-validated on the lysozyme dataset.
+
 Deferred to later releases:
 
 - ``yn00`` (pairwise dN/dS).
-- Branch models (one-ratio, two-ratios, free-ratios).
-- Branch-site models (Model A, Model A null).
-- True BEB (integration over hyperparameters; v0.1 uses NEB — posterior at the MLE of hyperparameters).
+- Branch models with multiple ω ratios (Yang 1998 "free-ratios").
+- Per-site BEB posteriors for Model A (which sites on the foreground are positively selected).
+- True BEB (integration over hyperparameters; v0.x uses NEB — posterior at the MLE of hyperparameters).
 
 
 Citation

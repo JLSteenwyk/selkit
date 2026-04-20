@@ -100,6 +100,19 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/04_library_workflow.html#what-next">What next?</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/05_branch_site_test.html">Branch-site test: positive selection on specific lineages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#the-two-branch-site-models">The two branch-site models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#designating-the-foreground">Designating the foreground</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#step-2-validate-then-fit-both-branch-site-models">Step 2: Validate, then fit both branch-site models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#step-3-inspect-the-console-output">Step 3: Inspect the console output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#step-4-interpret-the-result">Step 4: Interpret the result</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#step-5-fraction-of-sites-in-the-positive-class">Step 5: Fraction of sites in the positive class</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#numerical-parity-with-paml">Numerical parity with PAML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#python-api-equivalent">Python API equivalent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#what-next">What next?</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html#what-you-ll-learn">What you’ll learn</a></li>
@@ -208,7 +221,7 @@
 <p><strong>Why Python and not just use PAML directly?</strong></p>
 <p>PAML is the reference. selkit is for the common case where you want to script or embed the analysis: looping over thousands of genes, wiring the output into downstream analysis, testing input-preparation changes without re-running hours of fits, or shipping a paper’s analysis as a reproducible <code class="docutils literal notranslate"><span class="pre">run.yaml</span></code>. PAML’s control-file interface and free-form <code class="docutils literal notranslate"><span class="pre">mlc</span></code> output are workable but laborious in that setting.</p>
 <p><strong>Does selkit replace PAML?</strong></p>
-<p>No. PAML ships many more models (baseml, branch models, branch-site models, clade models, <code class="docutils literal notranslate"><span class="pre">yn00</span></code>, <code class="docutils literal notranslate"><span class="pre">mcmctree</span></code>, <code class="docutils literal notranslate"><span class="pre">evolver</span></code>, <code class="docutils literal notranslate"><span class="pre">codeml</span></code>-based dating, …). selkit v0.1 implements only <code class="docutils literal notranslate"><span class="pre">codeml</span></code> site models. For anything outside that scope, use PAML.</p>
+<p>No. PAML ships many more models (baseml, branch models with multiple ω ratios, clade models, <code class="docutils literal notranslate"><span class="pre">yn00</span></code>, <code class="docutils literal notranslate"><span class="pre">mcmctree</span></code>, <code class="docutils literal notranslate"><span class="pre">evolver</span></code>, <code class="docutils literal notranslate"><span class="pre">codeml</span></code>-based dating, …). selkit currently implements <code class="docutils literal notranslate"><span class="pre">codeml</span></code> site models (M0, M1a, M2a, M7, M8, M8a) and the branch-site test (Model A, Model A null). For anything outside that scope, use PAML.</p>
 </section>
 <section id="inputs">
 <h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading"></a></h2>
@@ -228,7 +241,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">--foreground-tips</span> <span class="pre">TIP1,TIP2,...</span></code> — foreground = exactly the listed tip branches, nothing else.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--labels-file</span> <span class="pre">labels.tsv</span></code> — two-column TSV (<code class="docutils literal notranslate"><span class="pre">taxon&lt;TAB&gt;label</span></code>).</p></li>
 </ol>
-<p>Foreground labels are accepted but <strong>not consumed</strong> by the site models in v0.1. They’re parsed and carried through so that branch and branch-site models — which do use foreground — integrate cleanly when they land.</p>
+<p>Foreground labels are ignored by the ordinary site models (M0 / M1a / M2a / M7 / M8 / M8a) — those models treat every branch the same. The <strong>branch-site test</strong> (<code class="docutils literal notranslate"><span class="pre">ModelA</span></code> / <code class="docutils literal notranslate"><span class="pre">ModelA_null</span></code>, <a class="reference internal" href="../tutorials/05_branch_site_test.html"><span class="doc">Branch-site test: positive selection on specific lineages</span></a>) is the one that actually uses the foreground.</p>
 </section>
 <section id="models-and-statistics">
 <h2>Models and statistics<a class="headerlink" href="#models-and-statistics" title="Link to this heading"></a></h2>

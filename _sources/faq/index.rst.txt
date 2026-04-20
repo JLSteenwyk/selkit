@@ -17,7 +17,7 @@ PAML is the reference. selkit is for the common case where you want to script or
 
 **Does selkit replace PAML?**
 
-No. PAML ships many more models (baseml, branch models, branch-site models, clade models, ``yn00``, ``mcmctree``, ``evolver``, ``codeml``-based dating, ...). selkit v0.1 implements only ``codeml`` site models. For anything outside that scope, use PAML.
+No. PAML ships many more models (baseml, branch models with multiple ω ratios, clade models, ``yn00``, ``mcmctree``, ``evolver``, ``codeml``-based dating, ...). selkit currently implements ``codeml`` site models (M0, M1a, M2a, M7, M8, M8a) and the branch-site test (Model A, Model A null). For anything outside that scope, use PAML.
 
 
 Inputs
@@ -48,7 +48,7 @@ Three mutually-exclusive options (pick one):
 3. ``--foreground-tips TIP1,TIP2,...`` — foreground = exactly the listed tip branches, nothing else.
 4. ``--labels-file labels.tsv`` — two-column TSV (``taxon<TAB>label``).
 
-Foreground labels are accepted but **not consumed** by the site models in v0.1. They're parsed and carried through so that branch and branch-site models — which do use foreground — integrate cleanly when they land.
+Foreground labels are ignored by the ordinary site models (M0 / M1a / M2a / M7 / M8 / M8a) — those models treat every branch the same. The **branch-site test** (``ModelA`` / ``ModelA_null``, :doc:`../tutorials/05_branch_site_test`) is the one that actually uses the foreground.
 
 
 Models and statistics

@@ -100,6 +100,19 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/04_library_workflow.html#what-next">What next?</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/05_branch_site_test.html">Branch-site test: positive selection on specific lineages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#the-two-branch-site-models">The two branch-site models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#designating-the-foreground">Designating the foreground</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#step-2-validate-then-fit-both-branch-site-models">Step 2: Validate, then fit both branch-site models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#step-3-inspect-the-console-output">Step 3: Inspect the console output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#step-4-interpret-the-result">Step 4: Interpret the result</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#step-5-fraction-of-sites-in-the-positive-class">Step 5: Fraction of sites in the positive class</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#numerical-parity-with-paml">Numerical parity with PAML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#python-api-equivalent">Python API equivalent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#what-next">What next?</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html#what-you-ll-learn">What you’ll learn</a></li>
@@ -201,6 +214,15 @@
   <section id="change-log">
 <span id="id1"></span><h1>Change log<a class="headerlink" href="#change-log" title="Link to this heading"></a></h1>
 <p>Major changes to selkit are summarised here.</p>
+<p><strong>0.2.0</strong></p>
+<ul class="simple">
+<li><p><strong>Branch-site Model A and Model A null.</strong> The branch-site test of positive selection (Zhang <em>et al.</em> 2005; Yang <em>et al.</em> 2005) — tests whether a pre-designated foreground lineage experienced episodic adaptation at some codons. Fit via <code class="docutils literal notranslate"><span class="pre">--models</span> <span class="pre">ModelA,ModelA_null</span></code>. The LRT is automatic, 1 df, mixed 50:50 χ² (boundary test).</p></li>
+<li><p>Engine gained per-label Q dispatch: a site class’s Q can now be either a single ndarray (site models) or a <code class="docutils literal notranslate"><span class="pre">dict[int,</span> <span class="pre">ndarray]</span></code> keyed by branch label (branch-site). Backward compatible with every existing call site.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scale_branch_site_qs</span></code> scales each label’s Qs by that label’s class-averaged mean rate — matches PAML’s convention that branch lengths are “expected substitutions per codon averaged over site classes on that branch”. Verified against PAML 4.10.10 on the lysozyme dataset.</p></li>
+<li><p>New PAML corpus case <code class="docutils literal notranslate"><span class="pre">tests/validation/corpus/lysozyme_branchsite/</span></code> (19-taxon primate lysozyme, colobine clade foreground). Static lnL match to better than 10⁻³ at PAML’s reported point for both Model A and Model A null; end-to-end optimiser fit agrees with PAML to better than 10⁻².</p></li>
+<li><p>Tutorial 05 walks through the branch-site workflow end-to-end with the lysozyme example.</p></li>
+<li><p>Orchestrator refuses to fit <code class="docutils literal notranslate"><span class="pre">ModelA</span></code> / <code class="docutils literal notranslate"><span class="pre">ModelA_null</span></code> when no foreground is labelled on the tree (previously the fit would silently succeed as an ordinary site model).</p></li>
+</ul>
 <p><strong>0.1.0</strong></p>
 <ul class="simple">
 <li><p>First public release. Pure-Python reimplementation of PAML’s codeml site-model workflow.</p></li>
