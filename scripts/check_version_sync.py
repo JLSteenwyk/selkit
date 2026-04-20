@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+"""Check that ``selkit/version.py`` and the top entry of ``CHANGELOG.md`` match.
+
+Run this locally before tagging a release, or let the
+``version-consistency`` workflow run it on every push / PR.
+"""
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def extract_package_version() -> str:
+    text = read_text(ROOT / "selkit" / "version.py")
+    match = re.search(r'__version__\s*=\s*"([^"]+)"', text)
+    if not match:
+        raise ValueError("Could not parse __version__ from selkit/version.py")
+    return match.group(1)
+
+
+def extract_changelog_version() -> str:
+    text = read_text(ROOT / "CHANGELOG.md")
+    match = re.search(r"^##\s+([0-9]+\.[0-9]+\.[0-9]+)\s*$", text, flags=re.MULTILINE)
+    if not match:
+        raise ValueError("Could not parse top version header from CHANGELOG.md")
+    return match.group(1)
+
+
+def main() -> int:
+    package_version = extract_package_version()
+    changelog_version = extract_changelog_version()
+
+    if package_version != changelog_version:
+        print("Version consistency check failed:")
+        print(
+            f"- selkit/version.py ({package_version}) != CHANGELOG.md ({changelog_version})"
+        )
+        return 1
+
+    print(f"Version consistency check passed: {package_version}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
