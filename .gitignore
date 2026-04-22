@@ -54,3 +54,8 @@ docs/superpowers/
 
 # Sphinx build output
 docs/_build/
+
+# Typo artifacts from shell history
+/rst
+/rst1
+/rub
