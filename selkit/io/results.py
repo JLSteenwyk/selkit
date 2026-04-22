@@ -29,6 +29,52 @@ class ModelFit:
 
 
 @dataclass(frozen=True)
+class SiteModelFit:
+    model: str
+    family: Literal["site"]
+    lnL: float
+    n_params: int
+    params: dict[str, float]
+    branch_lengths: dict[str, float]
+    starts: list[StartResult]
+    converged: bool
+    runtime_s: float
+
+
+@dataclass(frozen=True)
+class BranchSiteModelFit:
+    model: str
+    family: Literal["branch-site"]
+    lnL: float
+    n_params: int
+    params: dict[str, float]
+    class_proportions: dict[str, float]
+    branch_lengths: dict[str, float]
+    starts: list[StartResult]
+    converged: bool
+    runtime_s: float
+
+
+# Placeholder for Phase 2. Branch models emit a per-branch ω array instead of
+# a scalar in `params`.
+@dataclass(frozen=True)
+class BranchModelFit:
+    model: str
+    family: Literal["branch"]
+    lnL: float
+    n_params: int
+    params: dict[str, float]
+    per_branch_omega: list[dict]  # [{branch_id, tip_set, label, paml_node_id, omega, SE}, ...]
+    branch_lengths: dict[str, float]
+    starts: list[StartResult]
+    converged: bool
+    runtime_s: float
+
+
+AnyModelFit = SiteModelFit | BranchModelFit | BranchSiteModelFit
+
+
+@dataclass(frozen=True)
 class LRTResult:
     null: str
     alt: str

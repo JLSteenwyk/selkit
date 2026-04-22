@@ -80,3 +80,47 @@ def test_beb_site_uses_posterior_mean_omega():
     s = BEBSite(site=1, p_positive=0.9, posterior_mean_omega=2.3)
     assert s.posterior_mean_omega == 2.3
     assert not hasattr(s, "mean_omega")
+
+
+def test_site_model_fit_tagged():
+    from selkit.io.results import SiteModelFit
+    f = SiteModelFit(
+        model="M8", family="site", lnL=-3421.17, n_params=5,
+        params={"kappa": 2.14, "omega2": 2.1},
+        branch_lengths={}, starts=[], converged=True, runtime_s=0.1,
+    )
+    assert f.family == "site"
+
+
+def test_branch_site_model_fit_has_class_proportions():
+    from selkit.io.results import BranchSiteModelFit
+    f = BranchSiteModelFit(
+        model="ModelA", family="branch-site", lnL=-3255.44, n_params=5,
+        params={"p0": 0.6, "p1": 0.25, "omega0": 0.12, "omega2": 4.3, "kappa": 2.1},
+        class_proportions={"p0": 0.6, "p1": 0.25, "p2a": 0.1, "p2b": 0.05},
+        branch_lengths={}, starts=[], converged=True, runtime_s=0.1,
+    )
+    assert f.family == "branch-site"
+    assert abs(sum(f.class_proportions.values()) - 1.0) < 1e-9
+
+
+def test_branch_model_fit_stub_exists():
+    from selkit.io.results import BranchModelFit
+    f = BranchModelFit(
+        model="TwoRatios", family="branch", lnL=-100.0, n_params=3,
+        params={"kappa": 2.0}, per_branch_omega=[],
+        branch_lengths={}, starts=[], converged=True, runtime_s=0.1,
+    )
+    assert f.family == "branch"
+
+
+def test_any_model_fit_union_importable():
+    from selkit.io.results import AnyModelFit, SiteModelFit, BranchModelFit, BranchSiteModelFit
+    # sanity: AnyModelFit union includes all three
+    # (type unions don't have an `__args__` on the instance, but the module-level
+    # alias should be a types.UnionType or typing.Union and include the three classes)
+    import typing
+    args = typing.get_args(AnyModelFit)
+    assert SiteModelFit in args
+    assert BranchModelFit in args
+    assert BranchSiteModelFit in args
