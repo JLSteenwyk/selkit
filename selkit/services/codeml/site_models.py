@@ -43,6 +43,10 @@ _MODEL_CTORS: dict[str, Callable[[GeneticCode, np.ndarray], SiteModel]] = {
     "ModelA_null": lambda gc, pi: ModelANull(gc=gc, pi=pi),
 }
 
+# Public alias used by the shared orchestrator (_orchestrator.run_family).
+# Task 6 will migrate the live path to reference MODEL_REGISTRY directly.
+MODEL_REGISTRY = _MODEL_CTORS
+
 # Models that require a foreground-branch designation to be meaningful.
 _BRANCH_SITE_MODELS: frozenset[str] = frozenset({"ModelA", "ModelA_null"})
 
