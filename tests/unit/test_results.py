@@ -37,7 +37,7 @@ def test_run_result_roundtrips_through_json(tmp_path: Path) -> None:
                             params={"omega": 0.5, "kappa": 2.0})],
         converged=True, runtime_s=0.01,
     )
-    beb = {"M0": [BEBSite(site=1, p_positive=0.0, mean_omega=0.5)]}
+    beb = {"M0": [BEBSite(site=1, p_positive=0.0, posterior_mean_omega=0.5)]}
     result = RunResult(
         config=cfg, fits={"M0": fit}, lrts=[], beb=beb, warnings=[],
     )
@@ -60,7 +60,7 @@ def test_emit_tsv_files(tmp_path: Path) -> None:
     result = RunResult(
         config=cfg, fits={"M0": fit},
         lrts=[LRTResult("M1a", "M2a", 5.0, 2, 0.05, "chi2", True)],
-        beb={"M2a": [BEBSite(1, 0.95, 3.2)]}, warnings=[],
+        beb={"M2a": [BEBSite(1, 0.95, 3.2)]}, warnings=[],  # positional args: site, p_positive, posterior_mean_omega
     )
     emit_tsv_files(result, tmp_path)
     fits_tsv = (tmp_path / "fits.tsv").read_text().splitlines()
@@ -73,4 +73,10 @@ def test_emit_tsv_files(tmp_path: Path) -> None:
         "null", "alt", "delta_lnL", "df", "p_value", "test_type", "significant_at_0_05"
     ]
     beb_tsv = (tmp_path / "beb_M2a.tsv").read_text().splitlines()
-    assert beb_tsv[0].split("\t") == ["site", "p_positive", "mean_omega"]
+    assert beb_tsv[0].split("\t") == ["site", "p_positive", "posterior_mean_omega"]
+
+
+def test_beb_site_uses_posterior_mean_omega():
+    s = BEBSite(site=1, p_positive=0.9, posterior_mean_omega=2.3)
+    assert s.posterior_mean_omega == 2.3
+    assert not hasattr(s, "mean_omega")

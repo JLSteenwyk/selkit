@@ -26,6 +26,6 @@ def compute_neb(
         out.append(BEBSite(
             site=s + 1,
             p_positive=float(p_pos[s]),
-            mean_omega=float(mean_om[s]),
+            posterior_mean_omega=float(mean_om[s]),
         ))
     return out

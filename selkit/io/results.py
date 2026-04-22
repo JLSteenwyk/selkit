@@ -43,7 +43,10 @@ class LRTResult:
 class BEBSite:
     site: int
     p_positive: float
-    mean_omega: float
+    posterior_mean_omega: float
+    p_class_2a: float | None = None
+    p_class_2b: float | None = None
+    beb_grid_size: int | None = None
 
 
 @dataclass(frozen=True)
@@ -85,7 +88,7 @@ def emit_tsv_files(result: RunResult, output_dir: Path) -> None:
         ]))
     (output_dir / "lrts.tsv").write_text("\n".join(lrt_rows) + "\n")
     for model, sites in result.beb.items():
-        rows = ["\t".join(["site", "p_positive", "mean_omega"])]
+        rows = ["\t".join(["site", "p_positive", "posterior_mean_omega"])]
         for s in sites:
-            rows.append("\t".join([str(s.site), f"{s.p_positive:.6f}", f"{s.mean_omega:.6f}"]))
+            rows.append("\t".join([str(s.site), f"{s.p_positive:.6f}", f"{s.posterior_mean_omega:.6f}"]))
         (output_dir / f"beb_{model}.tsv").write_text("\n".join(rows) + "\n")
