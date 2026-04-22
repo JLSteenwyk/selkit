@@ -93,7 +93,7 @@ def figure_beb_posterior(run_dir: Path) -> None:
         return
     rows = beb_tsv.read_text().strip().splitlines()
     header = rows[0].split("\t")
-    assert header == ["site", "p_positive", "mean_omega"], header
+    assert header[:3] == ["site", "p_positive", "posterior_mean_omega"], header
     sites = []
     p_pos = []
     for r in rows[1:]:
