@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.3.0 (unreleased — in progress)
+
+### Refactor (Phase 1)
+
+This phase reshapes the service/CLI layer around the three model families (site, branch, branch-site) with **zero behavior change on PAML numerics**. It is the structural foundation for Phase 2 (branch models) and Phase 3 (true BEB), which build on the orchestrator pattern introduced here.
+
+**Breaking changes** (pre-1.0, no compat aliases):
+
+- CLI subcommand `selkit codeml site-models` renamed to `selkit codeml site`.
+- New CLI subcommand `selkit codeml branch-site` for `ModelA` / `ModelA_null` (previously hosted under `site-models`).
+- `selkit rerun` hard-fails on v0.2 `run.yaml` files (`subcommand: codeml.site-models`) with a migration message pointing at the two new subcommands.
+- `BEBSite.mean_omega` field renamed to `posterior_mean_omega` to make the statistical meaning explicit.
+- `RunResult` gains a required `family: Literal["site", "branch", "branch-site"]` field.
+- `BEBSite` gains optional fields `p_class_2a`, `p_class_2b`, `beb_grid_size` (all `None` in Phase 1; populated by Phase 3).
+
+**Internal refactor:**
+
+- `engine/beb.py` promoted to `engine/beb/` package (`__init__.py`, `site.py`, `_grid.py` stub for Phase 3).
+- `services/codeml/site_models.py` (~234 lines) split into `site_models.py` (~58 lines, M0–M8a only) + `branch_site.py` (~59 lines, ModelA/ModelA_null) + a shared `_orchestrator.py` (~330 lines) that owns the validate → fit → LRT → BEB pipeline.
+- `services/codeml/_orchestrator.py:run_family(family, registry, default_lrts, default_beb_models, ...)` is the single execution path that all three family services delegate to. Phase 2's `branch_models.py` and yn00 (v0.4) reuse the same shape.
+- Tagged-union fit dataclasses introduced: `SiteModelFit`, `BranchSiteModelFit` (with `class_proportions` for ModelA), and `BranchModelFit` (stub for Phase 2). Legacy `ModelFit` retained as a transitional alias.
+- `MODEL_REGISTRY` dicts use named module-scope factory functions instead of lambdas, so they pickle cleanly through `ProcessPoolExecutor`.
+
+**New library API:**
+
+- `selkit.codeml_branch_site_models(...)` — calls `run_branch_site_models`; mirrors the existing `codeml_site_models` shape but requires `foreground`.
+- `selkit.codeml_branch_models(...)` — stub raising `NotImplementedError("... Phase 2 ...")` so the import surface is stable across the upcoming phases.
+
+**Output schema:**
+
+- `results.json` gains a top-level `family` field per fit.
+- `run.yaml` gains a `family` field derived from `subcommand` (informational; `subcommand` remains the source of truth).
+
+**Migration from 0.2.x:**
+
+```
+# old (v0.2)
+selkit codeml site-models --alignment X --tree Y --output Z \
+    --models M0,M1a,M2a,M7,M8,M8a,ModelA,ModelA_null
+
+# new (v0.3) — split into two runs
+selkit codeml site        --alignment X --tree Y --output Z/site
+selkit codeml branch-site --alignment X --tree Y --output Z/branch_site \
+    --foreground <labels>
+```
+
+PAML numerical agreement preserved: all 12 corpus lnL-match cases (HIV 4-taxon and 13-taxon site models, lysozyme branch-site Model A and Model A null) still pass at PAML's reported point within `|ΔlnL| < 1e-3`.
+
+Phases 2 (branch models) and 3 (true BEB) follow.
+
 ## 0.2.0
 
 - **Branch-site Model A and Model A null.** The branch-site test of positive selection (Zhang et al. 2005; Yang et al. 2005) — tests whether a pre-designated foreground lineage experienced episodic adaptation at some codons. Fit via `--models ModelA,ModelA_null`. LRT `ModelA_null` vs `ModelA` is 1 df, mixed 50:50 χ²₀:χ²₁ (boundary test); included automatically when both models are fit.
