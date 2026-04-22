@@ -237,9 +237,22 @@ def _run_one(
         taxon_order=inputs.alignment.taxa,
         tree=inputs.tree,
         n_starts=cfg.n_starts,
-        seed=cfg.seed + hash(name) % 10_000,
+        seed=cfg.seed + _model_seed_offset(name),
         convergence_tol=cfg.convergence_tol,
     )
+
+
+def _model_seed_offset(name: str) -> int:
+    """Deterministic per-model seed offset.
+
+    Python's built-in ``hash()`` is process-randomized (unless PYTHONHASHSEED
+    is set), so ``hash("M7") % 10_000`` differs between runs and the multi-start
+    starting points for a given model are non-reproducible. Use a stable hash
+    so corpus tests aren't optimizer-flaky across CI runs.
+    """
+    import hashlib
+    digest = hashlib.sha1(name.encode("utf-8")).digest()
+    return int.from_bytes(digest[:2], "big") % 10_000
 
 
 def _compute_lrts(
