@@ -209,7 +209,7 @@ Output:
 
 .. code-block:: text
 
-    site	p_positive	mean_omega
+    site	p_positive	posterior_mean_omega
     28	0.997084	3.617758
     66	0.998982	3.622741
     87	0.981819	3.577679
