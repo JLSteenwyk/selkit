@@ -194,5 +194,5 @@ def run_site_models(
             warnings.append(f"{name}: multi-start disagreement > {config.convergence_tol} lnL")
 
     return RunResult(
-        config=config, fits=fits, lrts=lrts, beb=beb, warnings=warnings,
+        config=config, family="site", fits=fits, lrts=lrts, beb=beb, warnings=warnings,
     )
