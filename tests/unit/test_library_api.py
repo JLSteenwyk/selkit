@@ -36,3 +36,20 @@ def test_codeml_site_models_returns_run_result(tmp_path: Path) -> None:
     )
     assert isinstance(result, RunResult)
     assert set(result.fits) == {"M0", "M1a"}
+
+
+def test_codeml_branch_site_models_library_function_exists():
+    from selkit import codeml_branch_site_models
+    import inspect
+    sig = inspect.signature(codeml_branch_site_models)
+    assert "alignment" in sig.parameters
+    assert "tree" in sig.parameters
+    assert "foreground" in sig.parameters
+    assert "output_dir" in sig.parameters
+
+
+def test_codeml_branch_models_stub_raises():
+    from selkit import codeml_branch_models
+    import pytest
+    with pytest.raises(NotImplementedError, match="Phase 2"):
+        codeml_branch_models(alignment="x.fa", tree="y.nwk", output_dir="/tmp/o")
