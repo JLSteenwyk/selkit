@@ -54,8 +54,30 @@ def _to_primitive(obj: object) -> object:
     return obj
 
 
+_SUBCOMMAND_TO_FAMILY: dict[str, str] = {
+    "codeml.site": "site",
+    "codeml.branch": "branch",
+    "codeml.branch-site": "branch-site",
+}
+
+
+def _family_from_subcommand(subcommand: str) -> Optional[str]:
+    return _SUBCOMMAND_TO_FAMILY.get(subcommand)
+
+
 def dump_config(cfg: RunConfig, path: Path) -> None:
-    Path(path).write_text(yaml.safe_dump(_to_primitive(cfg), sort_keys=False))
+    data = _to_primitive(cfg)
+    family = _family_from_subcommand(cfg.subcommand)
+    if family is not None:
+        # Insert "family" right after "subcommand" so the YAML stays readable.
+        assert isinstance(data, dict)
+        ordered: dict[str, object] = {}
+        for k, v in data.items():
+            ordered[k] = v
+            if k == "subcommand":
+                ordered["family"] = family
+        data = ordered
+    Path(path).write_text(yaml.safe_dump(data, sort_keys=False))
 
 
 def _from_primitive_strict(data: dict) -> StrictFlags:
