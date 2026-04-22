@@ -32,15 +32,48 @@ from selkit.io.results import (
 from selkit.services.codeml.lrt import STANDARD_SITE_LRTS, compute_lrt
 from selkit.services.validate import ValidatedInputs
 
+
+def _make_m0(gc: GeneticCode, pi: np.ndarray) -> SiteModel:
+    return M0(gc=gc, pi=pi)
+
+
+def _make_m1a(gc: GeneticCode, pi: np.ndarray) -> SiteModel:
+    return M1a(gc=gc, pi=pi)
+
+
+def _make_m2a(gc: GeneticCode, pi: np.ndarray) -> SiteModel:
+    return M2a(gc=gc, pi=pi)
+
+
+def _make_m7(gc: GeneticCode, pi: np.ndarray) -> SiteModel:
+    return M7(gc=gc, pi=pi)
+
+
+def _make_m8(gc: GeneticCode, pi: np.ndarray) -> SiteModel:
+    return M8(gc=gc, pi=pi)
+
+
+def _make_m8a(gc: GeneticCode, pi: np.ndarray) -> SiteModel:
+    return M8a(gc=gc, pi=pi)
+
+
+def _make_modela(gc: GeneticCode, pi: np.ndarray) -> SiteModel:
+    return ModelA(gc=gc, pi=pi)
+
+
+def _make_modela_null(gc: GeneticCode, pi: np.ndarray) -> SiteModel:
+    return ModelANull(gc=gc, pi=pi)
+
+
 _MODEL_CTORS: dict[str, Callable[[GeneticCode, np.ndarray], SiteModel]] = {
-    "M0":  lambda gc, pi: M0(gc=gc, pi=pi),
-    "M1a": lambda gc, pi: M1a(gc=gc, pi=pi),
-    "M2a": lambda gc, pi: M2a(gc=gc, pi=pi),
-    "M7":  lambda gc, pi: M7(gc=gc, pi=pi),
-    "M8":  lambda gc, pi: M8(gc=gc, pi=pi),
-    "M8a": lambda gc, pi: M8a(gc=gc, pi=pi),
-    "ModelA": lambda gc, pi: ModelA(gc=gc, pi=pi),
-    "ModelA_null": lambda gc, pi: ModelANull(gc=gc, pi=pi),
+    "M0": _make_m0,
+    "M1a": _make_m1a,
+    "M2a": _make_m2a,
+    "M7": _make_m7,
+    "M8": _make_m8,
+    "M8a": _make_m8a,
+    "ModelA": _make_modela,
+    "ModelA_null": _make_modela_null,
 }
 
 # Public alias used by the shared orchestrator (_orchestrator.run_family).
