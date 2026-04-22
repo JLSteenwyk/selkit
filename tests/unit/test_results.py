@@ -18,7 +18,7 @@ from selkit.io.results import (
 def _minimal_config() -> RunConfig:
     return RunConfig(
         alignment=Path("/x.fa"), alignment_dir=None, tree=Path("/x.nwk"),
-        foreground=None, subcommand="codeml.site-models",
+        foreground=None, subcommand="codeml.site",
         models=("M0",), tests=(), genetic_code="standard",
         output_dir=Path("/out"), threads=1, seed=0, n_starts=1,
         convergence_tol=0.5,

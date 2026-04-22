@@ -41,7 +41,7 @@ def _make_validated_inputs_and_config(tmp_path: Path):
         alignment_dir=None,
         tree=Path("/x.nwk"),
         foreground=None,
-        subcommand="codeml.site-models",
+        subcommand="codeml.site",
         models=("M0",),
         tests=(),
         genetic_code="standard",

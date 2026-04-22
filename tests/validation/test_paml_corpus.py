@@ -35,7 +35,7 @@ def test_case_matches_paml(paml_case: Path) -> None:
 
     cfg = RunConfig(
         alignment=aln, alignment_dir=None, tree=tree,
-        foreground=None, subcommand="codeml.site-models",
+        foreground=None, subcommand="codeml.site",
         models=tuple(meta["models"]),
         tests=tuple(meta.get("tests") or ()),
         genetic_code=meta.get("genetic_code", "standard"),

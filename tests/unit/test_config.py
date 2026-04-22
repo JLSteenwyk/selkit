@@ -11,7 +11,7 @@ def test_run_config_round_trips_yaml(tmp_path: Path) -> None:
         alignment_dir=None,
         tree=Path("/data/x.nwk"),
         foreground=None,
-        subcommand="codeml.site-models",
+        subcommand="codeml.site",
         models=("M0", "M1a", "M2a"),
         tests=("M1a-vs-M2a",),
         genetic_code="standard",

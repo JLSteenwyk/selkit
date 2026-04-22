@@ -13,7 +13,7 @@ class CommandSpec:
     handle: Callable[[argparse.Namespace], int]
 
 
-def _codeml_site_models_builder(p: argparse.ArgumentParser) -> None:
+def _codeml_site_builder(p: argparse.ArgumentParser) -> None:
     p.add_argument("--alignment", required=False)
     p.add_argument("--alignment-dir", required=False)
     p.add_argument("--tree", required=True)
@@ -33,6 +33,10 @@ def _codeml_site_models_builder(p: argparse.ArgumentParser) -> None:
     p.add_argument("--config", default=None)
 
 
+# branch-site shares the exact same flag surface as site in Phase 1.
+_codeml_branch_site_builder = _codeml_site_builder
+
+
 def _validate_builder(p: argparse.ArgumentParser) -> None:
     p.add_argument("--alignment", required=True)
     p.add_argument("--tree", required=True)
@@ -49,9 +53,14 @@ def _rerun_builder(p: argparse.ArgumentParser) -> None:
     p.add_argument("--output", required=False, dest="output_dir")
 
 
-def _codeml_site_models_handle(ns: argparse.Namespace) -> int:
-    from selkit.cli import handle_codeml_site_models
-    return handle_codeml_site_models(ns)
+def _codeml_site_handle(ns: argparse.Namespace) -> int:
+    from selkit.cli import handle_codeml_site
+    return handle_codeml_site(ns)
+
+
+def _codeml_branch_site_handle(ns: argparse.Namespace) -> int:
+    from selkit.cli import handle_codeml_branch_site
+    return handle_codeml_branch_site(ns)
 
 
 def _validate_handle(ns: argparse.Namespace) -> int:
@@ -66,9 +75,14 @@ def _rerun_handle(ns: argparse.Namespace) -> int:
 
 CLI_COMMANDS: tuple[CommandSpec, ...] = (
     CommandSpec(
-        group="codeml", sub="site-models",
-        build_parser=_codeml_site_models_builder,
-        handle=_codeml_site_models_handle,
+        group="codeml", sub="site",
+        build_parser=_codeml_site_builder,
+        handle=_codeml_site_handle,
+    ),
+    CommandSpec(
+        group="codeml", sub="branch-site",
+        build_parser=_codeml_branch_site_builder,
+        handle=_codeml_branch_site_handle,
     ),
     CommandSpec(
         group="validate", sub=None,

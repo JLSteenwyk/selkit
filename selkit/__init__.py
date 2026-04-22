@@ -42,7 +42,7 @@ def codeml_site_models(
     fg = foreground or ForegroundSpec()
     config = RunConfig(
         alignment=Path(alignment), alignment_dir=None, tree=Path(tree),
-        foreground=None, subcommand="codeml.site-models",
+        foreground=None, subcommand="codeml.site",
         models=tuple(models), tests=(),
         genetic_code=genetic_code, output_dir=Path(output_dir),
         threads=threads, seed=seed, n_starts=n_starts,
