@@ -1,16 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import numpy as np
 from scipy.special import logsumexp
 
-
-@dataclass(frozen=True)
-class BEBSite:
-    site: int
-    p_positive: float
-    mean_omega: float
+from selkit.io.results import BEBSite
 
 
 def compute_neb(
