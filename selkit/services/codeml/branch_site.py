@@ -26,9 +26,8 @@ DEFAULT_LRTS: tuple[tuple[str, str, int, str], ...] = (
     ("ModelA_null", "ModelA", 1, "mixed_chi2"),
 )
 
-# Phase 3 will set this to ("ModelA",). Phase 1 leaves it empty so the orchestrator
-# does not attempt BEB for branch-site (true BEB for ModelA isn't implemented yet).
-DEFAULT_BEB_MODELS: tuple[str, ...] = ()
+# Phase 3: ModelA gets true BEB via engine.beb.branch_site.run_beb_branch_site.
+DEFAULT_BEB_MODELS: tuple[str, ...] = ("ModelA",)
 
 
 def _require_foreground(inputs: ValidatedInputs, config: RunConfig) -> None:
