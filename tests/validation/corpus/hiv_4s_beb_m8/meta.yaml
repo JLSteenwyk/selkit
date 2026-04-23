@@ -1,0 +1,16 @@
+source: PAML 4.10.10 examples/HIVNSsites/HIVenvSweden4s; rerun with NSsites=8 and BEB enabled
+description: |
+  M8 BEB posteriors on the 4-taxon HIV env V3 subset. Uses the same alignment
+  and tree as hiv_4s/ but fits M8 (which hiv_4s omits because its lnL-only
+  test wasn't meaningful at the β boundary — here we need a full M8 fit).
+genetic_code: standard
+models: [M8]
+tests: []
+beb_grid: 10
+beb_tolerance: 0.01
+seed: 0
+n_starts: 5
+paml_cmd: codeml codeml_m8.ctl  # NSsites=8, CodonFreq=2 (F3X4), cleandata=1
+# FIXTURE TODO (blocking): Jacob to run PAML locally and populate expected.json
+# with the per-site p_positive and posterior_mean_omega from PAML's rst file.
+# DO NOT synthesize from selkit's own output.
