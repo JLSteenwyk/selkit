@@ -116,3 +116,34 @@ def test_per_class_site_log_likelihood_shape() -> None:
         tree, codons, ("a", "b", "c"), Qs=[Q0, Q1], pi=pi,
     )
     assert out.shape == (2, 4)
+
+
+def test_tree_log_likelihood_branch_family_matches_single_class_mixture():
+    """Branch-family caller == mixture caller with a single class of weight 1."""
+    import numpy as np
+    from selkit.engine.genetic_code import GeneticCode
+    from selkit.engine.rate_matrix import build_q, scale_per_label_qs
+    from selkit.engine.likelihood import (
+        tree_log_likelihood_branch_family,
+        tree_log_likelihood_mixture,
+    )
+    from selkit.io.tree import parse_newick
+
+    gc = GeneticCode.by_name("standard")
+    pi = np.full(gc.n_sense, 1.0 / gc.n_sense)
+    Q0 = build_q(gc, omega=0.3, kappa=2.0, pi=pi, unscaled=True)
+    Q1 = build_q(gc, omega=2.0, kappa=2.0, pi=pi, unscaled=True)
+    Qs_by_label = scale_per_label_qs({0: Q0, 1: Q1}, weights=None, pi=pi)
+
+    tree = parse_newick("((A:0.1,B:0.1)#1,(C:0.1,D:0.1):0.1);")
+    codons = np.zeros((4, 5), dtype=int)
+    taxa = ("A", "B", "C", "D")
+
+    lnL_bf = tree_log_likelihood_branch_family(
+        tree, codons, taxa, Q_by_label=Qs_by_label, pi=pi,
+    )
+    lnL_mix = tree_log_likelihood_mixture(
+        tree, codons, taxa,
+        Qs=[Qs_by_label], weights=[1.0], pi=pi,
+    )
+    assert abs(lnL_bf - lnL_mix) < 1e-12
