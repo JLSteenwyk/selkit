@@ -125,3 +125,27 @@ def test_labeled_tree_n_branches_and_label_classes():
     assert tree.n_branches == 6
     # Exactly one non-zero label class.
     assert tree.n_label_classes == 1
+
+
+def test_branch_records_tip_sets_and_paml_ids():
+    from selkit.io.tree import parse_newick
+    tree = parse_newick("((A:0.1,B:0.1):0.1,(C:0.1,D:0.1):0.1);")
+    recs = tree.branch_records()
+    # Four tips + two internals = 6 non-root branches before merge.
+    assert len(recs) == 6
+    # Tip sets are alphabetically sorted tuples of tip names.
+    tip_sets = {tuple(r.tip_set) for r in recs}
+    assert ("A",) in tip_sets
+    assert ("B",) in tip_sets
+    assert ("A", "B") in tip_sets
+
+
+def test_assign_unique_branch_labels_root_merge():
+    """FreeRatios-style relabel: merge the two root-adjacent branches."""
+    from selkit.io.tree import parse_newick
+    tree = parse_newick("((A:0.1,B:0.1):0.1,(C:0.1,D:0.1):0.1,E:0.1);")
+    recs = tree.assign_unique_branch_labels(merge_root=True)
+    labels = sorted({n.label for n in tree.all_nodes() if n is not tree.root})
+    # Root has 3 children -> merge_root only fires for strictly bifurcating
+    # roots; for this tree all branches get distinct labels.
+    assert labels == list(range(len(labels)))
