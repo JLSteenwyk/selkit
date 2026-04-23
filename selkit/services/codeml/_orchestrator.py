@@ -54,13 +54,6 @@ def _build_model(factory, gc, pi, tree: LabeledTree):
     return factory(gc, pi)
 
 
-def _node_by_id(tree: LabeledTree, node_id: int):
-    for n in tree.all_nodes():
-        if n.id == node_id:
-            return n
-    raise KeyError(node_id)
-
-
 def _extract_per_branch_omega(
     *, model_name: str, fit: EngineFit, tree: LabeledTree,
 ) -> list[dict]:
@@ -85,6 +78,10 @@ def _extract_per_branch_omega(
         return float(v) if v is not None else None
 
     recs = tree.branch_records()
+    # Pre-build node-by-id map: branch_records() iterates B nodes and we look
+    # up each one by id. The previous _node_by_id linear scan made the whole
+    # routine O(B^2); a one-shot dict makes it O(B).
+    node_by_id = {n.id: n for n in tree.all_nodes()}
     if model_name == "M0":
         # M0 has a single shared omega across the tree. Emit one row per
         # branch so downstream tooling sees a uniform per-branch table for
@@ -107,7 +104,7 @@ def _extract_per_branch_omega(
         om_fg = fit.params.get("omega_fg", 1.0)  # TwoRatiosFixed pins fg at 1.
         out: list[dict] = []
         for r in recs:
-            node = _node_by_id(tree, r.node_id)
+            node = node_by_id[r.node_id]
             is_fg = node.label == 1
             if is_fg:
                 # TwoRatiosFixed: no omega_fg param -> SE is None (pinned).
@@ -126,7 +123,7 @@ def _extract_per_branch_omega(
     if model_name == "NRatios":
         out = []
         for r in recs:
-            node = _node_by_id(tree, r.node_id)
+            node = node_by_id[r.node_id]
             key = "omega_bg" if node.label == 0 else f"omega_{node.label}"
             label_str = "background" if node.label == 0 else f"#{node.label}"
             out.append({
@@ -143,7 +140,7 @@ def _extract_per_branch_omega(
         for r in recs:
             # After assign_unique_branch_labels, every branch's label IS its
             # branch_id. Two root-adjacent branches share one label (merged).
-            node = _node_by_id(tree, r.node_id)
+            node = node_by_id[r.node_id]
             key = f"omega_{node.label}"
             if node.is_tip:
                 label_str = node.name or ""
