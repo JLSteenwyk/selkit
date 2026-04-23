@@ -417,3 +417,53 @@ class ModelANull:
             "p1_frac": float(rng.uniform(0.3, 0.7)),
             "kappa": float(rng.uniform(1.5, 3.5)),
         }
+
+
+# ---------------------------------------------------------------------------
+# Branch-family models (Yang 1998).
+#
+# All four classes share the _build_n_ratios_qs helper which produces a single
+# dict[int, ndarray] keyed by branch label. There is no site-class loop: the
+# branch-family path goes through tree_log_likelihood_branch_family rather than
+# tree_log_likelihood_mixture. Per-label Q scaling uses scale_per_label_qs
+# (weights=None) so each label carries unit mean rate independently.
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class TwoRatios:
+    """Yang-1998 two-ratios branch model. omega_bg on label 0, omega_fg on label 1.
+
+    Precondition (enforced by the service layer): the tree has exactly one
+    non-zero foreground label class (K=1). Optimising with K>1 labels would
+    silently drop the extra labels -- NRatios is the correct choice for K>1.
+    """
+
+    gc: GeneticCode
+    pi: np.ndarray
+    name: str = "TwoRatios"
+    branch_site: bool = False
+    branch_family: bool = True
+    free_params: tuple[str, ...] = ("omega_bg", "omega_fg", "kappa")
+    transform_spec: dict[str, str] = field(default_factory=lambda: {
+        "omega_bg": "positive",
+        "omega_fg": "positive",
+        "kappa": "positive",
+    })
+
+    def build(
+        self, *, params: dict[str, float]
+    ) -> tuple[list[float], list[dict[int, np.ndarray]]]:
+        Qs = _build_n_ratios_qs(
+            omegas_by_label={0: params["omega_bg"], 1: params["omega_fg"]},
+            kappa=params["kappa"], pi=self.pi, gc=self.gc,
+        )
+        return [1.0], [Qs]
+
+    def starting_values(self, *, seed: int) -> dict[str, float]:
+        rng = np.random.default_rng(seed)
+        return {
+            "omega_bg": float(rng.uniform(0.1, 0.6)),
+            "omega_fg": float(rng.uniform(0.4, 2.5)),
+            "kappa": float(rng.uniform(1.5, 3.5)),
+        }
