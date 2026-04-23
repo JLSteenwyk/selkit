@@ -22,7 +22,8 @@ class SiteModel(Protocol):
     name: str
     free_params: tuple[str, ...]
     transform_spec: dict[str, str]
-    branch_site: bool  # True iff Qs are per-label dicts (branch-site)
+    branch_site: bool         # True iff Qs are per-label dicts per class (branch-site)
+    branch_family: bool       # True iff Qs are a single per-label dict (branch models)
 
     def build(
         self, *, params: dict[str, float]
@@ -43,6 +44,7 @@ class M0:
     pi: np.ndarray
     name: str = "M0"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("omega", "kappa")
     transform_spec: dict[str, str] = field(default_factory=lambda: {
         "omega": "positive",
@@ -67,6 +69,7 @@ class M1a:
     pi: np.ndarray
     name: str = "M1a"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("omega0", "p0", "kappa")
     transform_spec: dict[str, str] = field(default_factory=lambda: {
         "omega0": "unit",       # omega0 ∈ (0, 1)
@@ -101,6 +104,7 @@ class M2a:
     pi: np.ndarray
     name: str = "M2a"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("omega0", "omega2", "p0", "p1_frac", "kappa")
     transform_spec: dict[str, str] = field(default_factory=lambda: {
         "omega0": "unit",             # ω0 ∈ (0, 1)
@@ -145,6 +149,7 @@ class M7:
     pi: np.ndarray
     name: str = "M7"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("p_beta", "q_beta", "kappa")
     n_categories: int = 10
     transform_spec: dict[str, str] = field(default_factory=lambda: {
@@ -181,6 +186,7 @@ class M8:
     pi: np.ndarray
     name: str = "M8"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("p_beta", "q_beta", "p0", "omega2", "kappa")
     n_categories: int = 10
     transform_spec: dict[str, str] = field(default_factory=lambda: {
@@ -222,6 +228,7 @@ class M8a:
     pi: np.ndarray
     name: str = "M8a"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("p_beta", "q_beta", "p0", "kappa")
     n_categories: int = 10
     transform_spec: dict[str, str] = field(default_factory=lambda: {
@@ -340,6 +347,7 @@ class ModelA:
     pi: np.ndarray
     name: str = "ModelA"
     branch_site: bool = True
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("omega0", "omega2", "p0", "p1_frac", "kappa")
     transform_spec: dict[str, str] = field(default_factory=lambda: {
         "omega0": "unit",              # ω₀ ∈ (0, 1)
@@ -380,6 +388,7 @@ class ModelANull:
     pi: np.ndarray
     name: str = "ModelA_null"
     branch_site: bool = True
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("omega0", "p0", "p1_frac", "kappa")
     transform_spec: dict[str, str] = field(default_factory=lambda: {
         "omega0": "unit",

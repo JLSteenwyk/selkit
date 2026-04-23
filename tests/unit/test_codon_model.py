@@ -204,3 +204,14 @@ def test_model_a_transform_spec_constrains_boundaries() -> None:
     assert model.transform_spec["p0"] == "unit"
     assert model.transform_spec["p1_frac"] == "unit"
     assert model.transform_spec["kappa"] == "positive"
+
+
+def test_existing_models_have_branch_family_false():
+    from selkit.engine.codon_model import M0, M1a, M2a, M7, M8, M8a, ModelA, ModelANull
+    from selkit.engine.genetic_code import GeneticCode
+    import numpy as np
+    gc = GeneticCode.by_name("standard")
+    pi = np.full(gc.n_sense, 1.0 / gc.n_sense)
+    for cls in (M0, M1a, M2a, M7, M8, M8a, ModelA, ModelANull):
+        m = cls(gc=gc, pi=pi)
+        assert m.branch_family is False, cls.__name__
