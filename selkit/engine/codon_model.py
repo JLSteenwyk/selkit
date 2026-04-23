@@ -554,3 +554,56 @@ class NRatios:
         for i in range(1, self.K + 1):
             sv[f"omega_{i}"] = float(rng.uniform(0.2, 2.5))
         return sv
+
+
+@dataclass
+class FreeRatios:
+    """Yang-1998 free-ratios branch model. One omega per branch.
+
+    ``n_branches`` is the post-root-merge count of branches (``B - 1`` for a
+    rooted input, ``2n - 3`` for an unrooted n-taxon tree). The service layer
+    re-labels the tree so that each branch has a unique label in
+    ``0..n_branches - 1`` before fit; this class then builds one Q per label.
+
+    Ignores any pre-existing ``#1`` tree labels -- the free-ratios model is
+    defined over *all* branches regardless of user foreground designation.
+    LRT warning: reported df equals ``n_branches - 1`` (merged root + one M0
+    omega), which is very large; results should be interpreted with caution.
+    """
+
+    gc: GeneticCode
+    pi: np.ndarray
+    n_branches: int = 1
+    name: str = "FreeRatios"
+    branch_site: bool = False
+    branch_family: bool = True
+    free_params: tuple[str, ...] = field(default=(), repr=False)
+    transform_spec: dict[str, str] = field(default_factory=dict, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.n_branches < 1:
+            raise ValueError(
+                f"FreeRatios: n_branches must be >= 1, got {self.n_branches}"
+            )
+        params = tuple(f"omega_{i}" for i in range(self.n_branches)) + ("kappa",)
+        self.free_params = params
+        self.transform_spec = {p: "positive" for p in params}
+
+    def build(
+        self, *, params: dict[str, float]
+    ) -> tuple[list[float], list[dict[int, np.ndarray]]]:
+        omegas_by_label: dict[int, float] = {
+            i: params[f"omega_{i}"] for i in range(self.n_branches)
+        }
+        Qs = _build_n_ratios_qs(
+            omegas_by_label=omegas_by_label,
+            kappa=params["kappa"], pi=self.pi, gc=self.gc,
+        )
+        return [1.0], [Qs]
+
+    def starting_values(self, *, seed: int) -> dict[str, float]:
+        rng = np.random.default_rng(seed)
+        sv: dict[str, float] = {"kappa": float(rng.uniform(1.5, 3.5))}
+        for i in range(self.n_branches):
+            sv[f"omega_{i}"] = float(rng.uniform(0.1, 1.5))
+        return sv

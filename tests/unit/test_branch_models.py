@@ -150,3 +150,28 @@ def test_n_ratios_K_equals_1_equivalent_to_two_ratios():
     _, tqs = t.build(params={"kappa": 2.0, "omega_bg": 0.3, "omega_fg": 2.5})
     for lab in (0, 1):
         np.testing.assert_allclose(nqs[0][lab], tqs[0][lab])
+
+
+def test_free_ratios_free_params_scale_with_B():
+    from selkit.engine.codon_model import FreeRatios
+    from selkit.engine.genetic_code import GeneticCode
+    import numpy as np
+    gc = GeneticCode.by_name("standard")
+    pi = np.full(gc.n_sense, 1.0 / gc.n_sense)
+    m = FreeRatios(gc=gc, pi=pi, n_branches=5)
+    assert m.branch_family is True
+    # 5 branches -> 5 omegas (labels 0..4) plus kappa.
+    assert set(m.free_params) == {"kappa"} | {f"omega_{i}" for i in range(5)}
+
+
+def test_free_ratios_build_produces_one_Q_per_branch():
+    from selkit.engine.codon_model import FreeRatios
+    from selkit.engine.genetic_code import GeneticCode
+    import numpy as np
+    gc = GeneticCode.by_name("standard")
+    pi = np.full(gc.n_sense, 1.0 / gc.n_sense)
+    m = FreeRatios(gc=gc, pi=pi, n_branches=4)
+    params = {"kappa": 2.0, "omega_0": 0.2, "omega_1": 0.8, "omega_2": 1.5, "omega_3": 3.0}
+    w, Qs = m.build(params=params)
+    assert w == [1.0]
+    assert set(Qs[0].keys()) == {0, 1, 2, 3}
