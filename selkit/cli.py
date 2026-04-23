@@ -80,6 +80,8 @@ def _build_runconfig(ns: argparse.Namespace) -> RunConfig:
         ),
         selkit_version=__version__,
         git_sha=None,
+        beb=getattr(ns, "beb", True),
+        beb_grid=int(getattr(ns, "beb_grid", 10)),
     )
 
 
