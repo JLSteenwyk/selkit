@@ -48,8 +48,20 @@ def test_codeml_branch_site_models_library_function_exists():
     assert "output_dir" in sig.parameters
 
 
-def test_codeml_branch_models_stub_raises():
+def test_codeml_branch_models_library_happy_path(tmp_path):
     from selkit import codeml_branch_models
-    import pytest
-    with pytest.raises(NotImplementedError, match="Phase 2"):
-        codeml_branch_models(alignment="x.fa", tree="y.nwk", output_dir="/tmp/o")
+    from selkit.io.tree import ForegroundSpec
+    aln = tmp_path / "a.fa"
+    aln.write_text(
+        ">A\nATGAAAGGG\n>B\nATGAAAGGG\n>C\nATGAAAGGG\n>D\nATGAAAGGG\n"
+    )
+    nwk = tmp_path / "t.nwk"
+    nwk.write_text("((A:0.1,B:0.1):0.1,(C:0.1,D:0.1):0.1);\n")
+    result = codeml_branch_models(
+        alignment=aln, tree=nwk, output_dir=tmp_path / "out",
+        models=("TwoRatios",),
+        foreground=ForegroundSpec(mrca=("A", "B")),
+        n_starts=1, seed=0,
+    )
+    assert result.family == "branch"
+    assert "TwoRatios" in result.fits
