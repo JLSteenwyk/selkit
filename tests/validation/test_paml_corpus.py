@@ -144,3 +144,37 @@ def test_case_matches_paml(paml_case: Path) -> None:
         got = {s.site: s.p_positive for s in result.beb[name]}
         for s in sites:
             assert abs(got[s["site"]] - s["p_positive"]) <= BEB_TOL
+
+
+@pytest.mark.validation
+def test_free_ratios_se_non_null_on_hiv_4s(tmp_path):
+    """End-to-end: FreeRatios on hiv_4s produces non-null SE for every branch.
+
+    This guards the hess_inv -> per_branch_omega['SE'] wiring (Tasks 12 + 15)
+    against regressions. Lives under tests/validation/ since it needs a real
+    corpus alignment, but it does NOT compare to a PAML reference -- it only
+    asserts the SE is populated.
+    """
+    import numpy as np
+    from selkit import codeml_branch_models
+    from selkit.io.tree import ForegroundSpec
+
+    corpus = Path(__file__).parent / "corpus" / "hiv_4s"
+    result = codeml_branch_models(
+        alignment=corpus / "alignment.fa",
+        tree=corpus / "tree.nwk",
+        output_dir=tmp_path,
+        models=("FreeRatios",),
+        foreground=ForegroundSpec(),  # FreeRatios ignores foreground
+        n_starts=2, seed=0, threads=1,
+    )
+    fr = result.fits["FreeRatios"]
+    ses = [r["SE"] for r in fr.per_branch_omega]
+    assert all(se is not None for se in ses), (
+        f"FreeRatios hiv_4s: expected every branch to carry a non-null SE, "
+        f"got SEs = {ses} (None entries indicate the hess_inv fallback path "
+        f"kicked in -- check scipy version or see Task 12 guard)"
+    )
+    assert all(np.isfinite(se) and se > 0 for se in ses), (
+        f"FreeRatios hiv_4s: every SE must be finite and positive, got {ses}"
+    )
