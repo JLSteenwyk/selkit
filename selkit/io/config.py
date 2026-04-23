@@ -40,6 +40,8 @@ class RunConfig:
     strict: StrictFlags
     selkit_version: str
     git_sha: Optional[str]
+    beb: bool = True
+    beb_grid: int = 10
 
 
 def _to_primitive(obj: object) -> object:
@@ -113,4 +115,6 @@ def load_config(path: Path) -> RunConfig:
         strict=_from_primitive_strict(data["strict"]),
         selkit_version=data["selkit_version"],
         git_sha=data.get("git_sha"),
+        beb=bool(data.get("beb", True)),
+        beb_grid=int(data.get("beb_grid", 10)),
     )
