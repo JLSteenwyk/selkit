@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from typing import Callable, Literal
 
@@ -15,6 +16,7 @@ class SingleStartResult:
     final_lnL: float
     iterations: int
     converged: bool
+    hess_inv_diag: dict[str, float] | None = None  # natural-space SE per param
 
 
 def softplus(u: float) -> float:
@@ -72,6 +74,69 @@ def unpack_params(u: np.ndarray, spec: dict[str, Transform]) -> dict[str, float]
     return {k: _apply(float(ui), kind) for ui, (k, kind) in zip(u, spec.items())}
 
 
+def _hess_inv_diag_u_space(res) -> np.ndarray | None:
+    """Extract the diagonal of scipy's L-BFGS-B inverse-Hessian in u-space.
+
+    Returns None if scipy did not return a LinearOperator-compatible
+    hess_inv (older scipy, different optimizer, or a degenerate fit).
+    """
+    hi = getattr(res, "hess_inv", None)
+    if hi is None:
+        return None
+    # scipy's LbfgsInvHessProduct is a LinearOperator; todense() gives the full
+    # matrix (cheap for the small parameter counts we use in selkit).
+    if hasattr(hi, "todense"):
+        try:
+            dense = np.asarray(hi.todense())
+            return np.diag(dense).astype(np.float64, copy=True)
+        except Exception:
+            pass
+    # Fallback: matvec with unit basis vectors.
+    if hasattr(hi, "matvec"):
+        n = res.x.size
+        diag = np.empty(n, dtype=np.float64)
+        try:
+            for i in range(n):
+                e = np.zeros(n, dtype=np.float64)
+                e[i] = 1.0
+                diag[i] = float(hi.matvec(e)[i])
+            return diag
+        except Exception:
+            return None
+    # Dense ndarray (rare for L-BFGS-B but permitted by scipy).
+    if isinstance(hi, np.ndarray) and hi.ndim == 2:
+        return np.diag(hi).astype(np.float64, copy=True)
+    return None
+
+
+def _natural_space_se(
+    u: np.ndarray, var_u: np.ndarray, spec: dict[str, "Transform"],
+) -> dict[str, float]:
+    """Apply the delta-method transform Jacobian so SE is in natural (x) space."""
+    out: dict[str, float] = {}
+    for i, (name, kind) in enumerate(spec.items()):
+        ui = float(u[i])
+        vu = float(var_u[i])
+        if not np.isfinite(vu) or vu < 0.0:
+            continue  # skip this parameter; leave absent from dict
+        if kind == "positive":
+            # x = softplus(u); dx/du = sigmoid(u)
+            dxdu = _sigmoid(ui)
+        elif kind == "unit":
+            # x = sigmoid(u); dx/du = x*(1-x)
+            x = _sigmoid(ui)
+            dxdu = x * (1.0 - x)
+        elif kind == "positive_gt_one":
+            # x = 1 + softplus(u); dx/du = sigmoid(u)
+            dxdu = _sigmoid(ui)
+        else:
+            continue
+        var_x = (dxdu ** 2) * vu
+        if var_x >= 0.0 and np.isfinite(var_x):
+            out[name] = float(np.sqrt(var_x))
+    return out
+
+
 def fit_single_start(
     neg_lnL: Callable[[dict[str, float]], float],
     *,
@@ -96,11 +161,27 @@ def fit_single_start(
         options={"maxiter": max_iter, "ftol": 1e-10, "gtol": 1e-7},
     )
     params = unpack_params(res.x, transform_spec)
+    diag_u = _hess_inv_diag_u_space(res)
+    hess_inv_diag: dict[str, float] | None
+    if diag_u is None:
+        warnings.warn(
+            "scipy L-BFGS-B did not return a LinearOperator-compatible hess_inv; "
+            "per-parameter SE will be unavailable for this fit. "
+            "Requires scipy >= 1.0 (LbfgsInvHessProduct).",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        hess_inv_diag = None
+    else:
+        hess_inv_diag = _natural_space_se(res.x, diag_u, transform_spec)
+        if not hess_inv_diag:  # all entries skipped (non-finite variances)
+            hess_inv_diag = None
     return SingleStartResult(
         params=params,
         final_lnL=float(res.fun),
         iterations=int(res.nit),
         converged=bool(res.success),
+        hess_inv_diag=hess_inv_diag,
     )
 
 

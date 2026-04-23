@@ -20,6 +20,15 @@ from selkit.io.tree import LabeledTree, Node
 
 @dataclass(frozen=True)
 class EngineFit:
+    """Result of a single model fit on an alignment.
+
+    ``hess_inv_diag``: per-parameter standard error in the natural (user-facing)
+    parameter space, derived from scipy L-BFGS-B's inverse-Hessian diagonal
+    with a delta-method Jacobian correction. ``None`` when scipy returns a
+    non-LinearOperator ``hess_inv`` (older scipy or a degenerate fit). Treat
+    these as a guide, not a rigorous confidence interval -- the L-BFGS-B
+    inverse-Hessian is unreliable for parameters near a bound.
+    """
     model: str
     lnL: float
     n_params: int
@@ -27,6 +36,7 @@ class EngineFit:
     branch_lengths: dict[str, float]
     multi_start: MultiStartResult
     runtime_s: float
+    hess_inv_diag: dict[str, float] | None = None
 
 
 def _branch_key(node: Node) -> str:
@@ -117,6 +127,15 @@ def fit_model(
     best_params = result.best.params
     model_only = {p: best_params[p] for p in model.free_params}
     bls = {k: best_params[k] for k in branch_keys}
+    best_hess = result.best.hess_inv_diag
+    # Filter to the model's free params (drop branch-length SEs -- those aren't
+    # surfaced to the user in v0.3; per_branch_omega consumes only model params).
+    if best_hess is not None:
+        model_hess = {p: best_hess[p] for p in model.free_params if p in best_hess}
+        if not model_hess:
+            model_hess = None
+    else:
+        model_hess = None
     return EngineFit(
         model=model.name,
         lnL=-result.best.final_lnL,
@@ -125,4 +144,5 @@ def fit_model(
         branch_lengths=bls,
         multi_start=result,
         runtime_s=time.perf_counter() - t0,
+        hess_inv_diag=model_hess,
     )
