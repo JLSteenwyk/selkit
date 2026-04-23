@@ -1,0 +1,17 @@
+source: PAML 4.10.10 examples/lysozyme/lysozymeLarge; NSsites=2 model=2, BEB enabled
+description: |
+  Model A BEB per-site posteriors on the 19-taxon primate lysozyme alignment
+  with the canonical colobine foreground. Reuses the alignment+tree from
+  lysozyme_branchsite/; here we lock in BEB (p_class_2a, p_class_2b, p_positive).
+genetic_code: standard
+models: [ModelA]
+tests: []
+beb_grid: 10
+beb_tolerance: 0.01
+foreground:
+  mrca: [5.colobus_Cgu&Can, 6.langur_Sen&Sve, 7.langur_Tob&Tfr, 8.Douc_langur_Pne, 9.probiscis_Nla]
+seed: 0
+n_starts: 3
+paml_cmd: codeml codeml.ctl  # model=2 NSsites=2 CodonFreq=2 (F3X4) cleandata=1; BEB block in rst
+# FIXTURE TODO (blocking): Jacob to run PAML, extract per-site p_class_2a,
+# p_class_2b, p_positive (= 2a + 2b) from rst, and populate expected.json.
