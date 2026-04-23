@@ -7,7 +7,12 @@ import numpy as np
 from scipy.stats import beta as _beta
 
 from selkit.engine.genetic_code import GeneticCode
-from selkit.engine.rate_matrix import build_q, scale_branch_site_qs, scale_mixture_qs
+from selkit.engine.rate_matrix import (
+    build_q,
+    scale_branch_site_qs,
+    scale_mixture_qs,
+    scale_per_label_qs,
+)
 
 
 # Branch-site models return per-class per-label Q dicts; site models return a
@@ -301,6 +306,30 @@ def _model_a_build(
     ]
     scaled = scale_branch_site_qs(Qs_by_class_by_label, weights, pi)
     return weights, scaled
+
+
+def _build_n_ratios_qs(
+    *,
+    omegas_by_label: dict[int, float],
+    kappa: float,
+    pi: np.ndarray,
+    gc: GeneticCode,
+) -> dict[int, np.ndarray]:
+    """Branch-family per-label Q builder shared by all four branch models.
+
+    Builds one GY94 Q per label using that label's ω, then branch-family
+    scales each Q independently (``scale_per_label_qs(..., weights=None)``).
+    The returned ``dict[int, ndarray]`` is the shape ``_prune_tree_partials``
+    already accepts on a single-class pass — no site-class loop required.
+    """
+    if not omegas_by_label:
+        raise ValueError("_build_n_ratios_qs: omegas_by_label is empty")
+    unscaled: dict[int, np.ndarray] = {}
+    for label, omega in omegas_by_label.items():
+        unscaled[label] = build_q(
+            gc, omega=omega, kappa=kappa, pi=pi, unscaled=True,
+        )
+    return scale_per_label_qs(unscaled, weights=None, pi=pi)
 
 
 @dataclass
