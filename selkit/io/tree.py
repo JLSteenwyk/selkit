@@ -229,18 +229,35 @@ class _Parser:
             self.consume()
         if self.peek() is not None and self.peek() not in set(",():;#$"):
             node.name = self.consume()
-        if self.peek() == ":":
-            self.consume()
-            try:
-                node.branch_length = float(self.consume())
-            except ValueError as e:
-                raise SelkitInputError(f"bad branch length: {e}") from e
-        if self.peek() in {"#", "$"}:
-            self.consume()
-            try:
-                node.label = int(self.consume())
-            except ValueError as e:
-                raise SelkitInputError(f"bad branch label: {e}") from e
+        # PAML accepts both orderings of `:bl` and `#label` after a node name
+        # or `)`; e.g. `(clade)#1:0.05` (label first) and `(clade):0.05#1`
+        # (length first). Loop until neither prefix matches so either order
+        # parses to the same Node.
+        while True:
+            tok = self.peek()
+            if tok == ":":
+                if node.branch_length is not None:
+                    raise SelkitInputError(
+                        "duplicate ':branch_length' on a node"
+                    )
+                self.consume()
+                try:
+                    node.branch_length = float(self.consume())
+                except ValueError as e:
+                    raise SelkitInputError(f"bad branch length: {e}") from e
+                continue
+            if tok in {"#", "$"}:
+                if node.label != 0:
+                    raise SelkitInputError(
+                        "duplicate '#label' on a node"
+                    )
+                self.consume()
+                try:
+                    node.label = int(self.consume())
+                except ValueError as e:
+                    raise SelkitInputError(f"bad branch label: {e}") from e
+                continue
+            break
         return node
 
 

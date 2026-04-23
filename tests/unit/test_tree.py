@@ -140,6 +140,52 @@ def test_branch_records_tip_sets_and_paml_ids():
     assert ("A", "B") in tip_sets
 
 
+def test_paml_label_after_branch_length_on_clade():
+    """PAML accepts (clade):bl#N (length first)."""
+    tree = parse_newick("((A:0.1,B:0.1):0.05#1,(C:0.1,D:0.1):0.1);")
+    clade = next(n for n in tree.internal_nodes if n.label == 1)
+    assert {n.name for n in clade.tips_beneath()} == {"A", "B"}
+    assert clade.branch_length == 0.05
+
+
+def test_paml_label_before_branch_length_on_clade():
+    """PAML also emits (clade)#N:bl (label first) -- e.g. branch-site output."""
+    tree = parse_newick("((A:0.1,B:0.1)#1:0.05,(C:0.1,D:0.1):0.1);")
+    clade = next(n for n in tree.internal_nodes if n.label == 1)
+    assert {n.name for n in clade.tips_beneath()} == {"A", "B"}
+    assert clade.branch_length == 0.05
+
+
+def test_paml_both_orderings_equivalent():
+    """(clade):bl#N and (clade)#N:bl yield equivalent labelled trees."""
+    bl_first = parse_newick("((A:0.1,B:0.1):0.05#1,(C:0.1,D:0.1):0.1);")
+    label_first = parse_newick("((A:0.1,B:0.1)#1:0.05,(C:0.1,D:0.1):0.1);")
+    bl_clade = next(n for n in bl_first.internal_nodes if n.label == 1)
+    lf_clade = next(n for n in label_first.internal_nodes if n.label == 1)
+    assert bl_clade.branch_length == lf_clade.branch_length == 0.05
+    assert (
+        {n.name for n in bl_clade.tips_beneath()}
+        == {n.name for n in lf_clade.tips_beneath()}
+        == {"A", "B"}
+    )
+
+
+def test_paml_label_before_branch_length_on_tip():
+    """Tips also accept name#N:bl (label first)."""
+    tree = parse_newick("(a#1:0.1,b:0.2,c:0.3);")
+    by_name = {n.name: n for n in tree.tips}
+    assert by_name["a"].label == 1
+    assert by_name["a"].branch_length == 0.1
+    assert by_name["b"].label == 0
+
+
+def test_paml_mixed_orderings_in_one_tree():
+    """One tree can mix (clade):bl#N and (clade)#N:bl forms."""
+    tree = parse_newick("((A:0.1,B:0.1):0.05#1,(C:0.1,D:0.1)#2:0.07);")
+    label_classes = {n.label for n in tree.all_nodes() if n.label}
+    assert label_classes == {1, 2}
+
+
 def test_assign_unique_branch_labels_root_merge():
     """FreeRatios-style relabel: merge the two root-adjacent branches."""
     from selkit.io.tree import parse_newick
