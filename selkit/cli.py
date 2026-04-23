@@ -352,6 +352,41 @@ def _rerun_site(cfg: RunConfig) -> int:
     return 0
 
 
+def _rerun_branch(cfg: RunConfig) -> int:
+    from selkit.services.codeml.branch_models import run_branch_models
+    from selkit.errors import SelkitConfigError
+
+    fg = _foreground_spec_from_cfg(cfg)
+    try:
+        validated = validate_inputs(
+            alignment_path=cfg.alignment, tree_path=cfg.tree,
+            foreground_spec=fg, genetic_code_name=cfg.genetic_code,
+            strip_terminal_stop=cfg.strict.strip_terminal_stop,
+            strip_stop_codons=cfg.strict.strip_stop_codons,
+        )
+    except SelkitInputError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    out = Path(cfg.output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    reporter = ProgressReporter(models=cfg.models)
+    try:
+        try:
+            result = run_branch_models(
+                inputs=validated, config=cfg,
+                parallel=cfg.threads > 1, progress=reporter,
+            )
+        except SelkitConfigError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+    finally:
+        reporter.close()
+    (out / "results.json").write_text(_json.dumps(to_json(result), indent=2))
+    emit_tsv_files(result, out)
+    dump_config(cfg, out / "run.yaml")
+    return 0
+
+
 def _rerun_branch_site(cfg: RunConfig) -> int:
     from selkit.services.codeml.branch_site import run_branch_site_models
     from selkit.errors import SelkitConfigError
@@ -405,6 +440,8 @@ def handle_rerun(ns: argparse.Namespace) -> int:
         return 1
     if cfg.subcommand == "codeml.site":
         return _rerun_site(cfg)
+    if cfg.subcommand == "codeml.branch":
+        return _rerun_branch(cfg)
     if cfg.subcommand == "codeml.branch-site":
         return _rerun_branch_site(cfg)
     print(f"ERROR: rerun does not support {cfg.subcommand!r}", file=sys.stderr)
