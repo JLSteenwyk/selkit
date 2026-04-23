@@ -6,7 +6,10 @@ from dataclasses import dataclass
 import numpy as np
 
 from selkit.engine.codon_model import SiteModel
-from selkit.engine.likelihood import tree_log_likelihood_mixture
+from selkit.engine.likelihood import (
+    tree_log_likelihood_branch_family,
+    tree_log_likelihood_mixture,
+)
 from selkit.engine.optimize import (
     MultiStartResult,
     Transform,
@@ -83,6 +86,15 @@ def fit_model(
         model_params = {p: params[p] for p in model.free_params}
         weights, Qs = model.build(params=model_params)
         pi = getattr(model, "pi")
+        if getattr(model, "branch_family", False):
+            # branch family: weights = [1.0], Qs = [dict[int, ndarray]] by convention.
+            return -tree_log_likelihood_branch_family(
+                tree=tree,
+                codons=alignment_codons,
+                taxon_order=taxon_order,
+                Q_by_label=Qs[0],
+                pi=pi,
+            )
         return -tree_log_likelihood_mixture(
             tree=tree,
             codons=alignment_codons,
