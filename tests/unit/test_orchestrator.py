@@ -202,3 +202,36 @@ def test_orchestrator_populates_per_branch_SE_from_hess_inv_diag(tmp_path):
     assert all(se is not None and np.isfinite(se) and se > 0 for se in ses), (
         f"expected non-None SE on every branch; got {ses}"
     )
+
+
+def test_run_branch_preconditions_K_mismatch(tmp_path):
+    from selkit.errors import SelkitConfigError
+    from selkit.io.config import RunConfig, StrictFlags
+    from selkit.io.tree import ForegroundSpec
+    from selkit.services.codeml.branch_models import run_branch_models
+    from selkit.services.validate import validate_inputs
+    from selkit.version import __version__
+    import pytest
+
+    aln = tmp_path / "aln.fa"
+    aln.write_text(">A\nATG\n>B\nATG\n>C\nATG\n>D\nATG\n")
+    nwk = tmp_path / "t.nwk"
+    # Tree with #1 and #2 -> K=2
+    nwk.write_text("((A:0.1,B:0.1)#1,(C:0.1,D:0.1)#2);\n")
+    cfg = RunConfig(
+        alignment=aln, alignment_dir=None, tree=nwk,
+        foreground=None, subcommand="codeml.branch",
+        models=("TwoRatios",), tests=(), genetic_code="standard",
+        output_dir=tmp_path, threads=1, seed=0, n_starts=1,
+        convergence_tol=0.5,
+        strict=StrictFlags(True, False, False, False),
+        selkit_version=__version__, git_sha=None,
+    )
+    inputs = validate_inputs(
+        alignment_path=aln, tree_path=nwk,
+        foreground_spec=ForegroundSpec(), genetic_code_name="standard",
+    )
+    with pytest.raises(SelkitConfigError, match="K=1"):
+        run_branch_models(
+            inputs=inputs, config=cfg, parallel=False, progress=None,
+        )

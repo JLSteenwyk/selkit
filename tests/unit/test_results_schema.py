@@ -76,3 +76,33 @@ def test_emit_tsv_files_splits_by_family(tmp_path):
     row_fg = pb[2].split("\t")
     assert row_bg[-1] == "0.042100"  # real SE, %.6f
     assert row_fg[-1] == ""  # pinned/fallback -> empty cell
+
+
+def test_runresult_tagged_union_family_matches_fit_family():
+    from selkit.io.results import (
+        BranchModelFit, RunResult, SiteModelFit, StartResult,
+    )
+    from selkit.io.config import RunConfig, StrictFlags
+    from pathlib import Path
+    cfg = RunConfig(
+        alignment=Path("x"), alignment_dir=None, tree=Path("y"),
+        foreground=None, subcommand="codeml.branch",
+        models=("TwoRatios",), tests=(), genetic_code="standard",
+        output_dir=Path("/tmp"), threads=1, seed=0, n_starts=1,
+        convergence_tol=0.5,
+        strict=StrictFlags(True, False, False, False),
+        selkit_version="0.3.0", git_sha=None,
+    )
+    fit = BranchModelFit(
+        model="TwoRatios", family="branch", lnL=-100.0, n_params=3,
+        params={"kappa": 2.0, "omega_bg": 0.3, "omega_fg": 2.5},
+        per_branch_omega=[], branch_lengths={}, starts=[],
+        converged=True, runtime_s=0.0,
+    )
+    result = RunResult(
+        config=cfg, family="branch",
+        fits={"TwoRatios": fit}, lrts=[], beb={}, warnings=[],
+    )
+    # family on RunResult must match family on every fit.
+    for f in result.fits.values():
+        assert f.family == result.family
