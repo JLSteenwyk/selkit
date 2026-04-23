@@ -104,7 +104,7 @@ It returns a :class:`selkit.RunResult` with:
 
 - ``result.fits`` — ``dict[str, ModelFit]`` keyed by model name. Each :class:`selkit.ModelFit` carries ``lnL``, ``params``, ``branch_lengths``, ``starts`` (per-start results for convergence diagnosis), ``converged``, ``runtime_s``.
 - ``result.lrts`` — ``list[LRTResult]`` with null/alt names, ``delta_lnL`` (2·Δ lnL — the test statistic, despite the field name), ``p_value``, ``test_type`` (``"chi2"`` or ``"mixed_chi2"``), ``significant_at_0_05``.
-- ``result.beb`` — ``dict[str, list[BEBSite]]`` for M2a and M8, each site carrying 1-indexed position, ``p_positive`` (posterior of ω > 1), and ``mean_omega``.
+- ``result.beb`` — ``dict[str, list[BEBSite]]`` for M2a and M8, each site carrying 1-indexed position, ``p_positive`` (posterior of ω > 1), and ``posterior_mean_omega``.
 - ``result.warnings`` — unconverged models.
 - ``result.config`` — the reconstructible :class:`selkit.RunConfig`.
 
@@ -148,7 +148,7 @@ An output directory after a site-models run contains:
     ├── results.json         # canonical, all fits + LRTs + BEB + warnings
     ├── fits.tsv             # model, lnL, n_params, converged, runtime_s, params
     ├── lrts.tsv             # null, alt, delta_lnL (2·ΔlnL), df, p, sig.
-    ├── beb_M2a.tsv          # site, p_positive, mean_omega
+    ├── beb_M2a.tsv          # site, p_positive, posterior_mean_omega
     ├── beb_M8.tsv           # same columns, per site
     └── run.yaml             # full manifest for reproducibility
 

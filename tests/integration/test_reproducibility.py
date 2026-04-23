@@ -26,7 +26,7 @@ def test_rerun_reproduces_results(tmp_path: Path) -> None:
     tree = _write(tmp_path, "t.nwk", "((a:0.1,b:0.1):0.05,(c:0.1,d:0.1):0.05);")
     out1 = tmp_path / "out1"
     r1 = _run(
-        "codeml", "site-models",
+        "codeml", "site",
         "--alignment", str(aln), "--tree", str(tree),
         "--output", str(out1), "--threads", "1", "--n-starts", "2",
         "--models", "M0,M1a", "--seed", "42", "--allow-unconverged",

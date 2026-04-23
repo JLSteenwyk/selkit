@@ -19,7 +19,7 @@ def _run(*args: str) -> subprocess.CompletedProcess:
     )
 
 
-def test_site_models_end_to_end(tmp_path: Path) -> None:
+def test_site_end_to_end(tmp_path: Path) -> None:
     aln = _write(tmp_path, "a.fa",
         ">a\nATGAAAGCACGTTTAGGCAAACCACGTATG\n"
         ">b\nATGAAGGCCCGTCTAGGGAAGCCTCGTATG\n"
@@ -30,7 +30,7 @@ def test_site_models_end_to_end(tmp_path: Path) -> None:
     out = tmp_path / "out"
 
     r = _run(
-        "codeml", "site-models",
+        "codeml", "site",
         "--alignment", str(aln),
         "--tree", str(tree),
         "--output", str(out),

@@ -195,7 +195,7 @@ more power.
 
 .. code-block:: text
 
-    site  p_positive  mean_omega
+    site  p_positive  posterior_mean_omega
     28    0.997807    3.464894
     51    0.950097    3.345570
     66    0.999223    3.468424

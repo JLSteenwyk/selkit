@@ -31,7 +31,7 @@ def _cfg() -> RunConfig:
     from pathlib import Path
     return RunConfig(
         alignment=Path("/x.fa"), alignment_dir=None, tree=Path("/x.nwk"),
-        foreground=None, subcommand="codeml.site-models",
+        foreground=None, subcommand="codeml.site",
         models=("M0", "M1a", "M2a"), tests=("M1a-vs-M2a",),
         genetic_code="standard",
         output_dir=Path("/out"), threads=1, seed=1, n_starts=2,

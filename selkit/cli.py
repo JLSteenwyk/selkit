@@ -63,7 +63,7 @@ def _build_runconfig(ns: argparse.Namespace) -> RunConfig:
         alignment_dir=Path(ns.alignment_dir) if ns.alignment_dir else None,
         tree=Path(ns.tree),
         foreground=fg,
-        subcommand="codeml.site-models",
+        subcommand="codeml.site",
         models=models,
         tests=tests,
         genetic_code=ns.genetic_code,
@@ -85,7 +85,7 @@ def _build_runconfig(ns: argparse.Namespace) -> RunConfig:
 
 def _render_summary(result) -> None:
     console = Console()
-    t = Table(title="selkit codeml site-models")
+    t = Table(title="selkit codeml site")
     t.add_column("model"); t.add_column("lnL"); t.add_column("omega (or omega2)"); t.add_column("converged")
     for name, fit in result.fits.items():
         omega_label = (
@@ -123,10 +123,11 @@ def handle_validate(ns: argparse.Namespace) -> int:
     return 0
 
 
-def handle_codeml_site_models(ns: argparse.Namespace) -> int:
+def handle_codeml_site(ns: argparse.Namespace) -> int:
     try:
         spec = _foreground_spec_from_ns(ns)
         config = _build_runconfig(ns)
+        config = RunConfig(**{**config.__dict__, "subcommand": "codeml.site"})
         validated = validate_inputs(
             alignment_path=config.alignment,
             tree_path=config.tree,
@@ -163,24 +164,65 @@ def handle_codeml_site_models(ns: argparse.Namespace) -> int:
     return 0
 
 
-def handle_rerun(ns: argparse.Namespace) -> int:
-    cfg = load_config(Path(ns.config))
-    if ns.output_dir:
-        cfg = RunConfig(**{**cfg.__dict__, "output_dir": Path(ns.output_dir)})
-    if cfg.subcommand != "codeml.site-models":
-        print(f"ERROR: rerun only supports codeml.site-models; got {cfg.subcommand!r}", file=sys.stderr)
+def handle_codeml_branch_site(ns: argparse.Namespace) -> int:
+    from selkit.services.codeml.branch_site import run_branch_site_models
+    from selkit.errors import SelkitConfigError
+    try:
+        spec = _foreground_spec_from_ns(ns)
+        config = _build_runconfig(ns)
+        config = RunConfig(**{**config.__dict__, "subcommand": "codeml.branch-site"})
+        validated = validate_inputs(
+            alignment_path=config.alignment,
+            tree_path=config.tree,
+            foreground_spec=spec,
+            genetic_code_name=config.genetic_code,
+            strip_terminal_stop=config.strict.strip_terminal_stop,
+            strip_stop_codons=config.strict.strip_stop_codons,
+        )
+    except SelkitInputError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
         return 1
+
+    out = Path(config.output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    reporter = ProgressReporter(models=config.models or ("ModelA", "ModelA_null"))
+    try:
+        try:
+            result = run_branch_site_models(
+                inputs=validated, config=config,
+                parallel=config.threads > 1, progress=reporter,
+            )
+        except SelkitConfigError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+    finally:
+        reporter.close()
+
+    (out / "results.json").write_text(_json.dumps(to_json(result), indent=2))
+    emit_tsv_files(result, out)
+    dump_config(config, out / "run.yaml")
+    _render_summary(result)
+
+    unconverged = [n for n, f in result.fits.items() if not f.converged]
+    if unconverged and not ns.allow_unconverged:
+        print(f"WARNING: unconverged models: {unconverged}", file=sys.stderr)
+        return 2
+    return 0
+
+
+def _foreground_spec_from_cfg(cfg: RunConfig) -> ForegroundSpec:
     if cfg.foreground:
         if cfg.foreground.labels_file:
-            fg = load_labels_file(cfg.foreground.labels_file)
-        elif cfg.foreground.tips:
-            fg = ForegroundSpec(tips=cfg.foreground.tips)
-        elif cfg.foreground.mrca:
-            fg = ForegroundSpec(mrca=cfg.foreground.mrca)
-        else:
-            fg = ForegroundSpec()
-    else:
-        fg = ForegroundSpec()
+            return load_labels_file(cfg.foreground.labels_file)
+        if cfg.foreground.tips:
+            return ForegroundSpec(tips=cfg.foreground.tips)
+        if cfg.foreground.mrca:
+            return ForegroundSpec(mrca=cfg.foreground.mrca)
+    return ForegroundSpec()
+
+
+def _rerun_site(cfg: RunConfig) -> int:
+    fg = _foreground_spec_from_cfg(cfg)
     try:
         validated = validate_inputs(
             alignment_path=cfg.alignment, tree_path=cfg.tree,
@@ -206,3 +248,62 @@ def handle_rerun(ns: argparse.Namespace) -> int:
     emit_tsv_files(result, out)
     dump_config(cfg, out / "run.yaml")
     return 0
+
+
+def _rerun_branch_site(cfg: RunConfig) -> int:
+    from selkit.services.codeml.branch_site import run_branch_site_models
+    from selkit.errors import SelkitConfigError
+
+    fg = _foreground_spec_from_cfg(cfg)
+    try:
+        validated = validate_inputs(
+            alignment_path=cfg.alignment, tree_path=cfg.tree,
+            foreground_spec=fg, genetic_code_name=cfg.genetic_code,
+            strip_terminal_stop=cfg.strict.strip_terminal_stop,
+            strip_stop_codons=cfg.strict.strip_stop_codons,
+        )
+    except SelkitInputError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    out = Path(cfg.output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    reporter = ProgressReporter(models=cfg.models or ("ModelA", "ModelA_null"))
+    try:
+        try:
+            result = run_branch_site_models(
+                inputs=validated, config=cfg,
+                parallel=cfg.threads > 1,
+                progress=reporter,
+            )
+        except SelkitConfigError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+    finally:
+        reporter.close()
+    (out / "results.json").write_text(_json.dumps(to_json(result), indent=2))
+    emit_tsv_files(result, out)
+    dump_config(cfg, out / "run.yaml")
+    return 0
+
+
+def handle_rerun(ns: argparse.Namespace) -> int:
+    cfg = load_config(Path(ns.config))
+    if ns.output_dir:
+        cfg = RunConfig(**{**cfg.__dict__, "output_dir": Path(ns.output_dir)})
+    if cfg.subcommand == "codeml.site-models":
+        print(
+            "ERROR: this run.yaml was produced by selkit <= 0.2.0. The "
+            "codeml.site-models subcommand was split in v0.3.0. Re-create "
+            "the run manually:\n"
+            "  selkit codeml site        ... (for site models)\n"
+            "  selkit codeml branch-site ... (for ModelA / ModelA_null)\n"
+            "See CHANGELOG.md 0.3.0 for migration details.",
+            file=sys.stderr,
+        )
+        return 1
+    if cfg.subcommand == "codeml.site":
+        return _rerun_site(cfg)
+    if cfg.subcommand == "codeml.branch-site":
+        return _rerun_branch_site(cfg)
+    print(f"ERROR: rerun does not support {cfg.subcommand!r}", file=sys.stderr)
+    return 1

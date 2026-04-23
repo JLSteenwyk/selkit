@@ -1,0 +1,23 @@
+selkit_version: "0.2.0"
+subcommand: codeml.site-models
+alignment: tests/validation/corpus/hiv_4s/alignment.fa
+alignment_dir: null
+tree: tests/validation/corpus/hiv_4s/tree.nwk
+foreground: null
+models:
+  - M0
+  - M1a
+  - M2a
+tests: []
+genetic_code: standard
+output_dir: /tmp/out
+threads: 1
+seed: 0
+n_starts: 3
+convergence_tol: 0.5
+strict:
+  strip_terminal_stop: true
+  strip_stop_codons: false
+  mask_stop_codons: false
+  trim_trailing: false
+git_sha: null
