@@ -8,6 +8,7 @@ import yaml
 
 from selkit.io.config import RunConfig, StrictFlags
 from selkit.io.tree import ForegroundSpec
+from selkit.services.codeml.branch_models import run_branch_models
 from selkit.services.codeml.branch_site import run_branch_site_models
 from selkit.services.codeml.site_models import run_site_models
 from selkit.services.validate import validate_inputs
@@ -16,8 +17,10 @@ from selkit.version import __version__
 
 # v0.3 split site_models into site + branch-site services. Dispatch by the
 # models requested in meta.yaml: ModelA / ModelA_null route to the branch-site
-# service; everything else stays on site.
+# service; TwoRatios/TwoRatiosFixed/NRatios/FreeRatios route to the branch
+# service; everything else stays on site. M0 is admissible in any family.
 _BRANCH_SITE_MODELS = frozenset({"ModelA", "ModelA_null"})
+_BRANCH_FAMILY_MODELS = frozenset({"TwoRatios", "TwoRatiosFixed", "NRatios", "FreeRatios"})
 
 
 def _dispatch(*, inputs, config, parallel, progress):
@@ -28,6 +31,10 @@ def _dispatch(*, inputs, config, parallel, progress):
                 f"corpus case mixes branch-site and site-family models: {sorted(requested)}"
             )
         return run_branch_site_models(
+            inputs=inputs, config=config, parallel=parallel, progress=progress,
+        )
+    if requested & _BRANCH_FAMILY_MODELS:
+        return run_branch_models(
             inputs=inputs, config=config, parallel=parallel, progress=progress,
         )
     return run_site_models(
@@ -51,6 +58,10 @@ BEB_TOL = 1e-3
 @pytest.mark.validation
 def test_case_matches_paml(paml_case: Path) -> None:
     meta = yaml.safe_load((paml_case / "meta.yaml").read_text())
+    if meta.get("blocked"):
+        pytest.skip(
+            f"awaiting PAML fixture for {paml_case.name}: {meta['blocked']}"
+        )
     expected = json.loads((paml_case / "expected.json").read_text())
     aln = paml_case / "alignment.fa"
     tree = paml_case / "tree.nwk"
@@ -89,9 +100,11 @@ def test_case_matches_paml(paml_case: Path) -> None:
         genetic_code_name=cfg.genetic_code,
     )
     # Use the branch-site service when meta.yaml requests ModelA / ModelA_null;
-    # site service otherwise. v0.2 routed everything through run_site_models.
+    # branch service for branch-family models; site service otherwise.
     if set(cfg.models) & _BRANCH_SITE_MODELS:
         cfg = RunConfig(**{**cfg.__dict__, "subcommand": "codeml.branch-site"})
+    elif set(cfg.models) & _BRANCH_FAMILY_MODELS:
+        cfg = RunConfig(**{**cfg.__dict__, "subcommand": "codeml.branch"})
     result = _dispatch(
         inputs=validated, config=cfg, parallel=False, progress=None,
     )
@@ -114,6 +127,16 @@ def test_case_matches_paml(paml_case: Path) -> None:
                 assert abs(fit.params[k] - v) <= tol, (
                     f"{name}: {k} diff {abs(fit.params[k] - v):.6f} > {tol:.6f} "
                     f"(rel {OMEGA_REL_TOL}, abs floor {OMEGA_ABS_TOL})"
+                )
+        # Optional branch-model per-branch omega comparison.
+        per_branch_exp = exp.get("per_branch_omega")
+        if per_branch_exp is not None:
+            got = {r["paml_node_id"]: r["omega"] for r in fit.per_branch_omega}
+            for e in per_branch_exp:
+                tol = max(OMEGA_ABS_TOL, OMEGA_REL_TOL * abs(e["omega"]))
+                assert abs(got[e["paml_node_id"]] - e["omega"]) <= tol, (
+                    f"{name} node {e['paml_node_id']}: "
+                    f"omega diff {abs(got[e['paml_node_id']] - e['omega']):.4f} > {tol:.4f}"
                 )
 
     for name, sites in (expected.get("beb") or {}).items():
