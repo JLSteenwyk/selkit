@@ -85,6 +85,23 @@ def _extract_per_branch_omega(
         return float(v) if v is not None else None
 
     recs = tree.branch_records()
+    if model_name == "M0":
+        # M0 has a single shared omega across the tree. Emit one row per
+        # branch so downstream tooling sees a uniform per-branch table for
+        # M0 too (e.g. when M0 is fit alongside TwoRatios / FreeRatios).
+        om = float(fit.params["omega"])
+        key = "omega" if "omega" in (se_for or {}) else None
+        return [
+            {
+                "branch_id": r.branch_id,
+                "tip_set": list(r.tip_set),
+                "label": "M0",
+                "paml_node_id": r.paml_node_id,
+                "omega": om,
+                "SE": _se(key),
+            }
+            for r in recs
+        ]
     if model_name in {"TwoRatios", "TwoRatiosFixed"}:
         om_bg = fit.params["omega_bg"]
         om_fg = fit.params.get("omega_fg", 1.0)  # TwoRatiosFixed pins fg at 1.
@@ -281,13 +298,9 @@ def _engine_to_public(
                 "branch family _engine_to_public requires inputs (for tree)"
             )
         # M0 fit appears in the branch family's run when LRTs need it (e.g.
-        # M0-vs-TwoRatios, M0-vs-NRatios). M0 has no per-branch ω, so we emit
-        # an empty per_branch_omega list -- the family tag stays "branch" so
-        # the RunResult's tagged-union invariant holds.
-        if fit.model == "M0":
-            return BranchModelFit(
-                family="branch", per_branch_omega=[], **common,
-            )
+        # M0-vs-TwoRatios, M0-vs-NRatios). M0 shares one omega across the
+        # whole tree; emit one row per branch (all reporting the same omega)
+        # so downstream tooling sees a uniform per-branch table for M0.
         per_branch = _extract_per_branch_omega(
             model_name=fit.model, fit=fit, tree=inputs.tree,
         )

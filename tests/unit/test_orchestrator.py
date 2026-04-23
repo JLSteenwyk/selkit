@@ -204,6 +204,52 @@ def test_orchestrator_populates_per_branch_SE_from_hess_inv_diag(tmp_path):
     )
 
 
+def test_branch_family_M0_populates_per_branch_omega_uniformly(tmp_path):
+    """I2 regression: M0 in the branch family should emit one per_branch_omega
+    row per non-root branch, all carrying the M0-shared omega. Previously the
+    orchestrator special-cased M0 to return per_branch_omega=[].
+    """
+    from selkit.io.config import RunConfig, StrictFlags
+    from selkit.io.tree import ForegroundSpec
+    from selkit.io.results import BranchModelFit
+    from selkit.services.codeml.branch_models import run_branch_models
+    from selkit.services.validate import validate_inputs
+    from selkit.version import __version__
+
+    aln = tmp_path / "aln.fa"
+    aln.write_text(">A\nATGAAAGGG\n>B\nATGAAAGGG\n>C\nATGAAAGGG\n>D\nATGAAAGGG\n")
+    nwk = tmp_path / "tree.nwk"
+    nwk.write_text("((A:0.1,B:0.1):0.1,(C:0.1,D:0.1):0.1);\n")
+
+    cfg = RunConfig(
+        alignment=aln, alignment_dir=None, tree=nwk,
+        foreground=None, subcommand="codeml.branch",
+        models=("M0",), tests=(), genetic_code="standard",
+        output_dir=tmp_path, threads=1, seed=0, n_starts=1,
+        convergence_tol=0.5,
+        strict=StrictFlags(True, False, False, False),
+        selkit_version=__version__, git_sha=None,
+    )
+    inputs = validate_inputs(
+        alignment_path=aln, tree_path=nwk,
+        foreground_spec=ForegroundSpec(),
+        genetic_code_name="standard",
+    )
+    result = run_branch_models(
+        inputs=inputs, config=cfg, parallel=False, progress=None,
+    )
+    fit = result.fits["M0"]
+    assert isinstance(fit, BranchModelFit)
+    # 4 tips + 2 internals + root => 6 non-root branches.
+    assert len(fit.per_branch_omega) == 6
+    # Every row reports the same M0-shared omega.
+    omegas = {r["omega"] for r in fit.per_branch_omega}
+    assert len(omegas) == 1
+    assert omegas == {float(fit.params["omega"])}
+    # Label is "M0" so consumers can distinguish from per-class branch labels.
+    assert all(r["label"] == "M0" for r in fit.per_branch_omega)
+
+
 def test_run_branch_preconditions_K_mismatch(tmp_path):
     from selkit.errors import SelkitConfigError
     from selkit.io.config import RunConfig, StrictFlags
