@@ -9,7 +9,6 @@ unchanged. Task 6 migrates the live path to call `run_family`.
 
 from __future__ import annotations
 
-import inspect
 from typing import Callable, Literal, Optional, Union
 
 import numpy as np
@@ -37,21 +36,6 @@ from selkit.services.validate import ValidatedInputs
 ModelFactory = Callable[..., SiteModel]
 LRTSpec = tuple[str, str, Union[int, str], str]
 Family = Literal["site", "branch", "branch-site"]
-
-
-def _build_model(factory, gc, pi, tree: LabeledTree):
-    """Call a registry factory, passing tree iff the factory accepts it."""
-    try:
-        sig = inspect.signature(factory)
-    except (ValueError, TypeError):
-        return factory(gc, pi)
-    n_positional = sum(
-        1 for p in sig.parameters.values()
-        if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
-    )
-    if n_positional >= 3:
-        return factory(gc, pi, tree)
-    return factory(gc, pi)
 
 
 def _extract_per_branch_omega(
@@ -368,7 +352,7 @@ def _run_one(
 ) -> EngineFit:
     """Fit a single model. Matches `site_models._run_one`, parameterised on `registry`."""
     gc = GeneticCode.by_name(cfg.genetic_code)
-    model = _build_model(registry[name], gc, pi, inputs.tree)
+    model = registry[name](gc, pi, inputs.tree)
     return fit_model(
         model=model,
         alignment_codons=inputs.alignment.codons,
@@ -477,7 +461,7 @@ def _compute_beb_for(
     gc: GeneticCode,
 ) -> list[BEBSite]:
     """NEB for M2a/M8 (Phase 1). Phase 3 will add real BEB."""
-    model = _build_model(registry[name], gc, pi, inputs.tree)
+    model = registry[name](gc, pi, inputs.tree)
     weights, Qs = model.build(params=fit.params)
     if name == "M2a":
         omegas = [fit.params["omega0"], 1.0, fit.params["omega2"]]
