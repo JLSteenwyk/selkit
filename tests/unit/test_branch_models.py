@@ -80,3 +80,32 @@ def test_two_ratios_rejects_extra_labels():
     # Here we document that assumption with a sanity build that succeeds.
     weights, Qs = m.build(params={"kappa": 2.0, "omega_bg": 0.5, "omega_fg": 1.0})
     assert list(Qs[0].keys()) == [0, 1]
+
+
+def test_two_ratios_fixed_has_no_omega_fg_free_param():
+    from selkit.engine.codon_model import TwoRatiosFixed
+    from selkit.engine.genetic_code import GeneticCode
+    import numpy as np
+    gc = GeneticCode.by_name("standard")
+    pi = np.full(gc.n_sense, 1.0 / gc.n_sense)
+    m = TwoRatiosFixed(gc=gc, pi=pi)
+    assert m.name == "TwoRatiosFixed"
+    assert m.branch_family is True
+    assert set(m.free_params) == {"kappa", "omega_bg"}
+
+
+def test_two_ratios_fixed_omega_fg_is_one():
+    """Build() at any omega_bg should produce a Q_fg with omega=1."""
+    from selkit.engine.codon_model import TwoRatiosFixed, _build_n_ratios_qs
+    from selkit.engine.genetic_code import GeneticCode
+    from selkit.engine.rate_matrix import build_q, scale_per_label_qs
+    import numpy as np
+    gc = GeneticCode.by_name("standard")
+    pi = np.full(gc.n_sense, 1.0 / gc.n_sense)
+    m = TwoRatiosFixed(gc=gc, pi=pi)
+    _, Qs = m.build(params={"kappa": 2.0, "omega_bg": 0.3})
+    ref = _build_n_ratios_qs(
+        omegas_by_label={0: 0.3, 1: 1.0}, kappa=2.0, pi=pi, gc=gc,
+    )
+    np.testing.assert_allclose(Qs[0][0], ref[0])
+    np.testing.assert_allclose(Qs[0][1], ref[1])

@@ -467,3 +467,40 @@ class TwoRatios:
             "omega_fg": float(rng.uniform(0.4, 2.5)),
             "kappa": float(rng.uniform(1.5, 3.5)),
         }
+
+
+@dataclass
+class TwoRatiosFixed:
+    """TwoRatios with omega_fg pinned to 1.0 -- null for the mixed-chi^2 boundary LRT.
+
+    Same K=1 precondition as TwoRatios. omega_fg is not a free parameter, so
+    the LRT ``TwoRatiosFixed vs TwoRatios`` is 1 df, mixed 50:50 chi^2_0:chi^2_1
+    (boundary).
+    """
+
+    gc: GeneticCode
+    pi: np.ndarray
+    name: str = "TwoRatiosFixed"
+    branch_site: bool = False
+    branch_family: bool = True
+    free_params: tuple[str, ...] = ("omega_bg", "kappa")
+    transform_spec: dict[str, str] = field(default_factory=lambda: {
+        "omega_bg": "positive",
+        "kappa": "positive",
+    })
+
+    def build(
+        self, *, params: dict[str, float]
+    ) -> tuple[list[float], list[dict[int, np.ndarray]]]:
+        Qs = _build_n_ratios_qs(
+            omegas_by_label={0: params["omega_bg"], 1: 1.0},
+            kappa=params["kappa"], pi=self.pi, gc=self.gc,
+        )
+        return [1.0], [Qs]
+
+    def starting_values(self, *, seed: int) -> dict[str, float]:
+        rng = np.random.default_rng(seed)
+        return {
+            "omega_bg": float(rng.uniform(0.1, 0.6)),
+            "kappa": float(rng.uniform(1.5, 3.5)),
+        }
