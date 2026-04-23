@@ -110,3 +110,11 @@ def test_posterior_rows_sum_to_one() -> None:
     )
     row_sums = beb["posterior"].sum(axis=1)
     assert np.allclose(row_sums, 1.0, atol=1e-10)
+
+
+def test_public_api_does_not_expose_compute_neb() -> None:
+    """compute_neb is a test oracle, not public API."""
+    import selkit.engine.beb as beb_pkg
+    assert "compute_neb" not in getattr(beb_pkg, "__all__", [])
+    # Still importable from its concrete module — that is fine.
+    from selkit.engine.beb.site import compute_neb  # noqa: F401

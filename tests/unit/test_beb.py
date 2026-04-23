@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from selkit.engine.beb import BEBSite, compute_neb
+from selkit.engine.beb import BEBSite
+from selkit.engine.beb.site import compute_neb
 
 
 def test_neb_returns_one_entry_per_site() -> None:

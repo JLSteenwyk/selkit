@@ -13,7 +13,8 @@ from typing import Callable, Literal, Optional
 
 import numpy as np
 
-from selkit.engine.beb import BEBSite, compute_neb
+from selkit.engine.beb import BEBSite
+from selkit.engine.beb.site import compute_neb
 from selkit.engine.codon_model import SiteModel
 from selkit.engine.fit import EngineFit, fit_model
 from selkit.engine.genetic_code import GeneticCode
