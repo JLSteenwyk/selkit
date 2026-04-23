@@ -114,3 +114,91 @@ def test_run_family_invokes_preconditions(tmp_path):
         preconditions=my_preconds,
     )
     assert len(calls) == 1
+
+
+def test_orchestrator_runs_branch_family_on_tiny_tree(tmp_path):
+    from selkit.io.config import RunConfig, StrictFlags
+    from selkit.io.tree import ForegroundSpec
+    from selkit.services.codeml.branch_models import run_branch_models
+    from selkit.services.validate import validate_inputs
+    from selkit.version import __version__
+    import numpy as np
+
+    aln = tmp_path / "aln.fa"
+    aln.write_text(">A\nATGAAAGGG\n>B\nATGAAAGGG\n>C\nATGAAAGGG\n>D\nATGAAAGGG\n")
+    nwk = tmp_path / "tree.nwk"
+    nwk.write_text("((A:0.1,B:0.1)#1,(C:0.1,D:0.1):0.1);\n")
+
+    cfg = RunConfig(
+        alignment=aln, alignment_dir=None, tree=nwk,
+        foreground=None, subcommand="codeml.branch",
+        models=("TwoRatios",), tests=(), genetic_code="standard",
+        output_dir=tmp_path, threads=1, seed=0, n_starts=1,
+        convergence_tol=0.5,
+        strict=StrictFlags(True, False, False, False),
+        selkit_version=__version__, git_sha=None,
+    )
+    inputs = validate_inputs(
+        alignment_path=aln, tree_path=nwk,
+        foreground_spec=ForegroundSpec(),
+        genetic_code_name="standard",
+    )
+    result = run_branch_models(
+        inputs=inputs, config=cfg, parallel=False, progress=None,
+    )
+    assert result.family == "branch"
+    from selkit.io.results import BranchModelFit
+    assert isinstance(result.fits["TwoRatios"], BranchModelFit)
+    # 4 tips + 2 internals + root = 7 nodes; 6 non-root branches.
+    assert len(result.fits["TwoRatios"].per_branch_omega) == 6
+    per_labels = {r["label"] for r in result.fits["TwoRatios"].per_branch_omega}
+    assert per_labels == {"foreground", "background"}
+
+
+def test_orchestrator_populates_per_branch_SE_from_hess_inv_diag(tmp_path):
+    """A successful TwoRatios fit should emit real (non-None) SE values
+    on every foreground and background branch record, sourced from
+    EngineFit.hess_inv_diag via _extract_per_branch_omega.
+    """
+    from selkit.io.config import RunConfig, StrictFlags
+    from selkit.io.tree import ForegroundSpec
+    from selkit.services.codeml.branch_models import run_branch_models
+    from selkit.services.validate import validate_inputs
+    from selkit.version import __version__
+    import numpy as np
+
+    aln = tmp_path / "aln.fa"
+    # Non-degenerate alignment so the Hessian is informative. Use 30 codons
+    # with substitutions on both fg and bg branches so neither omega is
+    # estimated at ~0 (where the inv-Hessian collapses).
+    aln.write_text(
+        ">A\nATGAAAGGGCCCTTTACGCATAGCGCCATTAACTACTGCAGCGGTGGCATA\n"
+        ">B\nATGAAGGGACCCTTCACCCACAGTGCCATCAACTATTGTAGTGGAGGAATC\n"
+        ">C\nATGAAAGGGCCATTTACGCATAGCGCCATTAACTACTGCAGCGGTGGCATA\n"
+        ">D\nATGAAGGGTCCATTCACCCATAGAGCGATCAACTATTGTAGTGGAGGCATC\n"
+    )
+    nwk = tmp_path / "tree.nwk"
+    nwk.write_text("((A:0.1,B:0.1)#1,(C:0.1,D:0.1):0.1);\n")
+    cfg = RunConfig(
+        alignment=aln, alignment_dir=None, tree=nwk,
+        foreground=None, subcommand="codeml.branch",
+        models=("TwoRatios",), tests=(), genetic_code="standard",
+        output_dir=tmp_path, threads=1, seed=0, n_starts=2,
+        convergence_tol=0.5,
+        strict=StrictFlags(True, False, False, False),
+        selkit_version=__version__, git_sha=None,
+    )
+    inputs = validate_inputs(
+        alignment_path=aln, tree_path=nwk,
+        foreground_spec=ForegroundSpec(),
+        genetic_code_name="standard",
+    )
+    result = run_branch_models(
+        inputs=inputs, config=cfg, parallel=False, progress=None,
+    )
+    fit = result.fits["TwoRatios"]
+    # Every per-branch record should carry a finite SE.
+    ses = [r["SE"] for r in fit.per_branch_omega]
+    assert all(se is not None and np.isfinite(se) and se > 0 for se in ses), (
+        f"expected non-None SE on every branch; got {ses}"
+    )

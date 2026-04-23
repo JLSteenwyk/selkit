@@ -83,6 +83,7 @@ class LRTResult:
     p_value: float
     test_type: Literal["chi2", "mixed_chi2"]
     significant_at_0_05: bool
+    warning: str | None = None
 
 
 @dataclass(frozen=True)

@@ -9,7 +9,8 @@ unchanged. Task 6 migrates the live path to call `run_family`.
 
 from __future__ import annotations
 
-from typing import Callable, Literal, Optional
+import inspect
+from typing import Callable, Literal, Optional, Union
 
 import numpy as np
 
@@ -21,19 +22,126 @@ from selkit.engine.likelihood import per_class_site_log_likelihood
 from selkit.engine.rate_matrix import estimate_f3x4
 from selkit.io.config import RunConfig
 from selkit.io.results import (
+    BranchModelFit,
     BranchSiteModelFit,
     LRTResult,
     RunResult,
     SiteModelFit,
     StartResult,
 )
-from selkit.services.codeml.lrt import compute_lrt
+from selkit.io.tree import BranchRecord, LabeledTree
+from selkit.services.codeml.lrt import compute_lrt, resolve_df
 from selkit.services.validate import ValidatedInputs
 
 
-ModelFactory = Callable[[GeneticCode, np.ndarray], SiteModel]
-LRTSpec = tuple[str, str, int, str]
+ModelFactory = Callable[..., SiteModel]
+LRTSpec = tuple[str, str, Union[int, str], str]
 Family = Literal["site", "branch", "branch-site"]
+
+
+def _build_model(factory, gc, pi, tree: LabeledTree):
+    """Call a registry factory, passing tree iff the factory accepts it."""
+    try:
+        sig = inspect.signature(factory)
+    except (ValueError, TypeError):
+        return factory(gc, pi)
+    n_positional = sum(
+        1 for p in sig.parameters.values()
+        if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
+    )
+    if n_positional >= 3:
+        return factory(gc, pi, tree)
+    return factory(gc, pi)
+
+
+def _node_by_id(tree: LabeledTree, node_id: int):
+    for n in tree.all_nodes():
+        if n.id == node_id:
+            return n
+    raise KeyError(node_id)
+
+
+def _extract_per_branch_omega(
+    *, model_name: str, fit: EngineFit, tree: LabeledTree,
+) -> list[dict]:
+    """Build the per_branch_omega list for a BranchModelFit.
+
+    Uses the tree's branch_records() for stable keying. ``label`` is the
+    display string: ``"foreground"``/``"background"`` for TwoRatios / NRatios,
+    the tip name for tip branches in FreeRatios, and ``"mrca(...)"`` for
+    internals in FreeRatios. ``omega`` is read out of fit.params using the
+    model's naming convention. ``SE`` is populated from ``fit.hess_inv_diag``
+    when available -- a natural-space standard error from scipy L-BFGS-B's
+    inverse-Hessian diagonal. SE is ``None`` when (a) the optimizer fallback
+    kicked in (older scipy without LinearOperator hess_inv) or (b) the
+    parameter is pinned (e.g. omega_fg == 1 in TwoRatiosFixed).
+    """
+    se_for = fit.hess_inv_diag or {}  # dict[str, float] keyed by param name
+
+    def _se(key: str | None) -> float | None:
+        if key is None:
+            return None
+        v = se_for.get(key)
+        return float(v) if v is not None else None
+
+    recs = tree.branch_records()
+    if model_name in {"TwoRatios", "TwoRatiosFixed"}:
+        om_bg = fit.params["omega_bg"]
+        om_fg = fit.params.get("omega_fg", 1.0)  # TwoRatiosFixed pins fg at 1.
+        out: list[dict] = []
+        for r in recs:
+            node = _node_by_id(tree, r.node_id)
+            is_fg = node.label == 1
+            if is_fg:
+                # TwoRatiosFixed: no omega_fg param -> SE is None (pinned).
+                key = "omega_fg" if "omega_fg" in fit.params else None
+            else:
+                key = "omega_bg"
+            out.append({
+                "branch_id": r.branch_id,
+                "tip_set": list(r.tip_set),
+                "label": "foreground" if is_fg else "background",
+                "paml_node_id": r.paml_node_id,
+                "omega": float(om_fg if is_fg else om_bg),
+                "SE": _se(key),
+            })
+        return out
+    if model_name == "NRatios":
+        out = []
+        for r in recs:
+            node = _node_by_id(tree, r.node_id)
+            key = "omega_bg" if node.label == 0 else f"omega_{node.label}"
+            label_str = "background" if node.label == 0 else f"#{node.label}"
+            out.append({
+                "branch_id": r.branch_id,
+                "tip_set": list(r.tip_set),
+                "label": label_str,
+                "paml_node_id": r.paml_node_id,
+                "omega": float(fit.params[key]),
+                "SE": _se(key),
+            })
+        return out
+    if model_name == "FreeRatios":
+        out = []
+        for r in recs:
+            # After assign_unique_branch_labels, every branch's label IS its
+            # branch_id. Two root-adjacent branches share one label (merged).
+            node = _node_by_id(tree, r.node_id)
+            key = f"omega_{node.label}"
+            if node.is_tip:
+                label_str = node.name or ""
+            else:
+                label_str = f"mrca({','.join(r.tip_set)})"
+            out.append({
+                "branch_id": r.branch_id,
+                "tip_set": list(r.tip_set),
+                "label": label_str,
+                "paml_node_id": r.paml_node_id,
+                "omega": float(fit.params[key]),
+                "SE": _se(key),
+            })
+        return out
+    raise ValueError(f"_extract_per_branch_omega: unknown branch model {model_name!r}")
 
 
 def run_family(
@@ -96,9 +204,12 @@ def run_family(
         progress=progress,
     )
 
-    fits = {name: _engine_to_public(family, f) for name, f in engine_fits.items()}
+    fits = {
+        name: _engine_to_public(family, f, inputs=inputs)
+        for name, f in engine_fits.items()
+    }
 
-    lrts = _compute_lrts(fits, default_lrts)
+    lrts = _compute_lrts(fits, default_lrts, tree=inputs.tree)
     beb = _compute_beb(
         engine_fits=engine_fits,
         default_beb_models=default_beb_models,
@@ -126,8 +237,8 @@ def run_family(
 
 
 def _engine_to_public(
-    family: Family, fit: EngineFit
-) -> "SiteModelFit | BranchSiteModelFit":
+    family: Family, fit: EngineFit, *, inputs: ValidatedInputs | None = None,
+) -> "SiteModelFit | BranchSiteModelFit | BranchModelFit":
     """Convert an EngineFit into the tagged public dataclass for `family`."""
     starts = [
         StartResult(
@@ -165,7 +276,24 @@ def _engine_to_public(
             **common,
         )
     if family == "branch":
-        raise NotImplementedError("branch family lands in Phase 2")
+        if inputs is None:
+            raise ValueError(
+                "branch family _engine_to_public requires inputs (for tree)"
+            )
+        # M0 fit appears in the branch family's run when LRTs need it (e.g.
+        # M0-vs-TwoRatios, M0-vs-NRatios). M0 has no per-branch ω, so we emit
+        # an empty per_branch_omega list -- the family tag stays "branch" so
+        # the RunResult's tagged-union invariant holds.
+        if fit.model == "M0":
+            return BranchModelFit(
+                family="branch", per_branch_omega=[], **common,
+            )
+        per_branch = _extract_per_branch_omega(
+            model_name=fit.model, fit=fit, tree=inputs.tree,
+        )
+        return BranchModelFit(
+            family="branch", per_branch_omega=per_branch, **common,
+        )
     return SiteModelFit(family="site", **common)
 
 
@@ -230,7 +358,7 @@ def _run_one(
 ) -> EngineFit:
     """Fit a single model. Matches `site_models._run_one`, parameterised on `registry`."""
     gc = GeneticCode.by_name(cfg.genetic_code)
-    model = registry[name](gc, pi)
+    model = _build_model(registry[name], gc, pi, inputs.tree)
     return fit_model(
         model=model,
         alignment_codons=inputs.alignment.codons,
@@ -258,30 +386,46 @@ def _model_seed_offset(name: str) -> int:
 def _compute_lrts(
     fits: dict,
     default_lrts: tuple[LRTSpec, ...],
+    *,
+    tree: LabeledTree | None = None,
 ) -> list[LRTResult]:
     """Fire each registered LRT whose null and alt models are both present in `fits`."""
     lrts: list[LRTResult] = []
-    for null, alt, df, test_type in default_lrts:
-        if null in fits and alt in fits:
-            r = compute_lrt(
-                null=null,
-                alt=alt,
-                lnL_null=fits[null].lnL,
-                lnL_alt=fits[alt].lnL,
-                df=df,
-                test_type=test_type,
+    for null, alt, df_spec, test_type in default_lrts:
+        if null not in fits or alt not in fits:
+            continue
+        df = resolve_df(df_spec, tree) if tree is not None else df_spec
+        if not isinstance(df, int):
+            raise ValueError(
+                f"lazy df spec {df_spec!r} requires a tree for resolution"
             )
-            lrts.append(
-                LRTResult(
-                    null=r.null,
-                    alt=r.alt,
-                    delta_lnL=r.delta_lnL,
-                    df=r.df,
-                    p_value=r.p_value,
-                    test_type=r.test_type,
-                    significant_at_0_05=r.significant_at_0_05,
-                )
+        warning = None
+        if alt == "FreeRatios":
+            warning = (
+                f"df={df} -- FreeRatios has one omega per branch; "
+                "interpret per-branch omega with caution (Yang 1998)."
             )
+        r = compute_lrt(
+            null=null,
+            alt=alt,
+            lnL_null=fits[null].lnL,
+            lnL_alt=fits[alt].lnL,
+            df=df,
+            test_type=test_type,
+            warning=warning,
+        )
+        lrts.append(
+            LRTResult(
+                null=r.null,
+                alt=r.alt,
+                delta_lnL=r.delta_lnL,
+                df=r.df,
+                p_value=r.p_value,
+                test_type=r.test_type,
+                significant_at_0_05=r.significant_at_0_05,
+                warning=r.warning,
+            )
+        )
     return lrts
 
 
@@ -323,7 +467,7 @@ def _compute_beb_for(
     gc: GeneticCode,
 ) -> list[BEBSite]:
     """NEB for M2a/M8 (Phase 1). Phase 3 will add real BEB."""
-    model = registry[name](gc, pi)
+    model = _build_model(registry[name], gc, pi, inputs.tree)
     weights, Qs = model.build(params=fit.params)
     if name == "M2a":
         omegas = [fit.params["omega0"], 1.0, fit.params["omega2"]]
