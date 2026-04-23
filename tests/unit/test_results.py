@@ -193,3 +193,49 @@ def test_run_result_json_includes_family():
     result = RunResult(config=cfg, family="site", fits={"M0": fit}, lrts=[], beb={}, warnings=[])
     out = to_json(result)
     assert out["family"] == "site"
+
+
+def test_beb_tsv_emits_new_columns(tmp_path) -> None:
+    from pathlib import Path
+
+    from selkit.io.config import RunConfig, StrictFlags
+    from selkit.io.results import BEBSite, RunResult, emit_tsv_files
+
+    cfg = RunConfig(
+        alignment=Path("x.fa"), alignment_dir=None, tree=Path("y.nwk"),
+        foreground=None, subcommand="codeml.branch-site",
+        models=("ModelA",), tests=(),
+        genetic_code="standard", output_dir=tmp_path,
+        threads=1, seed=0, n_starts=3, convergence_tol=0.5,
+        strict=StrictFlags(True, False, False, False),
+        selkit_version="0.3.0", git_sha=None,
+    )
+    site_rec = BEBSite(
+        site=5, p_positive=0.93, posterior_mean_omega=3.1,
+        p_class_2a=0.55, p_class_2b=0.38, beb_grid_size=10,
+    )
+    site_rec_site_only = BEBSite(
+        site=7, p_positive=0.21, posterior_mean_omega=1.4,
+        beb_grid_size=10,
+    )
+    result = RunResult(
+        config=cfg, family="branch-site", fits={}, lrts=[],
+        beb={"ModelA": [site_rec], "M8": [site_rec_site_only]},
+        warnings=[],
+    )
+    emit_tsv_files(result, tmp_path)
+    modelA = (tmp_path / "beb_ModelA.tsv").read_text().splitlines()
+    assert modelA[0] == "\t".join([
+        "site", "p_positive", "posterior_mean_omega",
+        "p_class_2a", "p_class_2b", "beb_grid_size",
+    ])
+    # p_class_2a / p_class_2b populated on ModelA row.
+    assert "0.550000" in modelA[1] and "0.380000" in modelA[1]
+    assert modelA[1].split("\t")[-1] == "10"
+
+    m8 = (tmp_path / "beb_M8.tsv").read_text().splitlines()
+    # p_class_2a / p_class_2b are None on M8 → empty strings.
+    cells = m8[1].split("\t")
+    assert cells[3] == ""  # p_class_2a
+    assert cells[4] == ""  # p_class_2b
+    assert cells[5] == "10"
