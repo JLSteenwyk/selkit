@@ -80,6 +80,30 @@ Re-executes a previous analysis from its ``run.yaml`` manifest, producing byte-i
 The manifest captures every input path, flag, seed, and tolerance, so a rerun on a different machine or a year later reproduces the same analysis.
 
 
+BEB options (codeml site, codeml branch-site)
+---------------------------------------------
+
+``--no-beb``
+    Skip Bayes Empirical Bayes per-site posterior computation. Default: BEB is
+    **on**. Useful for fast batch workflows where only lnL / LRT results are
+    needed.
+
+``--beb-grid N``
+    Grid size per hyperparameter for BEB integration (Yang 2005, MBE 22:1107).
+    Default: ``10`` (PAML's internal default). Increase to ``20``--``30`` for
+    tighter convergence on the posterior mean at the cost of ~10x runtime.
+    For M2a the grid has ``N^3`` points ((p0, p1, omega2)); for M8, ``N^4``
+    ((p0, p_beta, q_beta, omega2)); for ModelA, ``N^3`` ((p0, p1, omega2)).
+
+    ``--beb-grid 1`` collapses the grid to a single point at the MLE and
+    reproduces the v0.1--v0.2 NEB posteriors.
+
+.. note::
+
+   The ``codeml branch`` subcommand accepts these flags but ignores them --
+   branch models do not use BEB (no site classes).
+
+
 Library
 -------
 
