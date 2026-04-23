@@ -178,5 +178,113 @@ def _run_m2a(
     ]
 
 
-def _run_m8(*args, **kwargs) -> list[BEBSite]:
-    raise NotImplementedError("M8 BEB lands in Task 6")
+def _m8_grid(grid_size: int, mle: dict[str, float]) -> tuple[np.ndarray, np.ndarray]:
+    """M8 grid: (p0, p_beta, q_beta, ω2).
+
+    - p0 ∈ (0, 1): mass in the β-distributed class.
+    - p_beta, q_beta > 0: shape parameters of the β on (0, 1). Grid drawn
+      log-uniformly on (0.1, 10) — the support used in PAML's BEB.
+    - ω2 > 1: log-uniform on (1, max(3·ω2_mle, 11)).
+
+    When grid_size == 1, collapse to a single point at the MLE.
+    """
+    if grid_size == 1:
+        grid = np.array([[mle["p0"], mle["p_beta"], mle["q_beta"], mle["omega2"]]])
+        prior = np.array([1.0])
+        return grid, prior
+
+    omega2_max = max(3.0 * mle["omega2"], 11.0)
+    edges = (np.arange(grid_size) + 0.5) / grid_size
+    p0_vals = edges                                            # (0,1) proportion in β class
+    # β-shape grid: log-uniform on (0.1, 10). PAML bounds β shapes this way.
+    beta_lo, beta_hi = np.log(0.1), np.log(10.0)
+    p_beta_vals = np.exp(beta_lo + edges * (beta_hi - beta_lo))
+    q_beta_vals = np.exp(beta_lo + edges * (beta_hi - beta_lo))
+    omega2_vals = np.exp(edges * (np.log(omega2_max) - np.log(1.0)))
+
+    pts: list[tuple[float, float, float, float]] = []
+    for p0 in p0_vals:
+        for pb in p_beta_vals:
+            for qb in q_beta_vals:
+                for w2 in omega2_vals:
+                    pts.append((float(p0), float(pb), float(qb), float(w2)))
+    grid = np.asarray(pts)                                    # (G, 4)
+    prior = np.full(len(pts), 1.0 / len(pts))
+    return grid, prior
+
+
+def _m8_site_class_loglik_factory(
+    *, gc: GeneticCode, pi: np.ndarray, kappa: float, n_beta_cats: int,
+    tree: LabeledTree, alignment: CodonAlignment,
+):
+    """Return a callable that, given a grid point (p0, p_beta, q_beta, ω2),
+    builds the (n_sites, n_beta_cats + 1) per-class log-likelihood matrix.
+
+    M8 has K = n_beta_cats (for the β-discretized classes, ω ∈ (0, 1)) plus
+    1 positive-selection class (ω = ω2). Per-class weights are:
+        class k ∈ {0, ..., n_beta_cats-1}: p0 / n_beta_cats
+        class n_beta_cats (positive):      1 - p0
+    """
+    def f(point: np.ndarray) -> np.ndarray:
+        p0, p_beta, q_beta, w2 = (
+            float(point[0]), float(point[1]), float(point[2]), float(point[3]),
+        )
+        omegas = _beta_quantiles(p_beta, q_beta, n_beta_cats)
+        omegas = np.clip(omegas, 1e-6, 1.0 - 1e-6)
+        Qs_raw = [build_q(gc, omega=float(o), kappa=kappa, pi=pi, unscaled=True)
+                  for o in omegas]
+        Qs_raw.append(build_q(gc, omega=w2, kappa=kappa, pi=pi, unscaled=True))
+        weights = [p0 / n_beta_cats] * n_beta_cats + [1.0 - p0]
+        Qs = scale_mixture_qs(Qs_raw, weights, pi)
+        per_class = per_class_site_log_likelihood(
+            tree=tree, codons=alignment.codons,
+            taxon_order=alignment.taxa, Qs=Qs, pi=pi,
+        )
+        return per_class.T  # (n_sites, n_beta_cats + 1)
+    return f
+
+
+def _run_m8(
+    *, fit: EngineFit, grid_size: int, tree: LabeledTree,
+    alignment: CodonAlignment, pi: np.ndarray, gc: GeneticCode,
+) -> list[BEBSite]:
+    kappa = fit.params["kappa"]
+    n_cats = 10  # matches M8.n_categories and PAML convention
+    grid, prior = _m8_grid(grid_size, fit.params)
+
+    # Per grid point: K = n_cats + 1 classes. Build cw, co row-by-row.
+    G = grid.shape[0]
+    K = n_cats + 1
+    cw = np.empty((G, K))
+    co = np.empty((G, K))
+    for g in range(G):
+        p0, p_beta, q_beta, w2 = (
+            float(grid[g, 0]), float(grid[g, 1]), float(grid[g, 2]), float(grid[g, 3]),
+        )
+        om = np.clip(_beta_quantiles(p_beta, q_beta, n_cats), 1e-6, 1.0 - 1e-6)
+        cw[g, :n_cats] = p0 / n_cats
+        cw[g, n_cats] = 1.0 - p0
+        co[g, :n_cats] = om
+        co[g, n_cats] = w2
+
+    site_class_loglik = _m8_site_class_loglik_factory(
+        gc=gc, pi=pi, kappa=kappa, n_beta_cats=n_cats,
+        tree=tree, alignment=alignment,
+    )
+    out = integrate_posteriors_over_grid(
+        hyperparameter_grid=grid,
+        site_class_loglik=site_class_loglik,
+        class_weights_over_grid=cw,
+        class_omegas_over_grid=co,
+        prior_on_grid=prior,
+    )
+    n_sites = out["p_positive"].shape[0]
+    return [
+        BEBSite(
+            site=s + 1,
+            p_positive=float(out["p_positive"][s]),
+            posterior_mean_omega=float(out["posterior_mean_omega"][s]),
+            beb_grid_size=grid_size,
+        )
+        for s in range(n_sites)
+    ]
