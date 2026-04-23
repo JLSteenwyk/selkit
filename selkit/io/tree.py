@@ -60,6 +60,21 @@ class LabeledTree:
             stack.extend(reversed(n.children))
         return out
 
+    @property
+    def n_branches(self) -> int:
+        """Count of non-root branches (i.e., every node's incoming edge except root)."""
+        return sum(1 for n in self.all_nodes() if n is not self.root)
+
+    @property
+    def n_label_classes(self) -> int:
+        """Number of distinct non-zero #-label classes on the tree.
+
+        Label 0 is the implicit background; foreground and higher-numbered
+        classes each count once. Empty (all background) trees return 0.
+        """
+        labs = {n.label for n in self.all_nodes() if n.label != 0}
+        return len(labs)
+
 
 def _strip_comments(s: str) -> str:
     return re.sub(r"\[[^\]]*\]", "", s)

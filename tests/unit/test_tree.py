@@ -116,3 +116,12 @@ def test_unknown_tip_name_errors() -> None:
     tree = parse_newick("((a,b),(c,d));")
     with pytest.raises(SelkitInputError, match=r"unknown tip"):
         apply_foreground_spec(tree, ForegroundSpec(tips=("z",)))
+
+
+def test_labeled_tree_n_branches_and_label_classes():
+    from selkit.io.tree import parse_newick
+    tree = parse_newick("((A:0.1,B:0.1)#1,(C:0.1,D:0.1):0.1);")
+    # 4 tips + 2 internals + root = 7 nodes; non-root branches = 6.
+    assert tree.n_branches == 6
+    # Exactly one non-zero label class.
+    assert tree.n_label_classes == 1
