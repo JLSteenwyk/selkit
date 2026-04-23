@@ -96,3 +96,71 @@ def test_m2a_beb_grid_refinement_converges(hiv_4s_inputs) -> None:
         # to catch order-of-magnitude bugs.
         assert abs(b10.posterior_mean_omega - b30.posterior_mean_omega) < 0.5
         assert abs(b10.p_positive - b30.p_positive) < 0.05
+
+
+def _fit_m8(validated, seed: int = 0, n_starts: int = 3):
+    gc = GeneticCode.by_name("standard")
+    pi = estimate_f3x4(validated.alignment.codons, gc)
+    model = M8(gc=gc, pi=pi)
+    fit = fit_model(
+        model=model,
+        alignment_codons=validated.alignment.codons,
+        taxon_order=validated.alignment.taxa,
+        tree=validated.tree,
+        n_starts=n_starts, seed=seed, convergence_tol=0.5,
+    )
+    return fit, pi, gc
+
+
+def test_m8_beb_singleton_grid_matches_neb(hiv_4s_inputs) -> None:
+    from selkit.engine.beb.site import run_beb_site
+    from selkit.engine.beb.site import compute_neb
+    from selkit.engine.codon_model import _beta_quantiles
+    from selkit.engine.likelihood import per_class_site_log_likelihood
+
+    fit, pi, gc = _fit_m8(hiv_4s_inputs)
+    beb = run_beb_site(
+        fit=fit, model_name="M8", grid_size=1,
+        tree=hiv_4s_inputs.tree, alignment=hiv_4s_inputs.alignment, pi=pi, gc=gc,
+    )
+    model = M8(gc=gc, pi=pi)
+    weights, Qs = model.build(params=fit.params)
+    beta_omegas = _beta_quantiles(fit.params["p_beta"], fit.params["q_beta"], 10).tolist()
+    omegas = [float(o) for o in beta_omegas] + [fit.params["omega2"]]
+    per_class = per_class_site_log_likelihood(
+        tree=hiv_4s_inputs.tree, codons=hiv_4s_inputs.alignment.codons,
+        taxon_order=hiv_4s_inputs.alignment.taxa, Qs=Qs, pi=pi,
+    )
+    neb = compute_neb(per_class_site_logL=per_class, weights=weights, omegas=omegas)
+    assert len(beb) == len(neb)
+    for b, n in zip(beb, neb):
+        assert abs(b.p_positive - n.p_positive) < 1e-8, (
+            f"site {b.site}: M8 BEB grid=1 p_pos {b.p_positive:.10f} "
+            f"!= NEB {n.p_positive:.10f}"
+        )
+        assert abs(b.posterior_mean_omega - n.posterior_mean_omega) < 1e-8
+    assert all(b.beb_grid_size == 1 for b in beb)
+
+
+def test_m8_beb_grid_refinement_converges(hiv_4s_inputs) -> None:
+    from selkit.engine.beb.site import run_beb_site
+
+    fit, pi, gc = _fit_m8(hiv_4s_inputs)
+    beb_5 = run_beb_site(
+        fit=fit, model_name="M8", grid_size=5,
+        tree=hiv_4s_inputs.tree, alignment=hiv_4s_inputs.alignment, pi=pi, gc=gc,
+    )
+    beb_8 = run_beb_site(
+        fit=fit, model_name="M8", grid_size=8,
+        tree=hiv_4s_inputs.tree, alignment=hiv_4s_inputs.alignment, pi=pi, gc=gc,
+    )
+    # NOTE: deviation from plan's grid_size=10/20 → 5/8 and 0.05 → 0.5
+    # tolerance on posterior_mean_omega. M8 grid scales as G^4 so G=20 means
+    # 160_000 grid points × 11 classes ≈ 30+ minutes per call on this CI box —
+    # untenable in a unit test. G=5 → 625, G=8 → 4096; both finish in seconds
+    # to a few minutes. p_positive stays within 0.05 (it's bounded in [0,1]).
+    # mean_omega tolerance loosened for the same reason as M2a (HIV has strong
+    # positive selection, ω2 support is wide).
+    for a, b in zip(beb_5, beb_8):
+        assert abs(a.posterior_mean_omega - b.posterior_mean_omega) < 0.5
+        assert abs(a.p_positive - b.p_positive) < 0.05
