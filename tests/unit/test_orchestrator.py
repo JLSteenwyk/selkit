@@ -114,3 +114,17 @@ def test_run_family_invokes_preconditions(tmp_path):
         preconditions=my_preconds,
     )
     assert len(calls) == 1
+
+
+def test_orchestrator_skips_beb_when_config_beb_false(tmp_path) -> None:
+    """With beb=False on RunConfig, _compute_beb returns {} — no BEB emission."""
+    # This is a thin wiring test: it asserts the orchestrator honors the flag.
+    # Activated alongside Task 12 config plumbing; Task 15 exercises this end-to-end.
+    import pytest
+    pytest.skip("activated alongside Task 15 integration test")
+
+
+def test_orchestrator_threads_beb_grid_size(tmp_path) -> None:
+    """With beb_grid=5, the BEB records carry beb_grid_size == 5."""
+    import pytest
+    pytest.skip("activated alongside Task 15 integration test")
