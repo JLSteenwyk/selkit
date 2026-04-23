@@ -50,10 +50,10 @@ def _mk_n_ratios(gc, pi, tree: LabeledTree):
 
 def _mk_free_ratios(gc, pi, tree: LabeledTree):
     # FreeRatios ignores any pre-existing labels; the service rewrites labels
-    # to be unique-per-branch before fit. n_branches is the distinct-label count
-    # after that rewrite.
-    recs = tree.assign_unique_branch_labels(merge_root=True)
-    n = len({r.branch_id for r in recs})
+    # to be unique-per-branch before fit. The label-rewrite happens in the
+    # precondition (parent process) so workers inherit it via pickle. Here we
+    # just compute n_branches from the tree's existing labels.
+    n = len({n.label for n in tree.all_nodes() if n is not tree.root})
     return FreeRatios(gc=gc, pi=pi, n_branches=n)
 
 
@@ -97,7 +97,14 @@ def _require_branch_preconditions(
                 "NRatios requires at least one #-label class on the tree; "
                 "supply --foreground / --labels-file / use inline #1 ... #K."
             )
-    # FreeRatios: no precondition; ignores labels.
+    if "FreeRatios" in models:
+        # Rewrite labels in the parent process so ProcessPoolExecutor workers
+        # inherit unique-per-branch labels via pickle. Previously this lived
+        # inside the _mk_free_ratios factory; under parallel mode the mutation
+        # only happened in the worker subprocess and the parent's tree (used
+        # by _extract_per_branch_omega) still had every label == 0, causing
+        # every branch to report the same omega.
+        tree.assign_unique_branch_labels(merge_root=True)
 
 
 def run_branch_models(
