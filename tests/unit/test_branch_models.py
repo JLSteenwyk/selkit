@@ -109,3 +109,44 @@ def test_two_ratios_fixed_omega_fg_is_one():
     )
     np.testing.assert_allclose(Qs[0][0], ref[0])
     np.testing.assert_allclose(Qs[0][1], ref[1])
+
+
+def test_n_ratios_requires_K_labels_parameter():
+    from selkit.engine.codon_model import NRatios
+    from selkit.engine.genetic_code import GeneticCode
+    import numpy as np
+    gc = GeneticCode.by_name("standard")
+    pi = np.full(gc.n_sense, 1.0 / gc.n_sense)
+    m = NRatios(gc=gc, pi=pi, K=3)
+    assert m.name == "NRatios"
+    assert m.branch_family is True
+    assert set(m.free_params) == {"kappa", "omega_bg", "omega_1", "omega_2", "omega_3"}
+
+
+def test_n_ratios_build_produces_K_plus_1_labels():
+    from selkit.engine.codon_model import NRatios
+    from selkit.engine.genetic_code import GeneticCode
+    import numpy as np
+    gc = GeneticCode.by_name("standard")
+    pi = np.full(gc.n_sense, 1.0 / gc.n_sense)
+    m = NRatios(gc=gc, pi=pi, K=2)
+    w, Qs = m.build(params={
+        "kappa": 2.0, "omega_bg": 0.3, "omega_1": 1.2, "omega_2": 3.0,
+    })
+    assert w == [1.0]
+    assert set(Qs[0].keys()) == {0, 1, 2}
+
+
+def test_n_ratios_K_equals_1_equivalent_to_two_ratios():
+    """NRatios(K=1) with matching params builds the same Qs as TwoRatios."""
+    from selkit.engine.codon_model import NRatios, TwoRatios
+    from selkit.engine.genetic_code import GeneticCode
+    import numpy as np
+    gc = GeneticCode.by_name("standard")
+    pi = np.full(gc.n_sense, 1.0 / gc.n_sense)
+    n = NRatios(gc=gc, pi=pi, K=1)
+    t = TwoRatios(gc=gc, pi=pi)
+    _, nqs = n.build(params={"kappa": 2.0, "omega_bg": 0.3, "omega_1": 2.5})
+    _, tqs = t.build(params={"kappa": 2.0, "omega_bg": 0.3, "omega_fg": 2.5})
+    for lab in (0, 1):
+        np.testing.assert_allclose(nqs[0][lab], tqs[0][lab])

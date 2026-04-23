@@ -504,3 +504,53 @@ class TwoRatiosFixed:
             "omega_bg": float(rng.uniform(0.1, 0.6)),
             "kappa": float(rng.uniform(1.5, 3.5)),
         }
+
+
+@dataclass
+class NRatios:
+    """Yang-1998 N-ratios branch model. One omega per distinct #-label class on the tree.
+
+    ``K`` is the number of non-background label classes (``#1``, ``#2``, ...,
+    ``#K``). Parameters: ``kappa``, ``omega_bg`` (for label 0), and
+    ``omega_1`` ... ``omega_K`` (for labels 1..K). Total free params = K + 2.
+    """
+
+    gc: GeneticCode
+    pi: np.ndarray
+    K: int = 1
+    name: str = "NRatios"
+    branch_site: bool = False
+    branch_family: bool = True
+    # free_params / transform_spec are populated in __post_init__ because they
+    # depend on K.
+    free_params: tuple[str, ...] = field(default=(), repr=False)
+    transform_spec: dict[str, str] = field(default_factory=dict, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.K < 1:
+            raise ValueError(f"NRatios: K must be >= 1, got {self.K}")
+        params = ("omega_bg",) + tuple(f"omega_{i}" for i in range(1, self.K + 1)) + ("kappa",)
+        self.free_params = params
+        self.transform_spec = {p: "positive" for p in params}
+
+    def build(
+        self, *, params: dict[str, float]
+    ) -> tuple[list[float], list[dict[int, np.ndarray]]]:
+        omegas_by_label: dict[int, float] = {0: params["omega_bg"]}
+        for i in range(1, self.K + 1):
+            omegas_by_label[i] = params[f"omega_{i}"]
+        Qs = _build_n_ratios_qs(
+            omegas_by_label=omegas_by_label,
+            kappa=params["kappa"], pi=self.pi, gc=self.gc,
+        )
+        return [1.0], [Qs]
+
+    def starting_values(self, *, seed: int) -> dict[str, float]:
+        rng = np.random.default_rng(seed)
+        sv: dict[str, float] = {
+            "omega_bg": float(rng.uniform(0.1, 0.6)),
+            "kappa": float(rng.uniform(1.5, 3.5)),
+        }
+        for i in range(1, self.K + 1):
+            sv[f"omega_{i}"] = float(rng.uniform(0.2, 2.5))
+        return sv
