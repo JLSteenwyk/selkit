@@ -13,11 +13,10 @@ from typing import Callable, Literal, Optional, Union
 
 import numpy as np
 
-from selkit.engine.beb import BEBSite, compute_neb
+from selkit.engine.beb import BEBSite
 from selkit.engine.codon_model import SiteModel
 from selkit.engine.fit import EngineFit, fit_model
 from selkit.engine.genetic_code import GeneticCode
-from selkit.engine.likelihood import per_class_site_log_likelihood
 from selkit.engine.rate_matrix import estimate_f3x4
 from selkit.io.config import RunConfig
 from selkit.io.results import (
@@ -215,6 +214,7 @@ def run_family(
         inputs=inputs,
         pi=pi,
         gc=gc,
+        config=config,
     )
 
     warnings: list[str] = []
@@ -431,58 +431,39 @@ def _compute_beb(
     inputs: ValidatedInputs,
     pi: np.ndarray,
     gc: GeneticCode,
+    config: RunConfig,
 ) -> dict[str, list[BEBSite]]:
-    """Compute NEB/BEB for each fit in `default_beb_models` that was actually fit.
+    """Dispatch BEB computation by model family.
 
-    Mirrors `site_models._compute_beb_for` + the BEB block of
-    `site_models.run_site_models`.
+    - M2a, M8 -> run_beb_site (site family).
+    - ModelA  -> run_beb_branch_site (branch-site family).
+    - Any other model in default_beb_models -> raise (misconfiguration).
     """
+    if not config.beb:
+        return {}
+    from selkit.engine.beb.branch_site import run_beb_branch_site
+    from selkit.engine.beb.site import run_beb_site
+
+    grid_size = int(config.beb_grid)
     beb: dict[str, list[BEBSite]] = {}
     for name in default_beb_models:
-        if name in engine_fits:
-            beb[name] = _compute_beb_for(
-                name,
-                fit=engine_fits[name],
-                registry=registry,
-                inputs=inputs,
-                pi=pi,
-                gc=gc,
+        if name not in engine_fits:
+            continue
+        fit = engine_fits[name]
+        if name in ("M2a", "M8"):
+            beb[name] = run_beb_site(
+                fit=fit, model_name=name, grid_size=grid_size,
+                tree=inputs.tree, alignment=inputs.alignment,
+                pi=pi, gc=gc,
+            )
+        elif name == "ModelA":
+            beb[name] = run_beb_branch_site(
+                fit=fit, grid_size=grid_size,
+                tree=inputs.tree, alignment=inputs.alignment,
+                pi=pi, gc=gc,
+            )
+        else:
+            raise ValueError(
+                f"_compute_beb: no BEB routine registered for model {name!r}"
             )
     return beb
-
-
-def _compute_beb_for(
-    name: str,
-    *,
-    fit: EngineFit,
-    registry: dict[str, ModelFactory],
-    inputs: ValidatedInputs,
-    pi: np.ndarray,
-    gc: GeneticCode,
-) -> list[BEBSite]:
-    """NEB for M2a/M8 (Phase 1). Phase 3 will add real BEB."""
-    model = registry[name](gc, pi, inputs.tree)
-    weights, Qs = model.build(params=fit.params)
-    if name == "M2a":
-        omegas = [fit.params["omega0"], 1.0, fit.params["omega2"]]
-    elif name == "M8":
-        from selkit.engine.codon_model import _beta_quantiles
-
-        beta_omegas = _beta_quantiles(
-            fit.params["p_beta"], fit.params["q_beta"], 10
-        ).tolist()
-        omegas = [float(o) for o in beta_omegas] + [fit.params["omega2"]]
-    else:
-        raise ValueError(f"NEB not supported for {name}")
-    per_class = per_class_site_log_likelihood(
-        tree=inputs.tree,
-        codons=inputs.alignment.codons,
-        taxon_order=inputs.alignment.taxa,
-        Qs=Qs,
-        pi=pi,
-    )
-    return compute_neb(
-        per_class_site_logL=per_class,
-        weights=weights,
-        omegas=omegas,
-    )

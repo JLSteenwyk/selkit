@@ -65,3 +65,23 @@ def test_codeml_branch_models_library_happy_path(tmp_path):
     )
     assert result.family == "branch"
     assert "TwoRatios" in result.fits
+
+
+def test_codeml_site_models_accepts_beb_kwargs() -> None:
+    import inspect
+
+    from selkit import codeml_site_models
+    sig = inspect.signature(codeml_site_models)
+    assert "beb" in sig.parameters
+    assert sig.parameters["beb"].default is True
+    assert "beb_grid" in sig.parameters
+    assert sig.parameters["beb_grid"].default == 10
+
+
+def test_codeml_branch_site_models_accepts_beb_kwargs() -> None:
+    import inspect
+
+    from selkit import codeml_branch_site_models
+    sig = inspect.signature(codeml_branch_site_models)
+    assert sig.parameters["beb"].default is True
+    assert sig.parameters["beb_grid"].default == 10

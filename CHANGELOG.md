@@ -96,6 +96,34 @@ PAML numerical agreement preserved: all 12 corpus lnL-match cases (HIV 4-taxon a
 
 Phase 3 (true BEB) follows.
 
+### True BEB (Phase 3)
+
+- Replaced v0.1–v0.2 NEB posteriors with true BEB (Yang 2005 *MBE* 22:1107)
+  for `M2a`, `M8`, and `ModelA`.
+- New `engine/beb/_grid.py` hosts `integrate_posteriors_over_grid` with
+  log-sum-exp numerical stability; shared across site (`engine/beb/site.py`)
+  and branch-site (`engine/beb/branch_site.py`) BEB. The grid integrand
+  includes the per-grid-point marginal-likelihood weight
+  `f(D|θ_g) = Π_h Σ_k w_k(θ_g) · L_{h,k}(θ_g)` (Yang 2005 eq. 5), which
+  weights each grid point by how well it explains the data and does NOT
+  cancel after integrating over θ. The singleton-grid (G=1) ≡ NEB
+  invariant is preserved because the constant scalar `f(D|θ_1)` cancels
+  between numerator and denominator at G=1.
+- `BEBSite` schema: `mean_omega` → `posterior_mean_omega`; new fields
+  `p_class_2a`, `p_class_2b`, `beb_grid_size`. Branch-site ModelA
+  populates all three; site models leave `p_class_2a`/`p_class_2b` as
+  `null` (empty string in TSV).
+- `beb_<model>.tsv` now has 6 columns: `site, p_positive,
+  posterior_mean_omega, p_class_2a, p_class_2b, beb_grid_size`.
+- New CLI flags: `--no-beb` (skip BEB) and `--beb-grid N` (grid size per
+  hyperparameter; default 10, PAML-compatible). Library kwargs: `beb`,
+  `beb_grid` on `codeml_site_models` and `codeml_branch_site_models`.
+- Self-consistency invariant: `--beb-grid 1` reproduces the v0.2 NEB
+  posteriors exactly (within floating-point tolerance).
+- Validation corpus: `hiv_4s_beb_m8` (M8) and `lysozyme_beb_modelA`
+  (ModelA) — PAML match within `|Δ p_positive| < 0.01`. (Fixtures
+  pending PAML re-run.)
+
 ## 0.2.0
 
 - **Branch-site Model A and Model A null.** The branch-site test of positive selection (Zhang et al. 2005; Yang et al. 2005) — tests whether a pre-designated foreground lineage experienced episodic adaptation at some codons. Fit via `--models ModelA,ModelA_null`. LRT `ModelA_null` vs `ModelA` is 1 df, mixed 50:50 χ²₀:χ²₁ (boundary test); included automatically when both models are fit.

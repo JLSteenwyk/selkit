@@ -42,6 +42,8 @@ def codeml_site_models(
     seed: int = 0,
     threads: int = 1,
     convergence_tol: float = 0.5,
+    beb: bool = True,
+    beb_grid: int = 10,
 ) -> RunResult:
     fg = foreground or ForegroundSpec()
     config = RunConfig(
@@ -53,6 +55,7 @@ def codeml_site_models(
         convergence_tol=convergence_tol,
         strict=StrictFlags(True, False, False, False),
         selkit_version=__version__, git_sha=None,
+        beb=beb, beb_grid=beb_grid,
     )
     validated = validate_inputs(
         alignment_path=config.alignment, tree_path=config.tree,
@@ -77,6 +80,8 @@ def codeml_branch_site_models(
     seed: int = 0,
     threads: int = 1,
     convergence_tol: float = 0.5,
+    beb: bool = True,
+    beb_grid: int = 10,
 ) -> RunResult:
     config = RunConfig(
         alignment=Path(alignment), alignment_dir=None, tree=Path(tree),
@@ -87,6 +92,7 @@ def codeml_branch_site_models(
         convergence_tol=convergence_tol,
         strict=StrictFlags(True, False, False, False),
         selkit_version=__version__, git_sha=None,
+        beb=beb, beb_grid=beb_grid,
     )
     validated = validate_inputs(
         alignment_path=config.alignment, tree_path=config.tree,

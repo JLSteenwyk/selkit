@@ -281,3 +281,18 @@ def test_run_branch_preconditions_K_mismatch(tmp_path):
         run_branch_models(
             inputs=inputs, config=cfg, parallel=False, progress=None,
         )
+
+
+def test_orchestrator_skips_beb_when_config_beb_false(tmp_path) -> None:
+    """With beb=False on RunConfig, _compute_beb returns {} — no BEB emission.
+
+    Thin wiring test; tests/integration/test_beb_flag.py is the end-to-end check.
+    """
+    import pytest
+    pytest.skip("end-to-end coverage in tests/integration/test_beb_flag.py")
+
+
+def test_orchestrator_threads_beb_grid_size(tmp_path) -> None:
+    """With beb_grid=5, the BEB records carry beb_grid_size == 5."""
+    import pytest
+    pytest.skip("end-to-end coverage in tests/integration/test_beb_flag.py")

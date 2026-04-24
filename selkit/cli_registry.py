@@ -13,6 +13,18 @@ class CommandSpec:
     handle: Callable[[argparse.Namespace], int]
 
 
+def _add_beb_flags(p: argparse.ArgumentParser) -> None:
+    """Add --no-beb / --beb-grid N. Present on every codeml subparser.
+
+    Note: the `branch` subcommand has no BEB models (DEFAULT_BEB_MODELS = ());
+    the flags are accepted but have no effect on branch runs.
+    """
+    p.add_argument("--no-beb", dest="beb", action="store_false", default=True,
+                   help="Skip BEB computation.")
+    p.add_argument("--beb-grid", dest="beb_grid", type=int, default=10,
+                   help="BEB grid size per hyperparameter (default 10, PAML convention).")
+
+
 def _codeml_site_builder(p: argparse.ArgumentParser) -> None:
     p.add_argument("--alignment", required=False)
     p.add_argument("--alignment-dir", required=False)
@@ -31,6 +43,7 @@ def _codeml_site_builder(p: argparse.ArgumentParser) -> None:
     p.add_argument("--no-strip-terminal-stop", action="store_true")
     p.add_argument("--allow-unconverged", action="store_true")
     p.add_argument("--config", default=None)
+    _add_beb_flags(p)
 
 
 # branch-site shares the exact same flag surface as site in Phase 1.
