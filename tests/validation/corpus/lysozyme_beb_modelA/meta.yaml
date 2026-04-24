@@ -13,5 +13,6 @@ foreground:
 seed: 0
 n_starts: 3
 paml_cmd: codeml codeml.ctl  # model=2 NSsites=2 CodonFreq=2 (F3X4) cleandata=1; BEB block in rst
+blocked: awaiting PAML BEB rst fixture
 # FIXTURE TODO (blocking): Jacob to run PAML, extract per-site p_class_2a,
 # p_class_2b, p_positive (= 2a + 2b) from rst, and populate expected.json.
