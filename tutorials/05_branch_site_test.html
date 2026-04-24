@@ -20,7 +20,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Usage" href="../usage/index.html" />
+    <link rel="next" title="Branch test: lineage-specific rate ratios" href="06_branch_test.html" />
     <link rel="prev" title="Batch analysis &amp; library use (many genes, mitochondrial code)" href="04_library_workflow.html" /> 
 </head>
 
@@ -113,6 +113,18 @@
 <li class="toctree-l4"><a class="reference internal" href="#what-next">What next?</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="06_branch_test.html">Branch test: lineage-specific rate ratios</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#the-two-branch-models">The two branch models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#designating-the-foreground">Designating the foreground</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-2-validate-and-fit">Step 2: Validate and fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-3-inspect-the-output">Step 3: Inspect the output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-4-interpret">Step 4: Interpret</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#per-branch-output">Per-branch output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#python-api-equivalent">Python API equivalent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#what-next">What next?</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#what-you-ll-learn">What you’ll learn</a></li>
@@ -126,6 +138,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#beb-options-codeml-site-codeml-branch-site">BEB options (codeml site, codeml branch-site)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#library">Library</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#inputs">Inputs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#outputs">Outputs</a></li>
@@ -136,6 +149,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#true-beb-yang-2005-v0-3">True BEB (Yang 2005) – v0.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#extending-the-corpus">Extending the corpus</a></li>
 </ul>
 </li>
@@ -396,11 +410,22 @@ rule out that the optimiser is picking up noise near the ω = 1 boundary rather
 than a genuine positive-selection signal.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>selkit v0.1 does not yet compute the Bayes Empirical Bayes posterior of
-<em>which individual codons</em> on the foreground are under positive selection for
-Model A. Per-site posteriors under Model A will be added in a later release.
-For now, p₂ gives the estimated <em>fraction</em> of sites in the positive class
-averaged over the foreground lineage.</p>
+<p>selkit v0.3 computes per-site BEB posteriors for ModelA (true Yang 2005
+BEB, integrated over the (p0, p1, omega2) hyperparameter grid). The output
+is in <code class="docutils literal notranslate"><span class="pre">results/beb_ModelA.tsv</span></code>. Each row carries:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">site</span></code> – 1-indexed codon position.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p_positive</span></code> – P(site is in foreground-positive class 2a or 2b).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">posterior_mean_omega</span></code> – E[omega | site] integrated over the grid.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p_class_2a</span></code> – posterior mass on class 2a (background ω0 / foreground ω2).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p_class_2b</span></code> – posterior mass on class 2b (background ω = 1 / foreground ω2).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">beb_grid_size</span></code> – the BEB integration grid (default 10).</p></li>
+</ul>
+<p>By construction <code class="docutils literal notranslate"><span class="pre">p_positive</span> <span class="pre">=</span> <span class="pre">p_class_2a</span> <span class="pre">+</span> <span class="pre">p_class_2b</span></code>. Sites with
+<code class="docutils literal notranslate"><span class="pre">p_positive</span> <span class="pre">&gt;=</span> <span class="pre">0.95</span></code> are conventional candidates for positive selection
+on the foreground lineage. Pass <code class="docutils literal notranslate"><span class="pre">--beb-grid</span> <span class="pre">30</span></code> for a tighter integral
+(roughly 10x slower) or <code class="docutils literal notranslate"><span class="pre">--beb-grid</span> <span class="pre">1</span></code> to reproduce the v0.1–v0.2 NEB
+point estimate at the MLE.</p>
 </div>
 </section>
 <section id="numerical-parity-with-paml">
@@ -460,7 +485,7 @@ Python API, including error handling and result aggregation.</p></li>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="04_library_workflow.html" class="btn btn-neutral float-left" title="Batch analysis &amp; library use (many genes, mitochondrial code)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../usage/index.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="06_branch_test.html" class="btn btn-neutral float-right" title="Branch test: lineage-specific rate ratios" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

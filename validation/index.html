@@ -113,6 +113,18 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#what-next">What next?</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/06_branch_test.html">Branch test: lineage-specific rate ratios</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#the-two-branch-models">The two branch models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#designating-the-foreground">Designating the foreground</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-2-validate-and-fit">Step 2: Validate and fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-3-inspect-the-output">Step 3: Inspect the output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-4-interpret">Step 4: Interpret</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#per-branch-output">Per-branch output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#python-api-equivalent">Python API equivalent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#what-next">What next?</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html#what-you-ll-learn">What you’ll learn</a></li>
@@ -126,6 +138,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#beb-options-codeml-site-codeml-branch-site">BEB options (codeml site, codeml branch-site)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#library">Library</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#inputs">Inputs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#outputs">Outputs</a></li>
@@ -136,6 +149,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#true-beb-yang-2005-v0-3">True BEB (Yang 2005) – v0.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#extending-the-corpus">Extending the corpus</a></li>
 </ul>
 </li>
@@ -269,7 +283,29 @@
 <p><strong>F3X4 codon frequencies</strong> — selkit uses the same F3X4 estimator PAML uses (raw per-position nucleotide counts, with the product normalised over sense codons). An optional <code class="docutils literal notranslate"><span class="pre">pseudocount</span></code> keyword on <code class="docutils literal notranslate"><span class="pre">estimate_f3x4</span></code> is available for degenerate inputs where some nucleotide isn’t observed at some codon position; the default is <code class="docutils literal notranslate"><span class="pre">0.0</span></code>, matching PAML.</p>
 <p><strong>Mixture Q scaling</strong> — Under PAML’s convention, branch lengths are in units of expected codon substitutions averaged over site classes. selkit scales all classes of a mixture by a single weighted-average mean rate, preserving rate heterogeneity between classes (a slow class with ω=0 runs slower than a neutral class with ω=1 along the same branch). Early development of selkit used per-class scaling and produced silently wrong lnLs on mixtures; the current implementation is verified against PAML.</p>
 <p><strong>Matrix exponential</strong> — selkit computes P(t) = exp(Q·t) via <code class="docutils literal notranslate"><span class="pre">scipy.linalg.expm</span></code> (Padé-13 with scaling-and-squaring). An earlier implementation used eigendecomposition + inversion and returned garbage on rank-deficient Q (e.g. when ω=0 zeroes out many off-diagonal entries). This has been fixed; the current implementation is numerically stable.</p>
-<p><strong>BEB vs NEB</strong> — selkit’s “BEB” output is technically naïve empirical Bayes: the posterior is evaluated at the MLE of the hyperparameters (p0, p_beta, q_beta, etc.), not integrated over them. This matches PAML’s <code class="docutils literal notranslate"><span class="pre">BEB</span></code> option in <em>most</em> practical cases, but true BEB (full integration) is a scoped follow-up.</p>
+<p><strong>BEB vs NEB</strong> — selkit v0.3 emits true BEB (Yang 2005). See “True BEB” below.</p>
+</section>
+<section id="true-beb-yang-2005-v0-3">
+<h2>True BEB (Yang 2005) – v0.3<a class="headerlink" href="#true-beb-yang-2005-v0-3" title="Link to this heading"></a></h2>
+<p>v0.1–v0.2 reported NEB (Naive Empirical Bayes) posteriors evaluated at the
+MLE. v0.3 replaces these with true BEB: integration of the per-class posteriors
+over a grid of hyperparameter values, following Yang 2005 (<em>MBE</em> 22:1107).</p>
+<p>Supported models:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">M2a</span></code>, <code class="docutils literal notranslate"><span class="pre">M8</span></code> (site) – grid over <code class="docutils literal notranslate"><span class="pre">(p0,</span> <span class="pre">p1,</span> <span class="pre">omega2)</span></code> and <code class="docutils literal notranslate"><span class="pre">(p0,</span> <span class="pre">p_beta,</span> <span class="pre">q_beta,</span> <span class="pre">omega2)</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ModelA</span></code> (branch-site) – grid over <code class="docutils literal notranslate"><span class="pre">(p0,</span> <span class="pre">p1,</span> <span class="pre">omega2)</span></code>; reports per-class
+<code class="docutils literal notranslate"><span class="pre">p_class_2a</span></code> and <code class="docutils literal notranslate"><span class="pre">p_class_2b</span></code> separately.</p></li>
+</ul>
+<p>Validation corpus:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/validation/corpus/hiv_4s_beb_m8/</span></code> – M8 BEB posteriors vs PAML on
+the 4-taxon HIV env V3 subset. Threshold <code class="docutils literal notranslate"><span class="pre">|delta</span> <span class="pre">p_positive|</span> <span class="pre">&lt;</span> <span class="pre">0.01</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/validation/corpus/lysozyme_beb_modelA/</span></code> – Model A BEB per-site
+posteriors vs PAML on the 19-taxon primate lysozyme with colobine
+foreground. Same threshold.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">--beb-grid</span> <span class="pre">N</span></code> CLI flag and <code class="docutils literal notranslate"><span class="pre">beb_grid=N</span></code> library kwarg control the
+integration grid size per hyperparameter. Default is 10, matching PAML.</p>
 </section>
 <section id="extending-the-corpus">
 <h2>Extending the corpus<a class="headerlink" href="#extending-the-corpus" title="Link to this heading"></a></h2>

@@ -113,6 +113,18 @@
 <li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#what-next">What next?</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="06_branch_test.html">Branch test: lineage-specific rate ratios</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#the-two-branch-models">The two branch models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#designating-the-foreground">Designating the foreground</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-2-validate-and-fit">Step 2: Validate and fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-3-inspect-the-output">Step 3: Inspect the output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-4-interpret">Step 4: Interpret</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#per-branch-output">Per-branch output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#python-api-equivalent">Python API equivalent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#what-next">What next?</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#what-you-ll-learn">What you’ll learn</a></li>
@@ -126,6 +138,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#beb-options-codeml-site-codeml-branch-site">BEB options (codeml site, codeml branch-site)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#library">Library</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#inputs">Inputs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#outputs">Outputs</a></li>
@@ -136,6 +149,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#true-beb-yang-2005-v0-3">True BEB (Yang 2005) – v0.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#extending-the-corpus">Extending the corpus</a></li>
 </ul>
 </li>
@@ -231,6 +245,7 @@
 <li class="toctree-l1"><a class="reference internal" href="03_beta_models_boundary_test.html">Beta-discretised ω and the M8a boundary test</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04_library_workflow.html">Batch analysis &amp; library use (many genes, mitochondrial code)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05_branch_site_test.html">Branch-site test: positive selection on specific lineages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_branch_test.html">Branch test: lineage-specific rate ratios</a></li>
 </ul>
 </div>
 </section>
@@ -242,6 +257,7 @@
 <li><p><a class="reference internal" href="03_beta_models_boundary_test.html"><span class="doc">Beta-discretised ω and the M8a boundary test</span></a> — The more statistically robust M7 / M8 / M8a workflow, including the mixed-χ² boundary test that prevents false positives when the ω class is really at ω = 1.</p></li>
 <li><p><a class="reference internal" href="04_library_workflow.html"><span class="doc">Batch analysis &amp; library use (many genes, mitochondrial code)</span></a> — Embed selkit in a script to batch-process many genes, run with non-standard genetic codes (mitochondrial), and work with selkit’s dataclasses directly.</p></li>
 <li><p><a class="reference internal" href="05_branch_site_test.html"><span class="doc">Branch-site test: positive selection on specific lineages</span></a> — The branch-site test of positive selection: Model A / Model A null. Tests whether a pre-designated lineage (the “foreground”) experienced episodic adaptation, using the PAML lysozyme dataset (Yang 1998; Zhang et al. 2005).</p></li>
+<li><p><a class="reference internal" href="06_branch_test.html"><span class="doc">Branch test: lineage-specific rate ratios</span></a> — The branch test of positive selection: M0 vs TwoRatios (any rate difference) and TwoRatiosFixed vs TwoRatios (boundary test for omega_fg &gt; 1). Uses the PAML lysozyme dataset (Yang 1998).</p></li>
 </ul>
 </section>
 <section id="dataset-provenance">

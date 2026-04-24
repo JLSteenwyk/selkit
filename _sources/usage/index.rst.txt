@@ -80,6 +80,30 @@ Re-executes a previous analysis from its ``run.yaml`` manifest, producing byte-i
 The manifest captures every input path, flag, seed, and tolerance, so a rerun on a different machine or a year later reproduces the same analysis.
 
 
+BEB options (codeml site, codeml branch-site)
+---------------------------------------------
+
+``--no-beb``
+    Skip Bayes Empirical Bayes per-site posterior computation. Default: BEB is
+    **on**. Useful for fast batch workflows where only lnL / LRT results are
+    needed.
+
+``--beb-grid N``
+    Grid size per hyperparameter for BEB integration (Yang 2005, MBE 22:1107).
+    Default: ``10`` (PAML's internal default). Increase to ``20``--``30`` for
+    tighter convergence on the posterior mean at the cost of ~10x runtime.
+    For M2a the grid has ``N^3`` points ((p0, p1, omega2)); for M8, ``N^4``
+    ((p0, p_beta, q_beta, omega2)); for ModelA, ``N^3`` ((p0, p1, omega2)).
+
+    ``--beb-grid 1`` collapses the grid to a single point at the MLE and
+    reproduces the v0.1--v0.2 NEB posteriors.
+
+.. note::
+
+   The ``codeml branch`` subcommand accepts these flags but ignores them --
+   branch models do not use BEB (no site classes).
+
+
 Library
 -------
 
@@ -104,7 +128,7 @@ It returns a :class:`selkit.RunResult` with:
 
 - ``result.fits`` — ``dict[str, ModelFit]`` keyed by model name. Each :class:`selkit.ModelFit` carries ``lnL``, ``params``, ``branch_lengths``, ``starts`` (per-start results for convergence diagnosis), ``converged``, ``runtime_s``.
 - ``result.lrts`` — ``list[LRTResult]`` with null/alt names, ``delta_lnL`` (2·Δ lnL — the test statistic, despite the field name), ``p_value``, ``test_type`` (``"chi2"`` or ``"mixed_chi2"``), ``significant_at_0_05``.
-- ``result.beb`` — ``dict[str, list[BEBSite]]`` for M2a and M8, each site carrying 1-indexed position, ``p_positive`` (posterior of ω > 1), and ``mean_omega``.
+- ``result.beb`` — ``dict[str, list[BEBSite]]`` for M2a and M8, each site carrying 1-indexed position, ``p_positive`` (posterior of ω > 1), and ``posterior_mean_omega``.
 - ``result.warnings`` — unconverged models.
 - ``result.config`` — the reconstructible :class:`selkit.RunConfig`.
 
@@ -148,7 +172,7 @@ An output directory after a site-models run contains:
     ├── results.json         # canonical, all fits + LRTs + BEB + warnings
     ├── fits.tsv             # model, lnL, n_params, converged, runtime_s, params
     ├── lrts.tsv             # null, alt, delta_lnL (2·ΔlnL), df, p, sig.
-    ├── beb_M2a.tsv          # site, p_positive, mean_omega
+    ├── beb_M2a.tsv          # site, p_positive, posterior_mean_omega
     ├── beb_M8.tsv           # same columns, per site
     └── run.yaml             # full manifest for reproducibility
 

@@ -209,10 +209,17 @@ Output:
 
 .. code-block:: text
 
-    site	p_positive	mean_omega
-    28	0.997084	3.617758
-    66	0.998982	3.622741
-    87	0.981819	3.577679
+    site	p_positive	posterior_mean_omega	p_class_2a	p_class_2b	beb_grid_size
+    28	0.997084	3.617758				10
+    66	0.998982	3.622741				10
+    87	0.981819	3.577679				10
+
+The ``p_class_2a`` and ``p_class_2b`` columns are blank for site models (M2a,
+M8) -- these per-class posteriors are only populated for branch-site Model A
+(see Tutorial 05). ``beb_grid_size`` records the BEB integration grid; the
+default is 10 (PAML convention). Pass ``--beb-grid 30`` for a tighter estimate
+or ``--beb-grid 1`` to reproduce the v0.1--v0.2 NEB posteriors evaluated only
+at the MLE.
 
 Three codon positions — 28, 66, and 87 (1-indexed) — exceed the 0.95 threshold.
 Their posterior-mean ω hovers around 3.6, fully consistent with the M2a-estimated

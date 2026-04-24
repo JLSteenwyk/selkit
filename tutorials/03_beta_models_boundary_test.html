@@ -113,6 +113,18 @@
 <li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#what-next">What next?</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="06_branch_test.html">Branch test: lineage-specific rate ratios</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#the-two-branch-models">The two branch models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#designating-the-foreground">Designating the foreground</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-2-validate-and-fit">Step 2: Validate and fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-3-inspect-the-output">Step 3: Inspect the output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#step-4-interpret">Step 4: Interpret</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#per-branch-output">Per-branch output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#python-api-equivalent">Python API equivalent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="06_branch_test.html#what-next">What next?</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#what-you-ll-learn">What you’ll learn</a></li>
@@ -126,6 +138,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#beb-options-codeml-site-codeml-branch-site">BEB options (codeml site, codeml branch-site)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#library">Library</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#inputs">Inputs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#outputs">Outputs</a></li>
@@ -136,6 +149,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#true-beb-yang-2005-v0-3">True BEB (Yang 2005) – v0.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#extending-the-corpus">Extending the corpus</a></li>
 </ul>
 </li>
@@ -380,13 +394,16 @@ flags are needed.</p>
 <p>M8 produces its own BEB table. Because the M8 null (beta distribution) is
 smoother than M2a’s two-class background, BEB under M8 can have slightly
 more power.</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>site  p_positive  mean_omega
-28    0.997807    3.464894
-51    0.950097    3.345570
-66    0.999223    3.468424
-87    0.985611    3.434331
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>site  p_positive  posterior_mean_omega  p_class_2a  p_class_2b  beb_grid_size
+28    0.997807    3.464894                                       10
+51    0.950097    3.345570                                       10
+66    0.999223    3.468424                                       10
+87    0.985611    3.434331                                       10
 </pre></div>
 </div>
+<p>(<code class="docutils literal notranslate"><span class="pre">p_class_2a</span></code> / <code class="docutils literal notranslate"><span class="pre">p_class_2b</span></code> are blank for site models – they’re populated
+only for branch-site ModelA. <code class="docutils literal notranslate"><span class="pre">beb_grid_size</span></code> is the BEB integration grid;
+default 10.)</p>
 <p>Four sites pass the conventional 0.95 posterior-probability threshold. Sites
 28, 66, and 87 are also recovered by M2a (tutorial 02); site 51 is new — it
 just clears 0.95 under M8 but not under M2a. <strong>Best practice:</strong> report

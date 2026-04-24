@@ -113,6 +113,18 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#what-next">What next?</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/06_branch_test.html">Branch test: lineage-specific rate ratios</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#the-two-branch-models">The two branch models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#designating-the-foreground">Designating the foreground</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-2-validate-and-fit">Step 2: Validate and fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-3-inspect-the-output">Step 3: Inspect the output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-4-interpret">Step 4: Interpret</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#per-branch-output">Per-branch output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#python-api-equivalent">Python API equivalent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#what-next">What next?</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html#what-you-ll-learn">What you’ll learn</a></li>
@@ -126,6 +138,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#beb-options-codeml-site-codeml-branch-site">BEB options (codeml site, codeml branch-site)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#library">Library</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#inputs">Inputs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../usage/index.html#outputs">Outputs</a></li>
@@ -136,6 +149,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#true-beb-yang-2005-v0-3">True BEB (Yang 2005) – v0.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#extending-the-corpus">Extending the corpus</a></li>
 </ul>
 </li>
@@ -214,6 +228,16 @@
   <section id="change-log">
 <span id="id1"></span><h1>Change log<a class="headerlink" href="#change-log" title="Link to this heading"></a></h1>
 <p>Major changes to selkit are summarised here.</p>
+<p><strong>0.3.0</strong></p>
+<ul class="simple">
+<li><p><strong>Branch models (Yang 1998).</strong> Four members: <code class="docutils literal notranslate"><span class="pre">TwoRatios</span></code> (one foreground class vs background), <code class="docutils literal notranslate"><span class="pre">TwoRatiosFixed</span></code> (foreground ω pinned at 1; null for the boundary positive-selection LRT), <code class="docutils literal notranslate"><span class="pre">NRatios</span></code> (one ω per <code class="docutils literal notranslate"><span class="pre">#</span></code>-label class, K ≥ 1), and <code class="docutils literal notranslate"><span class="pre">FreeRatios</span></code> (one ω per branch with the two root-adjacent branches merged per PAML convention). New CLI: <code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">branch</span></code>. New library entry: <code class="docutils literal notranslate"><span class="pre">codeml_branch_models(...)</span></code>.</p></li>
+<li><p><strong>Per-branch standard errors.</strong> Branch-model fits now carry per-branch ω SE values derived from the L-BFGS-B inverse-Hessian diagonal with a delta-method natural-space correction (sigmoid / softplus / positive-gt-one transforms). Treat as a guide rather than a rigorous CI — see tutorial 06 for caveats.</p></li>
+<li><p><strong>True BEB (Yang 2005)</strong> for <code class="docutils literal notranslate"><span class="pre">M2a</span></code>, <code class="docutils literal notranslate"><span class="pre">M8</span></code>, and <code class="docutils literal notranslate"><span class="pre">ModelA</span></code> — replaces the v0.1–v0.2 NEB-at-MLE point estimate. The grid integrand correctly carries the per-grid-point marginal-likelihood weight <code class="docutils literal notranslate"><span class="pre">f(D|θ_g)</span> <span class="pre">=</span> <span class="pre">∏_h</span> <span class="pre">Σ_k</span> <span class="pre">w_k(θ_g)</span> <span class="pre">·</span> <span class="pre">L_{h,k}(θ_g)</span></code> (Yang 2005 eq. 5). The singleton-grid (G=1) ≡ NEB invariant is preserved. New CLI flags: <code class="docutils literal notranslate"><span class="pre">--no-beb</span></code> and <code class="docutils literal notranslate"><span class="pre">--beb-grid</span> <span class="pre">N</span></code> (default 10).</p></li>
+<li><p><strong>Per-site BEB for Model A.</strong> <code class="docutils literal notranslate"><span class="pre">BEBSite</span></code> gains <code class="docutils literal notranslate"><span class="pre">p_class_2a</span></code> and <code class="docutils literal notranslate"><span class="pre">p_class_2b</span></code> for branch-site posteriors; <code class="docutils literal notranslate"><span class="pre">mean_omega</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">posterior_mean_omega</span></code>.</p></li>
+<li><p><strong>Three-family CLI surface.</strong> <code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site-models</span></code> is renamed to <code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site</span></code>; <code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">branch-site</span></code> is new (was hosted under <code class="docutils literal notranslate"><span class="pre">site-models</span></code> in v0.2). <code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">branch</span></code> is new. <code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code> hard-fails on v0.2 <code class="docutils literal notranslate"><span class="pre">run.yaml</span></code> files with a migration message.</p></li>
+<li><p><strong>Internal refactor.</strong> Service layer split by family (<code class="docutils literal notranslate"><span class="pre">site_models.py</span></code>, <code class="docutils literal notranslate"><span class="pre">branch_models.py</span></code>, <code class="docutils literal notranslate"><span class="pre">branch_site.py</span></code>) with a shared <code class="docutils literal notranslate"><span class="pre">services/codeml/_orchestrator.run_family</span></code> pipeline. <code class="docutils literal notranslate"><span class="pre">engine/beb</span></code> promoted to a package. Tagged-union fit dataclasses (<code class="docutils literal notranslate"><span class="pre">SiteModelFit</span></code>, <code class="docutils literal notranslate"><span class="pre">BranchModelFit</span></code>, <code class="docutils literal notranslate"><span class="pre">BranchSiteModelFit</span></code>). TSV output split by family.</p></li>
+<li><p><strong>PAML numerical agreement</strong> preserved on the v0.1/v0.2 corpus cases (HIV 4-taxon, HIV 13-taxon, lysozyme branch-site) within <code class="docutils literal notranslate"><span class="pre">|Δ</span> <span class="pre">lnL|</span> <span class="pre">&lt;</span> <span class="pre">1e-3</span></code> at PAML’s reported point. Two new corpus cases for the branch-model and BEB additions are scaffolded but skipped pending PAML reference outputs.</p></li>
+</ul>
 <p><strong>0.2.0</strong></p>
 <ul class="simple">
 <li><p><strong>Branch-site Model A and Model A null.</strong> The branch-site test of positive selection (Zhang <em>et al.</em> 2005; Yang <em>et al.</em> 2005) — tests whether a pre-designated foreground lineage experienced episodic adaptation at some codons. Fit via <code class="docutils literal notranslate"><span class="pre">--models</span> <span class="pre">ModelA,ModelA_null</span></code>. The LRT is automatic, 1 df, mixed 50:50 χ² (boundary test).</p></li>

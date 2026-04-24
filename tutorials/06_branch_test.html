@@ -1,0 +1,458 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Branch test: lineage-specific rate ratios &mdash; selkit  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=d5a91742" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Usage" href="../usage/index.html" />
+    <link rel="prev" title="Branch-site test: positive selection on specific lineages" href="05_branch_site_test.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            selkit
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#why-selkit">Why selkit?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#correctness">Correctness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#implementation-notes">Implementation notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../about/index.html#the-developers">The developers</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#available-tutorials">Available tutorials</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="01_first_run.html">Your first selkit run: validation + M0 baseline</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-1-install-selkit">Step 1: Install selkit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-2-download-the-toy-dataset">Step 2: Download the toy dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-3-validate-the-inputs">Step 3: Validate the inputs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-4-fit-the-m0-model">Step 4: Fit the M0 model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-5-interpret-the-console-output">Step 5: Interpret the console output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#step-6-inspect-the-output-files">Step 6: Inspect the output files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="01_first_run.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="02_detecting_positive_selection.html">Detecting positive selection: the M1a vs M2a test with BEB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#why-m0-is-not-enough">Why M0 is not enough</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#the-models-in-a-nutshell">The models in a nutshell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-2-fit-m0-m1a-and-m2a">Step 2: Fit M0, M1a, and M2a</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-3-interpret-the-console-summary">Step 3: Interpret the console summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-4-which-sites-beb-posterior-probabilities">Step 4: Which sites? BEB posterior probabilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#step-5-extract-significant-sites">Step 5: Extract significant sites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#python-api-one-liner">Python API one-liner</a></li>
+<li class="toctree-l4"><a class="reference internal" href="02_detecting_positive_selection.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="03_beta_models_boundary_test.html">Beta-discretised ω and the M8a boundary test</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#background-m7-m8-and-the-boundary-problem">Background: M7, M8, and the boundary problem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-2-fit-the-full-model-suite">Step 2: Fit the full model suite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-3-inspect-fits-tsv">Step 3: Inspect <code class="docutils literal notranslate"><span class="pre">fits.tsv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-4-interpret-lrts-tsv">Step 4: Interpret <code class="docutils literal notranslate"><span class="pre">lrts.tsv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-5-why-the-mixed-2-matters">Step 5: Why the mixed χ² matters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-6-bayes-empirical-bayes-site-posteriors-from-m8">Step 6: Bayes empirical Bayes site posteriors from M8</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#step-7-what-if-m7-vs-m8-is-significant-but-m8a-vs-m8-is-not">Step 7: What if M7 vs M8 is significant but M8a vs M8 is not?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#decision-summary">Decision summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="03_beta_models_boundary_test.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="04_library_workflow.html">Batch analysis &amp; library use (many genes, mitochondrial code)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#why-use-the-library-instead-of-the-cli">Why use the library instead of the CLI?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#library-entry-point">Library entry point</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#single-gene-library-call">Single-gene library call</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#batch-across-many-genes">Batch across many genes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#gene-level-parallelism">Gene-level parallelism</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#non-standard-genetic-codes">Non-standard genetic codes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#reproducing-a-run-later">Reproducing a run later</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#accessing-the-raw-dataclasses">Accessing the raw dataclasses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="04_library_workflow.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="05_branch_site_test.html">Branch-site test: positive selection on specific lineages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#the-two-branch-site-models">The two branch-site models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#designating-the-foreground">Designating the foreground</a></li>
+<li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#step-2-validate-then-fit-both-branch-site-models">Step 2: Validate, then fit both branch-site models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#step-3-inspect-the-console-output">Step 3: Inspect the console output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#step-4-interpret-the-result">Step 4: Interpret the result</a></li>
+<li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#step-5-fraction-of-sites-in-the-positive-class">Step 5: Fraction of sites in the positive class</a></li>
+<li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#numerical-parity-with-paml">Numerical parity with PAML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#python-api-equivalent">Python API equivalent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="05_branch_site_test.html#what-next">What next?</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Branch test: lineage-specific rate ratios</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-two-branch-models">The two branch models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#designating-the-foreground">Designating the foreground</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-2-validate-and-fit">Step 2: Validate and fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-3-inspect-the-output">Step 3: Inspect the output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-4-interpret">Step 4: Interpret</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#per-branch-output">Per-branch output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#python-api-equivalent">Python API equivalent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#what-next">What next?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#what-you-ll-learn">What you’ll learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#dataset-provenance">Dataset provenance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/index.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#command-line">Command line</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-validate"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">validate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-codeml-site-models"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">codeml</span> <span class="pre">site-models</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage/index.html#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#beb-options-codeml-site-codeml-branch-site">BEB options (codeml site, codeml branch-site)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#library">Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage/index.html#outputs">Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../validation/index.html">PAML validation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#corpus-cases">Corpus cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#true-beb-yang-2005-v0-3">True BEB (Yang 2005) – v0.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#extending-the-corpus">Extending the corpus</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#entry-point">Entry point</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#codeml_site_models"><code class="docutils literal notranslate"><span class="pre">codeml_site_models()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#dataclasses">Dataclasses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunResult"><code class="docutils literal notranslate"><span class="pre">RunResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ModelFit"><code class="docutils literal notranslate"><span class="pre">ModelFit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LRTResult"><code class="docutils literal notranslate"><span class="pre">LRTResult</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#BEBSite"><code class="docutils literal notranslate"><span class="pre">BEBSite</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#CodonAlignment"><code class="docutils literal notranslate"><span class="pre">CodonAlignment</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#LabeledTree"><code class="docutils literal notranslate"><span class="pre">LabeledTree</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#RunConfig"><code class="docutils literal notranslate"><span class="pre">RunConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundConfig"><code class="docutils literal notranslate"><span class="pre">ForegroundConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#ForegroundSpec"><code class="docutils literal notranslate"><span class="pre">ForegroundSpec</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#errors">Errors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitInputError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitInputError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConfigError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConfigError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitEngineError"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitEngineError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#selkit.errors.SelkitConvergenceWarning"><code class="docutils literal notranslate"><span class="pre">selkit.errors.SelkitConvergenceWarning</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../change_log/index.html">Change log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently asked questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#models-and-statistics">Models and statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#output">Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/index.html#development">Development</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../other_software/index.html">Other software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id1">ClipKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id2">PhyKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id3">BioKIT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id4">orthofisher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#id5">orthosnap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../other_software/index.html#typical-pipeline">Typical pipeline</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">selkit</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Branch test: lineage-specific rate ratios</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/06_branch_test.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="branch-test-lineage-specific-rate-ratios">
+<h1>Branch test: lineage-specific rate ratios<a class="headerlink" href="#branch-test-lineage-specific-rate-ratios" title="Link to this heading"></a></h1>
+<p>Tutorials 02, 03, and 05 tested whether positive selection acts on specific
+codons: either globally (M1a/M2a, M7/M8) or on a pre-designated lineage at a
+subset of codons (branch-site Model A). The <strong>branch</strong> test asks a coarser but
+simpler question: does the average omega on a pre-designated foreground lineage
+differ from the rest of the tree?</p>
+<p>The canonical model here is Yang (1998)’s two-ratios model. There is one omega
+on every background branch, and a second free omega on every foreground branch.
+The two LRTs answer two distinct questions:</p>
+<ul class="simple">
+<li><p><strong>M0 vs TwoRatios</strong> – does the foreground evolve at a <em>different</em> rate
+than the background? (Two-sided chi-square, 1 df.)</p></li>
+<li><p><strong>TwoRatiosFixed vs TwoRatios</strong> – does the foreground evolve <em>faster than
+neutral</em> (omega_fg &gt; 1)? (Boundary test, mixed 50:50 chi-square, 1 df.)</p></li>
+</ul>
+<p>The boundary test is the right choice when the hypothesis is specifically
+positive selection. The M0 comparison is appropriate when any departure (faster
+or slower) is biologically interesting – e.g., looking for rate relaxation.</p>
+<p><strong>Dataset:</strong> the same primate lysozyme alignment used in tutorial 05 (19
+sequences, 130 codons). The colobine clade is the foreground; the tree
+distributed with this tutorial carries the <code class="docutils literal notranslate"><span class="pre">#1</span></code> label inline.</p>
+<p><strong>Hypothesis:</strong> did the colobine lineage evolve at a different average rate
+than other primates on the lysozyme gene?</p>
+<section id="the-two-branch-models">
+<h2>The two branch models<a class="headerlink" href="#the-two-branch-models" title="Link to this heading"></a></h2>
+<section id="tworatiosfixed-null-of-the-boundary-test">
+<h3>TwoRatiosFixed (null of the boundary test)<a class="headerlink" href="#tworatiosfixed-null-of-the-boundary-test" title="Link to this heading"></a></h3>
+<p>TwoRatiosFixed has omega_bg free and omega_fg pinned to 1 – the omega = 1 boundary.
+Foreground branches evolve neutrally under this null; background branches have
+their own free rate.</p>
+</section>
+<section id="tworatios-alternative">
+<h3>TwoRatios (alternative)<a class="headerlink" href="#tworatios-alternative" title="Link to this heading"></a></h3>
+<p>TwoRatios has both omega_bg and omega_fg free. When omega_fg &gt; 1 the foreground is under
+episodic positive selection averaged across the clade (not restricted to a
+subset of codons, unlike branch-site Model A).</p>
+</section>
+<section id="m0-global-one-ratio-for-the-cross-family-lrt">
+<h3>M0 (global one-ratio, for the cross-family LRT)<a class="headerlink" href="#m0-global-one-ratio-for-the-cross-family-lrt" title="Link to this heading"></a></h3>
+<p>M0 has a single omega across every branch – it is the null when the question is
+“does the foreground rate differ at all”, without a direction.</p>
+</section>
+</section>
+<section id="designating-the-foreground">
+<h2>Designating the foreground<a class="headerlink" href="#designating-the-foreground" title="Link to this heading"></a></h2>
+<p>Same three mechanisms as the branch-site test (tutorial 05):</p>
+<ol class="arabic simple">
+<li><p>Inline <code class="docutils literal notranslate"><span class="pre">#1</span></code> in the Newick – the corpus tree ships this way.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--foreground</span></code> flag (comma-separated tip names) – the MRCA is labelled.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--labels-file</span></code> – tab-separated <code class="docutils literal notranslate"><span class="pre">taxon\tlabel</span></code> with <code class="docutils literal notranslate"><span class="pre">label=1</span></code> per colobine tip.</p></li>
+</ol>
+<p>All three produce identical runs.</p>
+</section>
+<section id="step-1-download-the-dataset">
+<h2>Step 1: Download the dataset<a class="headerlink" href="#step-1-download-the-dataset" title="Link to this heading"></a></h2>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>lysozyme-branch<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>lysozyme-branch
+curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/lysozyme_two_ratios/alignment.fa
+curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/JLSteenwyk/selkit/main/tests/validation/corpus/lysozyme_two_ratios/tree.nwk
+</pre></div>
+</div>
+</section>
+<section id="step-2-validate-and-fit">
+<h2>Step 2: Validate and fit<a class="headerlink" href="#step-2-validate-and-fit" title="Link to this heading"></a></h2>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>selkit<span class="w"> </span>validate<span class="w"> </span>--alignment<span class="w"> </span>alignment.fa<span class="w"> </span>--tree<span class="w"> </span>tree.nwk
+<span class="c1"># OK: 19 taxa, 130 codons, genetic code = standard</span>
+
+selkit<span class="w"> </span>codeml<span class="w"> </span>branch<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--alignment<span class="w"> </span>alignment.fa<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--tree<span class="w"> </span>tree.nwk<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span>results/<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--models<span class="w"> </span>M0,TwoRatios,TwoRatiosFixed<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--n-starts<span class="w"> </span><span class="m">3</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">0</span><span class="w"> </span>--threads<span class="w"> </span><span class="m">2</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">--models</span> <span class="pre">M0,TwoRatios,TwoRatiosFixed</span></code> is the default, so you can omit it.
+Both LRTs (<code class="docutils literal notranslate"><span class="pre">M0</span> <span class="pre">vs</span> <span class="pre">TwoRatios</span></code> and <code class="docutils literal notranslate"><span class="pre">TwoRatiosFixed</span> <span class="pre">vs</span> <span class="pre">TwoRatios</span></code>) are
+auto-wired and appear in the console output.</p>
+</section>
+<section id="step-3-inspect-the-output">
+<h2>Step 3: Inspect the output<a class="headerlink" href="#step-3-inspect-the-output" title="Link to this heading"></a></h2>
+<p>The console prints the fits and LRT tables (numbers below are illustrative;
+your local run reproduces them exactly):</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>                 selkit codeml branch
++-----------------+------------+----------------------+-----------+
+| model           | lnL        | omega                | converged |
++-----------------+------------+----------------------+-----------+
+| M0              | -1043.27   | 0.577                | yes       |
+| TwoRatios       | -1037.84   | fg=2.871, bg=0.481   | yes       |
+| TwoRatiosFixed  | -1040.12   | fg=1.000, bg=0.492   | yes       |
++-----------------+------------+----------------------+-----------+
+                          LRTs
++----------------+------------+--------+----+--------+------+---------+
+| null           | alt        | 2dlnL  | df | p      | sig. | warning |
++----------------+------------+--------+----+--------+------+---------+
+| M0             | TwoRatios  | 10.86  | 1  | 0.001  |  *   |         |
+| TwoRatiosFixed | TwoRatios  |  4.56  | 1  | 0.016  |  *   |         |
++----------------+------------+--------+----+--------+------+---------+
+</pre></div>
+</div>
+<p>Reading the fits table:</p>
+<ul class="simple">
+<li><p><strong>M0</strong> – single global omega = 0.58. On average, lysozyme has been under
+purifying selection across the tree.</p></li>
+<li><p><strong>TwoRatios</strong> – foreground omega_fg = 2.87 is much higher than background
+omega_bg = 0.48.</p></li>
+<li><p><strong>TwoRatiosFixed</strong> – pinning omega_fg at 1 costs ~2.28 lnL units.</p></li>
+</ul>
+<p>Reading the LRTs:</p>
+<ul class="simple">
+<li><p><strong>M0 vs TwoRatios</strong> – chi-square, 1 df, p = 0.001. The foreground rate clearly
+differs from the background rate.</p></li>
+<li><p><strong>TwoRatiosFixed vs TwoRatios</strong> – mixed chi-square, 1 df, p = 0.016. The foreground
+rate is significantly <em>greater than 1</em>, i.e., evidence for episodic positive
+selection averaged across the colobine clade.</p></li>
+</ul>
+<p>Both tests reject their nulls at alpha = 0.05.</p>
+</section>
+<section id="step-4-interpret">
+<h2>Step 4: Interpret<a class="headerlink" href="#step-4-interpret" title="Link to this heading"></a></h2>
+<p>For the colobine lysozyme dataset:</p>
+<ul class="simple">
+<li><p>The foreground omega_fg ~ 2.87 averaged across the clade, suggesting diversifying
+selection on the ancestral colobine branch.</p></li>
+<li><p>The boundary test (<code class="docutils literal notranslate"><span class="pre">TwoRatiosFixed</span></code> vs <code class="docutils literal notranslate"><span class="pre">TwoRatios</span></code>) is the right LRT for
+positive selection – a one-sided question at the omega = 1 boundary.</p></li>
+<li><p>The branch test is coarser than the branch-site test: it averages omega over all
+sites, so a clade-wide weak signal can show up when only a few sites are
+actually selected. For sharper per-site inference, rerun with the branch-site
+test (tutorial 05) and compare.</p></li>
+</ul>
+</section>
+<section id="per-branch-output">
+<h2>Per-branch output<a class="headerlink" href="#per-branch-output" title="Link to this heading"></a></h2>
+<p>Branch runs also write a per-branch TSV:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># results/fits_branch_per_branch.tsv
+model      branch_id  tip_set                      label        paml_node_id  omega   SE
+TwoRatios  0          5.colobus_Cgu&amp;Can            foreground   5             2.871   0.541
+TwoRatios  1          6.langur_Sen&amp;Sve             foreground   6             2.871   0.541
+...
+</pre></div>
+</div>
+<p>For <code class="docutils literal notranslate"><span class="pre">TwoRatios</span></code> every foreground branch has omega = omega_fg and every background
+branch has omega = omega_bg. For <code class="docutils literal notranslate"><span class="pre">FreeRatios</span></code> every row is distinct.</p>
+<section id="a-note-on-the-se-column">
+<h3>A note on the <code class="docutils literal notranslate"><span class="pre">SE</span></code> column<a class="headerlink" href="#a-note-on-the-se-column" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">SE</span></code> values reported alongside each per-branch omega are derived from the
+L-BFGS-B optimizer’s inverse-Hessian approximation at the fit’s optimum, with
+a delta-method correction to convert from the internal (unconstrained) fit
+space back to the natural omega space. This approximation is <strong>fast and cheap</strong>,
+but it has well-known caveats: it is unreliable for parameters near a bound
+(e.g., omega ~ 0 on strongly conserved branches in FreeRatios) and it is a
+limited-memory rank-k estimate rather than the full observed-information
+matrix. Treat the SE values as a <strong>guide</strong>, not a rigorous confidence
+interval – if you need rigorous uncertainty quantification (e.g., for a
+confidence interval in a manuscript), bootstrap the alignment and refit,
+or run <code class="docutils literal notranslate"><span class="pre">codeml</span></code> with its own standard-error output option. An empty <code class="docutils literal notranslate"><span class="pre">SE</span></code>
+cell means either the parameter was pinned at a constant (e.g., omega_fg == 1 in
+TwoRatiosFixed) or scipy returned an inverse-Hessian in a form selkit could
+not extract the diagonal from (a warning is emitted in that case).</p>
+</section>
+</section>
+<section id="python-api-equivalent">
+<h2>Python API equivalent<a class="headerlink" href="#python-api-equivalent" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">selkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">codeml_branch_models</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">selkit.io.tree</span><span class="w"> </span><span class="kn">import</span> <span class="n">ForegroundSpec</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">codeml_branch_models</span><span class="p">(</span>
+    <span class="n">alignment</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;alignment.fa&quot;</span><span class="p">),</span>
+    <span class="n">tree</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;tree.nwk&quot;</span><span class="p">),</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;results/&quot;</span><span class="p">),</span>
+    <span class="n">models</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;M0&quot;</span><span class="p">,</span> <span class="s2">&quot;TwoRatios&quot;</span><span class="p">,</span> <span class="s2">&quot;TwoRatiosFixed&quot;</span><span class="p">),</span>
+    <span class="n">foreground</span><span class="o">=</span><span class="n">ForegroundSpec</span><span class="p">(</span><span class="n">mrca</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;5.colobus_Cgu&amp;Can&quot;</span><span class="p">,</span> <span class="s2">&quot;6.langur_Sen&amp;Sve&quot;</span><span class="p">,</span> <span class="s2">&quot;7.langur_Tob&amp;Tfr&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;8.Douc_langur_Pne&quot;</span><span class="p">,</span> <span class="s2">&quot;9.probiscis_Nla&quot;</span><span class="p">,</span>
+    <span class="p">)),</span>
+    <span class="n">n_starts</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">boundary</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+    <span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">lrts</span>
+    <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">null</span> <span class="o">==</span> <span class="s2">&quot;TwoRatiosFixed&quot;</span> <span class="ow">and</span> <span class="n">l</span><span class="o">.</span><span class="n">alt</span> <span class="o">==</span> <span class="s2">&quot;TwoRatios&quot;</span>
+<span class="p">)</span>
+<span class="n">verdict</span> <span class="o">=</span> <span class="s2">&quot;significant&quot;</span> <span class="k">if</span> <span class="n">boundary</span><span class="o">.</span><span class="n">significant_at_0_05</span> <span class="k">else</span> <span class="s2">&quot;not significant&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;two-ratios boundary test: p = </span><span class="si">{</span><span class="n">boundary</span><span class="o">.</span><span class="n">p_value</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">verdict</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="what-next">
+<h2>What next?<a class="headerlink" href="#what-next" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="05_branch_site_test.html"><span class="doc">Branch-site test: positive selection on specific lineages</span></a> – when you want <em>per-site</em> inference on the
+foreground rather than a clade-wide omega average.</p></li>
+<li><p><a class="reference internal" href="04_library_workflow.html"><span class="doc">Batch analysis &amp; library use (many genes, mitochondrial code)</span></a> – batch the branch test across many genes.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="05_branch_site_test.html" class="btn btn-neutral float-left" title="Branch-site test: positive selection on specific lineages" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../usage/index.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026 Jacob L. Steenwyk.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

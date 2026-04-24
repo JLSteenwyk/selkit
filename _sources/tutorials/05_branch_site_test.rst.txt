@@ -214,11 +214,22 @@ than a genuine positive-selection signal.
 
 .. note::
 
-   selkit v0.1 does not yet compute the Bayes Empirical Bayes posterior of
-   *which individual codons* on the foreground are under positive selection for
-   Model A. Per-site posteriors under Model A will be added in a later release.
-   For now, p₂ gives the estimated *fraction* of sites in the positive class
-   averaged over the foreground lineage.
+   selkit v0.3 computes per-site BEB posteriors for ModelA (true Yang 2005
+   BEB, integrated over the (p0, p1, omega2) hyperparameter grid). The output
+   is in ``results/beb_ModelA.tsv``. Each row carries:
+
+   - ``site`` -- 1-indexed codon position.
+   - ``p_positive`` -- P(site is in foreground-positive class 2a or 2b).
+   - ``posterior_mean_omega`` -- E[omega | site] integrated over the grid.
+   - ``p_class_2a`` -- posterior mass on class 2a (background ω0 / foreground ω2).
+   - ``p_class_2b`` -- posterior mass on class 2b (background ω = 1 / foreground ω2).
+   - ``beb_grid_size`` -- the BEB integration grid (default 10).
+
+   By construction ``p_positive = p_class_2a + p_class_2b``. Sites with
+   ``p_positive >= 0.95`` are conventional candidates for positive selection
+   on the foreground lineage. Pass ``--beb-grid 30`` for a tighter integral
+   (roughly 10x slower) or ``--beb-grid 1`` to reproduce the v0.1--v0.2 NEB
+   point estimate at the MLE.
 
 
 Numerical parity with PAML

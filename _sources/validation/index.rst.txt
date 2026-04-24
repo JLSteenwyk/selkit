@@ -77,7 +77,32 @@ Caveats and methodology notes
 
 **Matrix exponential** — selkit computes P(t) = exp(Q·t) via ``scipy.linalg.expm`` (Padé-13 with scaling-and-squaring). An earlier implementation used eigendecomposition + inversion and returned garbage on rank-deficient Q (e.g. when ω=0 zeroes out many off-diagonal entries). This has been fixed; the current implementation is numerically stable.
 
-**BEB vs NEB** — selkit's "BEB" output is technically naïve empirical Bayes: the posterior is evaluated at the MLE of the hyperparameters (p0, p_beta, q_beta, etc.), not integrated over them. This matches PAML's ``BEB`` option in *most* practical cases, but true BEB (full integration) is a scoped follow-up.
+**BEB vs NEB** — selkit v0.3 emits true BEB (Yang 2005). See "True BEB" below.
+
+
+True BEB (Yang 2005) -- v0.3
+----------------------------
+
+v0.1--v0.2 reported NEB (Naive Empirical Bayes) posteriors evaluated at the
+MLE. v0.3 replaces these with true BEB: integration of the per-class posteriors
+over a grid of hyperparameter values, following Yang 2005 (*MBE* 22:1107).
+
+Supported models:
+
+- ``M2a``, ``M8`` (site) -- grid over ``(p0, p1, omega2)`` and ``(p0, p_beta, q_beta, omega2)``.
+- ``ModelA`` (branch-site) -- grid over ``(p0, p1, omega2)``; reports per-class
+  ``p_class_2a`` and ``p_class_2b`` separately.
+
+Validation corpus:
+
+- ``tests/validation/corpus/hiv_4s_beb_m8/`` -- M8 BEB posteriors vs PAML on
+  the 4-taxon HIV env V3 subset. Threshold ``|delta p_positive| < 0.01``.
+- ``tests/validation/corpus/lysozyme_beb_modelA/`` -- Model A BEB per-site
+  posteriors vs PAML on the 19-taxon primate lysozyme with colobine
+  foreground. Same threshold.
+
+The ``--beb-grid N`` CLI flag and ``beb_grid=N`` library kwarg control the
+integration grid size per hyperparameter. Default is 10, matching PAML.
 
 
 Extending the corpus

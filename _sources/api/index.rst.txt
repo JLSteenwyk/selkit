@@ -76,7 +76,7 @@ Dataclasses
 
     :var site: 1-indexed codon position.
     :var p_positive: P(ω > 1 | site data, MLE hyperparameters).
-    :var mean_omega: Posterior-mean ω at this site.
+    :var posterior_mean_omega: Posterior-mean ω at this site.
 
 
 .. py:class:: CodonAlignment

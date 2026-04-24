@@ -21,7 +21,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="PAML validation" href="../validation/index.html" />
-    <link rel="prev" title="Branch-site test: positive selection on specific lineages" href="../tutorials/05_branch_site_test.html" /> 
+    <link rel="prev" title="Branch test: lineage-specific rate ratios" href="../tutorials/06_branch_test.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -113,6 +113,18 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/05_branch_site_test.html#what-next">What next?</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/06_branch_test.html">Branch test: lineage-specific rate ratios</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#the-two-branch-models">The two branch models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#designating-the-foreground">Designating the foreground</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-1-download-the-dataset">Step 1: Download the dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-2-validate-and-fit">Step 2: Validate and fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-3-inspect-the-output">Step 3: Inspect the output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#step-4-interpret">Step 4: Interpret</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#per-branch-output">Per-branch output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#python-api-equivalent">Python API equivalent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/06_branch_test.html#what-next">What next?</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/index.html#what-you-ll-learn">What you’ll learn</a></li>
@@ -126,6 +138,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#selkit-rerun"><code class="docutils literal notranslate"><span class="pre">selkit</span> <span class="pre">rerun</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#beb-options-codeml-site-codeml-branch-site">BEB options (codeml site, codeml branch-site)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#library">Library</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#inputs">Inputs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#outputs">Outputs</a></li>
@@ -136,6 +149,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#static-lnl-match-fast-runs-in-ci">Static lnL match (fast, runs in CI)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#end-to-end-fit-match-opt-in-15-minutes-locally">End-to-end fit match (opt-in, ~15 minutes locally)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#caveats-and-methodology-notes">Caveats and methodology notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html#true-beb-yang-2005-v0-3">True BEB (Yang 2005) – v0.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../validation/index.html#extending-the-corpus">Extending the corpus</a></li>
 </ul>
 </li>
@@ -275,6 +289,28 @@
 <p>The manifest captures every input path, flag, seed, and tolerance, so a rerun on a different machine or a year later reproduces the same analysis.</p>
 </section>
 </section>
+<section id="beb-options-codeml-site-codeml-branch-site">
+<h2>BEB options (codeml site, codeml branch-site)<a class="headerlink" href="#beb-options-codeml-site-codeml-branch-site" title="Link to this heading"></a></h2>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">--no-beb</span></code></dt><dd><p>Skip Bayes Empirical Bayes per-site posterior computation. Default: BEB is
+<strong>on</strong>. Useful for fast batch workflows where only lnL / LRT results are
+needed.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--beb-grid</span> <span class="pre">N</span></code></dt><dd><p>Grid size per hyperparameter for BEB integration (Yang 2005, MBE 22:1107).
+Default: <code class="docutils literal notranslate"><span class="pre">10</span></code> (PAML’s internal default). Increase to <code class="docutils literal notranslate"><span class="pre">20</span></code>–<code class="docutils literal notranslate"><span class="pre">30</span></code> for
+tighter convergence on the posterior mean at the cost of ~10x runtime.
+For M2a the grid has <code class="docutils literal notranslate"><span class="pre">N^3</span></code> points ((p0, p1, omega2)); for M8, <code class="docutils literal notranslate"><span class="pre">N^4</span></code>
+((p0, p_beta, q_beta, omega2)); for ModelA, <code class="docutils literal notranslate"><span class="pre">N^3</span></code> ((p0, p1, omega2)).</p>
+<p><code class="docutils literal notranslate"><span class="pre">--beb-grid</span> <span class="pre">1</span></code> collapses the grid to a single point at the MLE and
+reproduces the v0.1–v0.2 NEB posteriors.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">codeml</span> <span class="pre">branch</span></code> subcommand accepts these flags but ignores them –
+branch models do not use BEB (no site classes).</p>
+</div>
+</section>
 <section id="library">
 <h2>Library<a class="headerlink" href="#library" title="Link to this heading"></a></h2>
 <p>The library entry point is <code class="docutils literal notranslate"><span class="pre">codeml_site_models</span></code>:</p>
@@ -296,7 +332,7 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">result.fits</span></code> — <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">ModelFit]</span></code> keyed by model name. Each <code class="xref py py-class docutils literal notranslate"><span class="pre">selkit.ModelFit</span></code> carries <code class="docutils literal notranslate"><span class="pre">lnL</span></code>, <code class="docutils literal notranslate"><span class="pre">params</span></code>, <code class="docutils literal notranslate"><span class="pre">branch_lengths</span></code>, <code class="docutils literal notranslate"><span class="pre">starts</span></code> (per-start results for convergence diagnosis), <code class="docutils literal notranslate"><span class="pre">converged</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime_s</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">result.lrts</span></code> — <code class="docutils literal notranslate"><span class="pre">list[LRTResult]</span></code> with null/alt names, <code class="docutils literal notranslate"><span class="pre">delta_lnL</span></code> (2·Δ lnL — the test statistic, despite the field name), <code class="docutils literal notranslate"><span class="pre">p_value</span></code>, <code class="docutils literal notranslate"><span class="pre">test_type</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;chi2&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;mixed_chi2&quot;</span></code>), <code class="docutils literal notranslate"><span class="pre">significant_at_0_05</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">result.beb</span></code> — <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">list[BEBSite]]</span></code> for M2a and M8, each site carrying 1-indexed position, <code class="docutils literal notranslate"><span class="pre">p_positive</span></code> (posterior of ω &gt; 1), and <code class="docutils literal notranslate"><span class="pre">mean_omega</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result.beb</span></code> — <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">list[BEBSite]]</span></code> for M2a and M8, each site carrying 1-indexed position, <code class="docutils literal notranslate"><span class="pre">p_positive</span></code> (posterior of ω &gt; 1), and <code class="docutils literal notranslate"><span class="pre">posterior_mean_omega</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">result.warnings</span></code> — unconverged models.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">result.config</span></code> — the reconstructible <code class="xref py py-class docutils literal notranslate"><span class="pre">selkit.RunConfig</span></code>.</p></li>
 </ul>
@@ -331,7 +367,7 @@
 ├── results.json         # canonical, all fits + LRTs + BEB + warnings
 ├── fits.tsv             # model, lnL, n_params, converged, runtime_s, params
 ├── lrts.tsv             # null, alt, delta_lnL (2·ΔlnL), df, p, sig.
-├── beb_M2a.tsv          # site, p_positive, mean_omega
+├── beb_M2a.tsv          # site, p_positive, posterior_mean_omega
 ├── beb_M8.tsv           # same columns, per site
 └── run.yaml             # full manifest for reproducibility
 </pre></div>
@@ -344,7 +380,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../tutorials/05_branch_site_test.html" class="btn btn-neutral float-left" title="Branch-site test: positive selection on specific lineages" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../tutorials/06_branch_test.html" class="btn btn-neutral float-left" title="Branch test: lineage-specific rate ratios" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../validation/index.html" class="btn btn-neutral float-right" title="PAML validation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
