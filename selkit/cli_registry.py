@@ -36,6 +36,9 @@ def _codeml_site_builder(p: argparse.ArgumentParser) -> None:
 # branch-site shares the exact same flag surface as site in Phase 1.
 _codeml_branch_site_builder = _codeml_site_builder
 
+# branch (Phase 2) shares the same flag surface.
+_codeml_branch_builder = _codeml_site_builder
+
 
 def _validate_builder(p: argparse.ArgumentParser) -> None:
     p.add_argument("--alignment", required=True)
@@ -63,6 +66,11 @@ def _codeml_branch_site_handle(ns: argparse.Namespace) -> int:
     return handle_codeml_branch_site(ns)
 
 
+def _codeml_branch_handle(ns: argparse.Namespace) -> int:
+    from selkit.cli import handle_codeml_branch
+    return handle_codeml_branch(ns)
+
+
 def _validate_handle(ns: argparse.Namespace) -> int:
     from selkit.cli import handle_validate
     return handle_validate(ns)
@@ -83,6 +91,11 @@ CLI_COMMANDS: tuple[CommandSpec, ...] = (
         group="codeml", sub="branch-site",
         build_parser=_codeml_branch_site_builder,
         handle=_codeml_branch_site_handle,
+    ),
+    CommandSpec(
+        group="codeml", sub="branch",
+        build_parser=_codeml_branch_builder,
+        handle=_codeml_branch_handle,
     ),
     CommandSpec(
         group="validate", sub=None,

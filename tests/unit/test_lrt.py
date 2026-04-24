@@ -27,3 +27,32 @@ def test_mixed_chi2_halves_pvalue() -> None:
     )
     assert r_mix.p_value == pytest.approx(r_reg.p_value / 2, rel=1e-9)
     assert r_mix.test_type == "mixed_chi2"
+
+
+def test_resolve_df_lazy_K():
+    from selkit.services.codeml.lrt import resolve_df
+    from selkit.io.tree import parse_newick
+    tree = parse_newick("((A:0.1,B:0.1)#1,(C:0.1,D:0.1)#2);")
+    assert resolve_df("lazy_K", tree) == 2
+
+
+def test_resolve_df_lazy_Bminus2():
+    from selkit.services.codeml.lrt import resolve_df
+    from selkit.io.tree import parse_newick
+    tree = parse_newick("((A:0.1,B:0.1):0.1,(C:0.1,D:0.1):0.1);")
+    # 4 tips + 2 internals = 6 non-root branches; lazy_Bminus2 = 4.
+    assert resolve_df("lazy_Bminus2", tree) == tree.n_branches - 2
+
+
+def test_resolve_df_integer_passthrough():
+    from selkit.services.codeml.lrt import resolve_df
+    from selkit.io.tree import parse_newick
+    tree = parse_newick("(A:0.1,B:0.1);")
+    assert resolve_df(1, tree) == 1
+
+
+def test_lrt_result_has_optional_warning():
+    from selkit.services.codeml.lrt import LRTResult
+    import dataclasses
+    fields = {f.name for f in dataclasses.fields(LRTResult)}
+    assert "warning" in fields

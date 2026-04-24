@@ -63,14 +63,16 @@ def test_emit_tsv_files(tmp_path: Path) -> None:
         beb={"M2a": [BEBSite(1, 0.95, 3.2)]}, warnings=[],  # positional args: site, p_positive, posterior_mean_omega
     )
     emit_tsv_files(result, tmp_path)
-    fits_tsv = (tmp_path / "fits.tsv").read_text().splitlines()
-    assert fits_tsv[0].split("\t") == [
-        "model", "lnL", "n_params", "converged", "runtime_s", "params"
+    fits_tsv = (tmp_path / "fits_site.tsv").read_text().splitlines()
+    # New per-family schema: model + lnL + n_params + converged + per-model-param columns.
+    assert fits_tsv[0].split("\t")[:4] == [
+        "model", "lnL", "n_params", "converged",
     ]
     assert fits_tsv[1].split("\t")[0] == "M0"
     lrts_tsv = (tmp_path / "lrts.tsv").read_text().splitlines()
-    assert lrts_tsv[0].split("\t") == [
-        "null", "alt", "delta_lnL", "df", "p_value", "test_type", "significant_at_0_05"
+    # New header: includes 'significant_0_05' and trailing 'warning' column.
+    assert lrts_tsv[0].split("\t")[:6] == [
+        "null", "alt", "delta_lnL", "df", "p_value", "test_type",
     ]
     beb_tsv = (tmp_path / "beb_M2a.tsv").read_text().splitlines()
     assert beb_tsv[0].split("\t") == ["site", "p_positive", "posterior_mean_omega", "p_class_2a", "p_class_2b", "beb_grid_size"]

@@ -1,0 +1,16 @@
+source: PAML 4.10.10 codeml on lysozyme (Yang 1998; Zhang et al. 2005 foreground) with model=2 NSsites=0
+description: |
+  19-taxon primate lysozyme coding alignment, branch model TwoRatios vs TwoRatiosFixed.
+  Colobine clade is the foreground (#1). Tests the Yang-1998 two-ratios fit
+  against PAML at the reported optimum.
+genetic_code: standard
+models: [M0, TwoRatios, TwoRatiosFixed]
+tests: [TwoRatiosFixed-vs-TwoRatios, M0-vs-TwoRatios]
+foreground:
+  mrca: [5.colobus_Cgu&Can, 6.langur_Sen&Sve, 7.langur_Tob&Tfr, 8.Douc_langur_Pne, 9.probiscis_Nla]
+seed: 0
+n_starts: 3
+paml_cmd: codeml codeml.ctl   # model=2 NSsites=0 CodonFreq=2 (F3X4) cleandata=1
+# BLOCKED: awaiting Jacob's PAML reference output (expected.json placeholder
+# below; the validation test skips this case until real values land).
+blocked: awaiting PAML fixture

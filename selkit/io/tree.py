@@ -60,6 +60,112 @@ class LabeledTree:
             stack.extend(reversed(n.children))
         return out
 
+    @property
+    def n_branches(self) -> int:
+        """Count of non-root branches (i.e., every node's incoming edge except root)."""
+        return sum(1 for n in self.all_nodes() if n is not self.root)
+
+    @property
+    def n_label_classes(self) -> int:
+        """Number of distinct non-zero #-label classes on the tree.
+
+        Label 0 is the implicit background; foreground and higher-numbered
+        classes each count once. Empty (all background) trees return 0.
+        """
+        labs = {n.label for n in self.all_nodes() if n.label != 0}
+        return len(labs)
+
+    def _paml_node_ids(self) -> dict[int, int]:
+        """PAML numbers tips in input order starting at 1, internals in pre-order
+        starting at n_tips + 1. Return a map from Node.id to PAML id."""
+        paml: dict[int, int] = {}
+        tips_in_order = [n for n in self.all_nodes() if n.is_tip]
+        for idx, n in enumerate(tips_in_order, start=1):
+            paml[n.id] = idx
+        next_id = len(tips_in_order) + 1
+        # Pre-order traversal for internals.
+        stack: list[Node] = [self.root]
+        while stack:
+            n = stack.pop()
+            if not n.is_tip:
+                paml[n.id] = next_id
+                next_id += 1
+                stack.extend(reversed(n.children))
+        return paml
+
+    def branch_records(self) -> list["BranchRecord"]:
+        """One record per non-root branch. Post-order deterministic ordering."""
+        out: list[BranchRecord] = []
+        paml = self._paml_node_ids()
+
+        def visit(n: Node) -> None:
+            for c in n.children:
+                visit(c)
+            if n is self.root:
+                return
+            tips = sorted(t.name for t in n.tips_beneath() if t.name)
+            out.append(BranchRecord(
+                branch_id=len(out),
+                node_id=n.id,
+                tip_set=tuple(tips),
+                paml_node_id=paml[n.id],
+            ))
+
+        visit(self.root)
+        return out
+
+    def assign_unique_branch_labels(
+        self, *, merge_root: bool = True
+    ) -> list["BranchRecord"]:
+        """Rewrite every non-root Node.label to a unique integer in [0, B_eff).
+
+        If ``merge_root`` is True and the root is strictly bifurcating, the two
+        root-adjacent branches share one label (PAML convention: those two
+        branches are not separately identifiable on an unrooted tree).
+        Returns the BranchRecord list whose ``branch_id`` field is the assigned
+        label; for merged root-adjacent branches, both records carry the same
+        ``branch_id``.
+        """
+        recs = self.branch_records()
+        # Default: every branch gets its own label.
+        label_by_node: dict[int, int] = {}
+        next_label = 0
+        if merge_root and len(self.root.children) == 2:
+            c0, c1 = self.root.children
+            label_by_node[c0.id] = next_label
+            label_by_node[c1.id] = next_label
+            next_label += 1
+        for r in recs:
+            if r.node_id in label_by_node:
+                continue
+            label_by_node[r.node_id] = next_label
+            next_label += 1
+        for n in self.all_nodes():
+            if n is self.root:
+                continue
+            n.label = label_by_node[n.id]
+        # Update self.labels and return rebuilt records with the new branch_ids.
+        new_recs: list[BranchRecord] = []
+        for r in recs:
+            lab = label_by_node[r.node_id]
+            new_recs.append(BranchRecord(
+                branch_id=lab, node_id=r.node_id,
+                tip_set=r.tip_set, paml_node_id=r.paml_node_id,
+            ))
+        # dedupe labels dict on the tree itself.
+        self.labels.clear()
+        self.labels.update({n.id: n.label for n in self.all_nodes() if n.label})
+        return new_recs
+
+
+@dataclass(frozen=True)
+class BranchRecord:
+    """Metadata for a non-root branch. Emitted by LabeledTree.branch_records()."""
+    branch_id: int          # position in the returned list (0..B-1)
+    node_id: int            # Node.id of the child end of the branch
+    tip_set: tuple[str, ...]  # alphabetically sorted tips beneath child
+    paml_node_id: int       # PAML's pre-order numbering (tips 1..n; internals n+1..)
+
 
 def _strip_comments(s: str) -> str:
     return re.sub(r"\[[^\]]*\]", "", s)
@@ -123,18 +229,35 @@ class _Parser:
             self.consume()
         if self.peek() is not None and self.peek() not in set(",():;#$"):
             node.name = self.consume()
-        if self.peek() == ":":
-            self.consume()
-            try:
-                node.branch_length = float(self.consume())
-            except ValueError as e:
-                raise SelkitInputError(f"bad branch length: {e}") from e
-        if self.peek() in {"#", "$"}:
-            self.consume()
-            try:
-                node.label = int(self.consume())
-            except ValueError as e:
-                raise SelkitInputError(f"bad branch label: {e}") from e
+        # PAML accepts both orderings of `:bl` and `#label` after a node name
+        # or `)`; e.g. `(clade)#1:0.05` (label first) and `(clade):0.05#1`
+        # (length first). Loop until neither prefix matches so either order
+        # parses to the same Node.
+        while True:
+            tok = self.peek()
+            if tok == ":":
+                if node.branch_length is not None:
+                    raise SelkitInputError(
+                        "duplicate ':branch_length' on a node"
+                    )
+                self.consume()
+                try:
+                    node.branch_length = float(self.consume())
+                except ValueError as e:
+                    raise SelkitInputError(f"bad branch length: {e}") from e
+                continue
+            if tok in {"#", "$"}:
+                if node.label != 0:
+                    raise SelkitInputError(
+                        "duplicate '#label' on a node"
+                    )
+                self.consume()
+                try:
+                    node.label = int(self.consume())
+                except ValueError as e:
+                    raise SelkitInputError(f"bad branch label: {e}") from e
+                continue
+            break
         return node
 
 

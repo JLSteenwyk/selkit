@@ -88,3 +88,48 @@ def test_estimate_f3x4_pseudocount_for_degenerate_input() -> None:
     assert pi.shape == (gc.n_sense,)
     np.testing.assert_allclose(pi.sum(), 1.0, atol=1e-12)
     assert np.all(pi > 0)
+
+
+def test_scale_per_label_qs_branch_family_no_weights():
+    """weights=None -> each label scaled by its own mean rate (branch family)."""
+    import numpy as np
+    from selkit.engine.genetic_code import GeneticCode
+    from selkit.engine.rate_matrix import build_q, scale_per_label_qs
+
+    gc = GeneticCode.by_name("standard")
+    pi = np.full(gc.n_sense, 1.0 / gc.n_sense)
+    Q0 = build_q(gc, omega=0.2, kappa=2.0, pi=pi, unscaled=True)
+    Q1 = build_q(gc, omega=1.8, kappa=2.0, pi=pi, unscaled=True)
+    scaled = scale_per_label_qs({0: Q0, 1: Q1}, weights=None, pi=pi)
+    # Each label's Q should now have mean substitution rate == 1.0.
+    for label, Q in scaled.items():
+        rate = float(-(pi @ np.diag(Q)))
+        assert abs(rate - 1.0) < 1e-10, f"label {label}: rate={rate}"
+
+
+def test_scale_per_label_qs_branch_site_matches_legacy_wrapper():
+    """weights=(K,) -> equivalent to the old scale_branch_site_qs behavior."""
+    import numpy as np
+    from selkit.engine.genetic_code import GeneticCode
+    from selkit.engine.rate_matrix import (
+        build_q, scale_branch_site_qs, scale_per_label_qs,
+    )
+
+    gc = GeneticCode.by_name("standard")
+    pi = np.full(gc.n_sense, 1.0 / gc.n_sense)
+    Q_bg = build_q(gc, omega=0.2, kappa=2.0, pi=pi, unscaled=True)
+    Q_fg = build_q(gc, omega=3.0, kappa=2.0, pi=pi, unscaled=True)
+    Qs_per_class_per_label = [
+        {0: Q_bg, 1: Q_bg},
+        {0: Q_bg, 1: Q_fg},
+    ]
+    weights = [0.7, 0.3]
+    legacy = scale_branch_site_qs(Qs_per_class_per_label, weights, pi)
+    via_new = scale_per_label_qs(
+        Qs_per_class_per_label, weights=weights, pi=pi,
+    )
+    assert len(legacy) == len(via_new)
+    for a, b in zip(legacy, via_new):
+        assert a.keys() == b.keys()
+        for lab in a:
+            np.testing.assert_allclose(a[lab], b[lab])

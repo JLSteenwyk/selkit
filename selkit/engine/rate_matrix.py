@@ -73,6 +73,65 @@ def scale_mixture_qs(
     return [Q / mean_rate for Q in Qs]
 
 
+def scale_per_label_qs(
+    Qs_by_label,
+    *,
+    weights: list[float] | None,
+    pi: np.ndarray,
+):
+    """Scale per-label Qs to unit expected-substitutions-per-codon per label.
+
+    Two input shapes:
+
+    * **branch family (weights=None):** ``Qs_by_label`` is a plain
+      ``dict[int, ndarray]`` — one Q per label. Each label's Q is divided by
+      its own ``-pi @ diag(Q)`` so that every label carries unit mean rate
+      independently.
+    * **branch-site / mixture (weights=(K,)):** ``Qs_by_label`` is a
+      ``list[dict[int, ndarray]]`` of length K (one entry per site class).
+      For each label ℓ, a class-weighted mean rate
+      ``sum_k w_k · (-pi @ diag(Qs[k][ℓ]))`` is computed, and every class's
+      Q at label ℓ is divided by that label's mean rate. This is the
+      behaviour the v0.2 branch-site pipeline already expects and is what
+      ``scale_branch_site_qs`` continues to provide as a named shim.
+    """
+    if weights is None:
+        if not isinstance(Qs_by_label, dict):
+            raise TypeError(
+                "branch-family scaling expects dict[int, ndarray]; "
+                f"got {type(Qs_by_label).__name__}"
+            )
+        scaled: dict[int, np.ndarray] = {}
+        for label, Q in Qs_by_label.items():
+            rate = float(-(pi @ np.diag(Q)))
+            if rate <= 0:
+                raise ValueError(
+                    f"non-positive mean rate on label {label}; check pi/params"
+                )
+            scaled[label] = Q / rate
+        return scaled
+
+    # Mixture / branch-site path: same math as the old scale_branch_site_qs.
+    all_labels: set[int] = set()
+    for class_qs in Qs_by_label:
+        all_labels.update(class_qs.keys())
+    mean_rate_by_label: dict[int, float] = {}
+    for label in all_labels:
+        rate = float(sum(
+            w * float(-(pi @ np.diag(class_qs[label])))
+            for w, class_qs in zip(weights, Qs_by_label)
+        ))
+        if rate <= 0:
+            raise ValueError(
+                f"non-positive mean rate on label {label}; check pi/params/weights"
+            )
+        mean_rate_by_label[label] = rate
+    return [
+        {label: Q / mean_rate_by_label[label] for label, Q in class_qs.items()}
+        for class_qs in Qs_by_label
+    ]
+
+
 def scale_branch_site_qs(
     Qs_by_class_by_label: list[dict[int, np.ndarray]],
     weights: list[float],
@@ -80,38 +139,13 @@ def scale_branch_site_qs(
 ) -> list[dict[int, np.ndarray]]:
     """Scale branch-site Qs per-label by the class-averaged mean rate on that label.
 
-    For each branch label ℓ, compute the site-class-averaged mean rate using
-    each class's Q at label ℓ, then divide every class's Q at label ℓ by that
-    rate. This matches PAML's branch-site convention that a branch length t is
-    "expected substitutions per codon, averaged over site classes, on that
-    branch" — verified against codeml for Model A on the lysozyme dataset.
-
-    Note this differs from :func:`scale_mixture_qs` (site models), which uses a
-    single scalar. Site models have a homogeneous Q across branches per class,
-    so per-branch and global scaling coincide; branch-site models genuinely
-    need the per-label distinction because foreground classes 2a/2b change
-    their Q based on branch label.
+    Thin wrapper over :func:`scale_per_label_qs` preserved for call sites that
+    predate v0.3. The branch-site call path is bit-for-bit unchanged; the
+    lysozyme branch-site corpus is the regression canary for this invariant.
     """
-    all_labels: set[int] = set()
-    for class_qs in Qs_by_class_by_label:
-        all_labels.update(class_qs.keys())
-
-    mean_rate_by_label: dict[int, float] = {}
-    for label in all_labels:
-        rate = float(sum(
-            w * float(-(pi @ np.diag(class_qs[label])))
-            for w, class_qs in zip(weights, Qs_by_class_by_label)
-        ))
-        if rate <= 0:
-            raise ValueError(
-                f"non-positive mean rate on label {label}; check pi/params/weights"
-            )
-        mean_rate_by_label[label] = rate
-
-    return [
-        {label: Q / mean_rate_by_label[label] for label, Q in class_qs.items()}
-        for class_qs in Qs_by_class_by_label
-    ]
+    return scale_per_label_qs(
+        Qs_by_class_by_label, weights=weights, pi=pi,
+    )
 
 
 def prob_transition_matrix(Q: np.ndarray, t: float) -> np.ndarray:

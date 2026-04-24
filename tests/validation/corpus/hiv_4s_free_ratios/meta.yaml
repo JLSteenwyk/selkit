@@ -1,0 +1,14 @@
+source: PAML 4.10.10 codeml on HIVenvSweden4s with model=1 NSsites=0 (FreeRatios)
+description: |
+  4-taxon HIV envelope V3 subset, 91 codons. FreeRatios assigns one omega per
+  branch (B=5 branches in an unrooted quartet, 4 free omega after the root-merge).
+  Small enough that PAML's optimum is reproducible to tight tolerances.
+genetic_code: standard
+models: [M0, FreeRatios]
+tests: [M0-vs-FreeRatios]
+seed: 0
+n_starts: 3
+paml_cmd: codeml codeml.ctl   # model=1 NSsites=0 CodonFreq=2 (F3X4) cleandata=1
+# BLOCKED: awaiting Jacob's PAML reference output (expected.json placeholder
+# below; the validation test skips this case until real values land).
+blocked: awaiting PAML fixture

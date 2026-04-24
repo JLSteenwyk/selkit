@@ -7,7 +7,12 @@ import numpy as np
 from scipy.stats import beta as _beta
 
 from selkit.engine.genetic_code import GeneticCode
-from selkit.engine.rate_matrix import build_q, scale_branch_site_qs, scale_mixture_qs
+from selkit.engine.rate_matrix import (
+    build_q,
+    scale_branch_site_qs,
+    scale_mixture_qs,
+    scale_per_label_qs,
+)
 
 
 # Branch-site models return per-class per-label Q dicts; site models return a
@@ -17,7 +22,8 @@ class SiteModel(Protocol):
     name: str
     free_params: tuple[str, ...]
     transform_spec: dict[str, str]
-    branch_site: bool  # True iff Qs are per-label dicts (branch-site)
+    branch_site: bool         # True iff Qs are per-label dicts per class (branch-site)
+    branch_family: bool       # True iff Qs are a single per-label dict (branch models)
 
     def build(
         self, *, params: dict[str, float]
@@ -38,6 +44,7 @@ class M0:
     pi: np.ndarray
     name: str = "M0"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("omega", "kappa")
     transform_spec: dict[str, str] = field(default_factory=lambda: {
         "omega": "positive",
@@ -62,6 +69,7 @@ class M1a:
     pi: np.ndarray
     name: str = "M1a"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("omega0", "p0", "kappa")
     transform_spec: dict[str, str] = field(default_factory=lambda: {
         "omega0": "unit",       # omega0 ∈ (0, 1)
@@ -96,6 +104,7 @@ class M2a:
     pi: np.ndarray
     name: str = "M2a"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("omega0", "omega2", "p0", "p1_frac", "kappa")
     transform_spec: dict[str, str] = field(default_factory=lambda: {
         "omega0": "unit",             # ω0 ∈ (0, 1)
@@ -140,6 +149,7 @@ class M7:
     pi: np.ndarray
     name: str = "M7"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("p_beta", "q_beta", "kappa")
     n_categories: int = 10
     transform_spec: dict[str, str] = field(default_factory=lambda: {
@@ -176,6 +186,7 @@ class M8:
     pi: np.ndarray
     name: str = "M8"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("p_beta", "q_beta", "p0", "omega2", "kappa")
     n_categories: int = 10
     transform_spec: dict[str, str] = field(default_factory=lambda: {
@@ -217,6 +228,7 @@ class M8a:
     pi: np.ndarray
     name: str = "M8a"
     branch_site: bool = False
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("p_beta", "q_beta", "p0", "kappa")
     n_categories: int = 10
     transform_spec: dict[str, str] = field(default_factory=lambda: {
@@ -303,6 +315,30 @@ def _model_a_build(
     return weights, scaled
 
 
+def _build_n_ratios_qs(
+    *,
+    omegas_by_label: dict[int, float],
+    kappa: float,
+    pi: np.ndarray,
+    gc: GeneticCode,
+) -> dict[int, np.ndarray]:
+    """Branch-family per-label Q builder shared by all four branch models.
+
+    Builds one GY94 Q per label using that label's ω, then branch-family
+    scales each Q independently (``scale_per_label_qs(..., weights=None)``).
+    The returned ``dict[int, ndarray]`` is the shape ``_prune_tree_partials``
+    already accepts on a single-class pass — no site-class loop required.
+    """
+    if not omegas_by_label:
+        raise ValueError("_build_n_ratios_qs: omegas_by_label is empty")
+    unscaled: dict[int, np.ndarray] = {}
+    for label, omega in omegas_by_label.items():
+        unscaled[label] = build_q(
+            gc, omega=omega, kappa=kappa, pi=pi, unscaled=True,
+        )
+    return scale_per_label_qs(unscaled, weights=None, pi=pi)
+
+
 @dataclass
 class ModelA:
     """Branch-site Model A. Alternative hypothesis for the branch-site test."""
@@ -311,6 +347,7 @@ class ModelA:
     pi: np.ndarray
     name: str = "ModelA"
     branch_site: bool = True
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("omega0", "omega2", "p0", "p1_frac", "kappa")
     transform_spec: dict[str, str] = field(default_factory=lambda: {
         "omega0": "unit",              # ω₀ ∈ (0, 1)
@@ -351,6 +388,7 @@ class ModelANull:
     pi: np.ndarray
     name: str = "ModelA_null"
     branch_site: bool = True
+    branch_family: bool = False
     free_params: tuple[str, ...] = ("omega0", "p0", "p1_frac", "kappa")
     transform_spec: dict[str, str] = field(default_factory=lambda: {
         "omega0": "unit",
@@ -379,3 +417,193 @@ class ModelANull:
             "p1_frac": float(rng.uniform(0.3, 0.7)),
             "kappa": float(rng.uniform(1.5, 3.5)),
         }
+
+
+# ---------------------------------------------------------------------------
+# Branch-family models (Yang 1998).
+#
+# All four classes share the _build_n_ratios_qs helper which produces a single
+# dict[int, ndarray] keyed by branch label. There is no site-class loop: the
+# branch-family path goes through tree_log_likelihood_branch_family rather than
+# tree_log_likelihood_mixture. Per-label Q scaling uses scale_per_label_qs
+# (weights=None) so each label carries unit mean rate independently.
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class TwoRatios:
+    """Yang-1998 two-ratios branch model. omega_bg on label 0, omega_fg on label 1.
+
+    Precondition (enforced by the service layer): the tree has exactly one
+    non-zero foreground label class (K=1). Optimising with K>1 labels would
+    silently drop the extra labels -- NRatios is the correct choice for K>1.
+    """
+
+    gc: GeneticCode
+    pi: np.ndarray
+    name: str = "TwoRatios"
+    branch_site: bool = False
+    branch_family: bool = True
+    free_params: tuple[str, ...] = ("omega_bg", "omega_fg", "kappa")
+    transform_spec: dict[str, str] = field(default_factory=lambda: {
+        "omega_bg": "positive",
+        "omega_fg": "positive",
+        "kappa": "positive",
+    })
+
+    def build(
+        self, *, params: dict[str, float]
+    ) -> tuple[list[float], list[dict[int, np.ndarray]]]:
+        Qs = _build_n_ratios_qs(
+            omegas_by_label={0: params["omega_bg"], 1: params["omega_fg"]},
+            kappa=params["kappa"], pi=self.pi, gc=self.gc,
+        )
+        return [1.0], [Qs]
+
+    def starting_values(self, *, seed: int) -> dict[str, float]:
+        rng = np.random.default_rng(seed)
+        return {
+            "omega_bg": float(rng.uniform(0.1, 0.6)),
+            "omega_fg": float(rng.uniform(0.4, 2.5)),
+            "kappa": float(rng.uniform(1.5, 3.5)),
+        }
+
+
+@dataclass
+class TwoRatiosFixed:
+    """TwoRatios with omega_fg pinned to 1.0 -- null for the mixed-chi^2 boundary LRT.
+
+    Same K=1 precondition as TwoRatios. omega_fg is not a free parameter, so
+    the LRT ``TwoRatiosFixed vs TwoRatios`` is 1 df, mixed 50:50 chi^2_0:chi^2_1
+    (boundary).
+    """
+
+    gc: GeneticCode
+    pi: np.ndarray
+    name: str = "TwoRatiosFixed"
+    branch_site: bool = False
+    branch_family: bool = True
+    free_params: tuple[str, ...] = ("omega_bg", "kappa")
+    transform_spec: dict[str, str] = field(default_factory=lambda: {
+        "omega_bg": "positive",
+        "kappa": "positive",
+    })
+
+    def build(
+        self, *, params: dict[str, float]
+    ) -> tuple[list[float], list[dict[int, np.ndarray]]]:
+        Qs = _build_n_ratios_qs(
+            omegas_by_label={0: params["omega_bg"], 1: 1.0},
+            kappa=params["kappa"], pi=self.pi, gc=self.gc,
+        )
+        return [1.0], [Qs]
+
+    def starting_values(self, *, seed: int) -> dict[str, float]:
+        rng = np.random.default_rng(seed)
+        return {
+            "omega_bg": float(rng.uniform(0.1, 0.6)),
+            "kappa": float(rng.uniform(1.5, 3.5)),
+        }
+
+
+@dataclass
+class NRatios:
+    """Yang-1998 N-ratios branch model. One omega per distinct #-label class on the tree.
+
+    ``K`` is the number of non-background label classes (``#1``, ``#2``, ...,
+    ``#K``). Parameters: ``kappa``, ``omega_bg`` (for label 0), and
+    ``omega_1`` ... ``omega_K`` (for labels 1..K). Total free params = K + 2.
+    """
+
+    gc: GeneticCode
+    pi: np.ndarray
+    K: int = 1
+    name: str = "NRatios"
+    branch_site: bool = False
+    branch_family: bool = True
+    # free_params / transform_spec are populated in __post_init__ because they
+    # depend on K.
+    free_params: tuple[str, ...] = field(default=(), repr=False)
+    transform_spec: dict[str, str] = field(default_factory=dict, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.K < 1:
+            raise ValueError(f"NRatios: K must be >= 1, got {self.K}")
+        params = ("omega_bg",) + tuple(f"omega_{i}" for i in range(1, self.K + 1)) + ("kappa",)
+        self.free_params = params
+        self.transform_spec = {p: "positive" for p in params}
+
+    def build(
+        self, *, params: dict[str, float]
+    ) -> tuple[list[float], list[dict[int, np.ndarray]]]:
+        omegas_by_label: dict[int, float] = {0: params["omega_bg"]}
+        for i in range(1, self.K + 1):
+            omegas_by_label[i] = params[f"omega_{i}"]
+        Qs = _build_n_ratios_qs(
+            omegas_by_label=omegas_by_label,
+            kappa=params["kappa"], pi=self.pi, gc=self.gc,
+        )
+        return [1.0], [Qs]
+
+    def starting_values(self, *, seed: int) -> dict[str, float]:
+        rng = np.random.default_rng(seed)
+        sv: dict[str, float] = {
+            "omega_bg": float(rng.uniform(0.1, 0.6)),
+            "kappa": float(rng.uniform(1.5, 3.5)),
+        }
+        for i in range(1, self.K + 1):
+            sv[f"omega_{i}"] = float(rng.uniform(0.2, 2.5))
+        return sv
+
+
+@dataclass
+class FreeRatios:
+    """Yang-1998 free-ratios branch model. One omega per branch.
+
+    ``n_branches`` is the post-root-merge count of branches (``B - 1`` for a
+    rooted input, ``2n - 3`` for an unrooted n-taxon tree). The service layer
+    re-labels the tree so that each branch has a unique label in
+    ``0..n_branches - 1`` before fit; this class then builds one Q per label.
+
+    Ignores any pre-existing ``#1`` tree labels -- the free-ratios model is
+    defined over *all* branches regardless of user foreground designation.
+    LRT warning: reported df equals ``n_branches - 1`` (merged root + one M0
+    omega), which is very large; results should be interpreted with caution.
+    """
+
+    gc: GeneticCode
+    pi: np.ndarray
+    n_branches: int = 1
+    name: str = "FreeRatios"
+    branch_site: bool = False
+    branch_family: bool = True
+    free_params: tuple[str, ...] = field(default=(), repr=False)
+    transform_spec: dict[str, str] = field(default_factory=dict, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.n_branches < 1:
+            raise ValueError(
+                f"FreeRatios: n_branches must be >= 1, got {self.n_branches}"
+            )
+        params = tuple(f"omega_{i}" for i in range(self.n_branches)) + ("kappa",)
+        self.free_params = params
+        self.transform_spec = {p: "positive" for p in params}
+
+    def build(
+        self, *, params: dict[str, float]
+    ) -> tuple[list[float], list[dict[int, np.ndarray]]]:
+        omegas_by_label: dict[int, float] = {
+            i: params[f"omega_{i}"] for i in range(self.n_branches)
+        }
+        Qs = _build_n_ratios_qs(
+            omegas_by_label=omegas_by_label,
+            kappa=params["kappa"], pi=self.pi, gc=self.gc,
+        )
+        return [1.0], [Qs]
+
+    def starting_values(self, *, seed: int) -> dict[str, float]:
+        rng = np.random.default_rng(seed)
+        sv: dict[str, float] = {"kappa": float(rng.uniform(1.5, 3.5))}
+        for i in range(self.n_branches):
+            sv[f"omega_{i}"] = float(rng.uniform(0.1, 1.5))
+        return sv

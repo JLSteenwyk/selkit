@@ -83,6 +83,7 @@ class LRTResult:
     p_value: float
     test_type: Literal["chi2", "mixed_chi2"]
     significant_at_0_05: bool
+    warning: str | None = None
 
 
 @dataclass(frozen=True)
@@ -120,26 +121,118 @@ def to_json(result: RunResult) -> dict:
 def emit_tsv_files(result: RunResult, output_dir: Path) -> None:
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    fit_rows = ["\t".join(["model", "lnL", "n_params", "converged", "runtime_s", "params"])]
+    family = result.family
+
+    if family == "site":
+        _emit_site_fits_tsv(result, output_dir)
+    elif family == "branch":
+        _emit_branch_fits_tsv(result, output_dir)
+        _emit_branch_per_branch_tsv(result, output_dir)
+    elif family == "branch-site":
+        _emit_branch_site_fits_tsv(result, output_dir)
+    else:
+        raise ValueError(f"unknown family for TSV emission: {family!r}")
+
+    _emit_lrts_tsv(result, output_dir)
+    _emit_beb_tsvs(result, output_dir)
+
+
+def _emit_site_fits_tsv(result: RunResult, output_dir: Path) -> None:
+    rows = ["\t".join([
+        "model", "lnL", "n_params", "converged",
+        "kappa", "omega0", "omega2", "p0", "p1", "p", "q",
+    ])]
     for name, fit in result.fits.items():
-        fit_rows.append("\t".join([
+        p = fit.params
+        def g(k):  # get-or-blank helper for optional params per model
+            v = p.get(k)
+            return "" if v is None else f"{v:.6f}"
+        rows.append("\t".join([
             fit.model, f"{fit.lnL:.6f}", str(fit.n_params),
-            str(fit.converged).lower(), f"{fit.runtime_s:.3f}",
-            json.dumps(fit.params, sort_keys=True),
+            str(fit.converged).lower(),
+            g("kappa"), g("omega0"), g("omega2"), g("p0"), g("p1"),
+            g("p_beta"), g("q_beta"),
         ]))
-    (output_dir / "fits.tsv").write_text("\n".join(fit_rows) + "\n")
-    lrt_rows = ["\t".join(["null", "alt", "delta_lnL", "df", "p_value", "test_type", "significant_at_0_05"])]
+    (output_dir / "fits_site.tsv").write_text("\n".join(rows) + "\n")
+
+
+def _emit_branch_fits_tsv(result: RunResult, output_dir: Path) -> None:
+    rows = ["\t".join(["model", "lnL", "n_params", "converged", "kappa"])]
+    for name, fit in result.fits.items():
+        rows.append("\t".join([
+            fit.model, f"{fit.lnL:.6f}", str(fit.n_params),
+            str(fit.converged).lower(),
+            f"{fit.params.get('kappa', float('nan')):.6f}",
+        ]))
+    (output_dir / "fits_branch.tsv").write_text("\n".join(rows) + "\n")
+
+
+def _emit_branch_per_branch_tsv(result: RunResult, output_dir: Path) -> None:
+    rows = ["\t".join([
+        "model", "branch_id", "tip_set", "label", "paml_node_id", "omega", "SE",
+    ])]
+    for name, fit in result.fits.items():
+        per_branch = getattr(fit, "per_branch_omega", None) or []
+        for r in per_branch:
+            se = "" if r["SE"] is None else f"{r['SE']:.6f}"
+            rows.append("\t".join([
+                fit.model, str(r["branch_id"]),
+                "|".join(r["tip_set"]),
+                r["label"], str(r["paml_node_id"]),
+                f"{r['omega']:.6f}", se,
+            ]))
+    (output_dir / "fits_branch_per_branch.tsv").write_text("\n".join(rows) + "\n")
+
+
+def _emit_branch_site_fits_tsv(result: RunResult, output_dir: Path) -> None:
+    rows = ["\t".join([
+        "model", "lnL", "n_params", "converged",
+        "kappa", "omega0", "omega2", "p0", "p1", "p2a", "p2b",
+    ])]
+    for name, fit in result.fits.items():
+        p = fit.params
+        cp = getattr(fit, "class_proportions", {}) or {}
+        rows.append("\t".join([
+            fit.model, f"{fit.lnL:.6f}", str(fit.n_params),
+            str(fit.converged).lower(),
+            f"{p.get('kappa', float('nan')):.6f}",
+            f"{p.get('omega0', float('nan')):.6f}",
+            f"{p.get('omega2', float('nan')):.6f}",
+            f"{cp.get('p0', float('nan')):.6f}",
+            f"{cp.get('p1', float('nan')):.6f}",
+            f"{cp.get('p2a', float('nan')):.6f}",
+            f"{cp.get('p2b', float('nan')):.6f}",
+        ]))
+    (output_dir / "fits_branch_site.tsv").write_text("\n".join(rows) + "\n")
+
+
+def _emit_lrts_tsv(result: RunResult, output_dir: Path) -> None:
+    rows = ["\t".join([
+        "null", "alt", "delta_lnL", "df", "p_value", "test_type",
+        "significant_0_05", "warning",
+    ])]
     for l in result.lrts:
-        lrt_rows.append("\t".join([
+        rows.append("\t".join([
             l.null, l.alt, f"{l.delta_lnL:.6f}", str(l.df),
-            f"{l.p_value:.6g}", l.test_type, str(l.significant_at_0_05).lower(),
+            f"{l.p_value:.6g}", l.test_type,
+            str(l.significant_at_0_05).lower(),
+            getattr(l, "warning", None) or "",
         ]))
-    (output_dir / "lrts.tsv").write_text("\n".join(lrt_rows) + "\n")
+    (output_dir / "lrts.tsv").write_text("\n".join(rows) + "\n")
+
+
+def _emit_beb_tsvs(result: RunResult, output_dir: Path) -> None:
     for model, sites in result.beb.items():
-        rows = ["\t".join(["site", "p_positive", "posterior_mean_omega", "p_class_2a", "p_class_2b", "beb_grid_size"])]
+        rows = ["\t".join([
+            "site", "p_positive", "posterior_mean_omega",
+            "p_class_2a", "p_class_2b", "beb_grid_size",
+        ])]
         for s in sites:
-            p_class_2a_str = "" if s.p_class_2a is None else f"{s.p_class_2a:.6f}"
-            p_class_2b_str = "" if s.p_class_2b is None else f"{s.p_class_2b:.6f}"
-            grid_size_str = "" if s.beb_grid_size is None else str(s.beb_grid_size)
-            rows.append("\t".join([str(s.site), f"{s.p_positive:.6f}", f"{s.posterior_mean_omega:.6f}", p_class_2a_str, p_class_2b_str, grid_size_str]))
+            rows.append("\t".join([
+                str(s.site), f"{s.p_positive:.6f}",
+                f"{s.posterior_mean_omega:.6f}",
+                "" if s.p_class_2a is None else f"{s.p_class_2a:.6f}",
+                "" if s.p_class_2b is None else f"{s.p_class_2b:.6f}",
+                "" if s.beb_grid_size is None else str(s.beb_grid_size),
+            ]))
         (output_dir / f"beb_{model}.tsv").write_text("\n".join(rows) + "\n")

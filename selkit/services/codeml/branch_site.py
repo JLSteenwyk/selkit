@@ -13,8 +13,8 @@ from selkit.services.codeml._orchestrator import ModelFactory, run_family
 from selkit.services.validate import ValidatedInputs
 
 
-def _make_modela(gc, pi):      return ModelA(gc=gc, pi=pi)
-def _make_modela_null(gc, pi): return ModelANull(gc=gc, pi=pi)
+def _make_modela(gc, pi, tree):      return ModelA(gc=gc, pi=pi)
+def _make_modela_null(gc, pi, tree): return ModelANull(gc=gc, pi=pi)
 
 
 MODEL_REGISTRY: dict[str, ModelFactory] = {

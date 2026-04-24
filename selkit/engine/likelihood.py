@@ -133,6 +133,27 @@ def tree_log_likelihood(
     return float(log_site_L.sum())
 
 
+def tree_log_likelihood_branch_family(
+    tree: LabeledTree,
+    codons: np.ndarray,
+    taxon_order: tuple[str, ...],
+    *,
+    Q_by_label: dict[int, np.ndarray],
+    pi: np.ndarray,
+) -> float:
+    """Total lnL for a branch-family model (Yang 1998): no site-class loop.
+
+    Thin wrapper around :func:`tree_log_likelihood` that exists to make the
+    single-class, per-label call shape explicit. Equivalent to
+    ``tree_log_likelihood(Q=Q_by_label)``; kept as a distinct entry point so
+    fit / BEB code paths for branch family, site mixture, and branch-site are
+    all greppable by name.
+    """
+    return tree_log_likelihood(
+        tree, codons, taxon_order, Q=Q_by_label, pi=pi,
+    )
+
+
 def tree_log_likelihood_mixture(
     tree: LabeledTree,
     codons: np.ndarray,

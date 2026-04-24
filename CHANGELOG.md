@@ -48,7 +48,53 @@ selkit codeml branch-site --alignment X --tree Y --output Z/branch_site \
 
 PAML numerical agreement preserved: all 12 corpus lnL-match cases (HIV 4-taxon and 13-taxon site models, lysozyme branch-site Model A and Model A null) still pass at PAML's reported point within `|ΔlnL| < 1e-3`.
 
-Phases 2 (branch models) and 3 (true BEB) follow.
+### Branch models (Phase 2)
+
+- Four Yang-1998 branch models: `TwoRatios` (K=1 foreground-vs-background ω),
+  `TwoRatiosFixed` (ω_fg pinned at 1; null for the boundary LRT),
+  `NRatios` (K ≥ 1; one ω per `#`-label class), and `FreeRatios` (one ω
+  per branch, with the two root-adjacent branches merged per PAML
+  convention).
+- Shared engine helper `_build_n_ratios_qs` and generalised
+  `scale_per_label_qs` replace the branch-site-specific
+  `scale_branch_site_qs` (kept as a thin wrapper so the existing
+  lysozyme branch-site corpus stays byte-for-byte).
+- CLI: `selkit codeml branch --alignment ... --tree ... --output ...
+  [--models M0,TwoRatios,TwoRatiosFixed,NRatios,FreeRatios]
+  [--foreground ...]`. Defaults to `M0,TwoRatios,TwoRatiosFixed` —
+  the canonical positive-selection trio.
+- Library: `codeml_branch_models(...)` sibling to `codeml_site_models` /
+  `codeml_branch_site_models`.
+- `BranchModelFit` now carries a structured `per_branch_omega` array
+  (`branch_id`, `tip_set`, `label`, `paml_node_id`, `omega`, `SE`). Output
+  TSVs split into `fits_branch.tsv` (per-model summary) and
+  `fits_branch_per_branch.tsv` (per-branch rows; `tip_set` pipe-delimited).
+- Per-branch ω **standard errors** are now populated: `EngineFit` exposes
+  `hess_inv_diag` (a per-parameter natural-space SE dict derived from the
+  L-BFGS-B inverse-Hessian approximation with a delta-method Jacobian
+  correction), and `_extract_per_branch_omega` routes it into the per-branch
+  `SE` field. Requires `scipy>=1.0`; falls back to `null` with a warning on
+  older scipy. Treat SEs as a guide, not a rigorous CI — see tutorial 06
+  for caveats.
+- LRT registry gains lazy-df specifiers (`"lazy_K"` and `"lazy_Bminus2"`)
+  resolved against the tree at test-fire time. Registered branch-model
+  LRTs: `M0 vs TwoRatios` (1 df, χ²), `TwoRatiosFixed vs TwoRatios`
+  (1 df, mixed χ²), `M0 vs NRatios` (K df, χ²), and `M0 vs FreeRatios`
+  (B−2 df, χ² with a "caution" warning).
+- Two new PAML corpus cases: `lysozyme_two_ratios` (TwoRatios /
+  TwoRatiosFixed on the colobine clade) and `hiv_4s_free_ratios`
+  (FreeRatios on the 4-taxon HIV quartet). Both currently skipped
+  pending Jacob's PAML reference outputs (`expected.json`); meta.yaml,
+  alignment, and tree are committed.
+- New tutorial: `docs/tutorials/06_branch_test.rst`, mirroring
+  tutorial 05's structure.
+- Output TSV emission now splits by family: `fits_site.tsv`,
+  `fits_branch.tsv` + `fits_branch_per_branch.tsv`, and
+  `fits_branch_site.tsv`. The legacy flat `fits.tsv` is removed.
+- `LRTResult` gains an optional `warning: str | None` field.
+- `selkit rerun` supports `subcommand: codeml.branch` manifests.
+
+Phase 3 (true BEB) follows.
 
 ## 0.2.0
 

@@ -14,12 +14,13 @@ from selkit.services.validate import ValidatedInputs
 
 # Named factory functions (not lambdas) so MODEL_REGISTRY pickles cleanly when
 # passed through ProcessPoolExecutor in the orchestrator's parallel branch.
-def _make_m0(gc, pi):  return M0(gc=gc, pi=pi)
-def _make_m1a(gc, pi): return M1a(gc=gc, pi=pi)
-def _make_m2a(gc, pi): return M2a(gc=gc, pi=pi)
-def _make_m7(gc, pi):  return M7(gc=gc, pi=pi)
-def _make_m8(gc, pi):  return M8(gc=gc, pi=pi)
-def _make_m8a(gc, pi): return M8a(gc=gc, pi=pi)
+# Uniform (gc, pi, tree) signature across all families; site models ignore tree.
+def _make_m0(gc, pi, tree):  return M0(gc=gc, pi=pi)
+def _make_m1a(gc, pi, tree): return M1a(gc=gc, pi=pi)
+def _make_m2a(gc, pi, tree): return M2a(gc=gc, pi=pi)
+def _make_m7(gc, pi, tree):  return M7(gc=gc, pi=pi)
+def _make_m8(gc, pi, tree):  return M8(gc=gc, pi=pi)
+def _make_m8a(gc, pi, tree): return M8a(gc=gc, pi=pi)
 
 
 MODEL_REGISTRY: dict[str, ModelFactory] = {

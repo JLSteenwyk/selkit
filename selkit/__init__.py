@@ -7,6 +7,7 @@ from selkit.io.alignment import CodonAlignment
 from selkit.io.config import RunConfig, StrictFlags, ForegroundConfig
 from selkit.io.results import BEBSite, LRTResult, ModelFit, RunResult
 from selkit.io.tree import ForegroundSpec, LabeledTree
+from selkit.services.codeml.branch_models import run_branch_models
 from selkit.services.codeml.branch_site import run_branch_site_models
 from selkit.services.codeml.site_models import run_site_models
 from selkit.services.validate import validate_inputs
@@ -98,8 +99,36 @@ def codeml_branch_site_models(
     )
 
 
-def codeml_branch_models(**kwargs) -> RunResult:
-    raise NotImplementedError(
-        "codeml_branch_models is implemented in selkit v0.3 Phase 2. "
-        "The stub is present so v0.3 Phase 1 can ship a stable import surface."
+def codeml_branch_models(
+    *,
+    alignment: Path,
+    tree: Path,
+    output_dir: Path,
+    models: Iterable[str] = ("M0", "TwoRatios", "TwoRatiosFixed"),
+    foreground: Optional[ForegroundSpec] = None,
+    genetic_code: str = "standard",
+    n_starts: int = 3,
+    seed: int = 0,
+    threads: int = 1,
+    convergence_tol: float = 0.5,
+) -> RunResult:
+    fg = foreground or ForegroundSpec()
+    config = RunConfig(
+        alignment=Path(alignment), alignment_dir=None, tree=Path(tree),
+        foreground=None, subcommand="codeml.branch",
+        models=tuple(models), tests=(),
+        genetic_code=genetic_code, output_dir=Path(output_dir),
+        threads=threads, seed=seed, n_starts=n_starts,
+        convergence_tol=convergence_tol,
+        strict=StrictFlags(True, False, False, False),
+        selkit_version=__version__, git_sha=None,
+    )
+    validated = validate_inputs(
+        alignment_path=config.alignment, tree_path=config.tree,
+        foreground_spec=fg, genetic_code_name=config.genetic_code,
+    )
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    return run_branch_models(
+        inputs=validated, config=config,
+        parallel=threads > 1, progress=None,
     )

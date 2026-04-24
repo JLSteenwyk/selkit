@@ -49,7 +49,7 @@ def test_branch_site_end_to_end(tmp_path: Path) -> None:
     results = json.loads((out / "results.json").read_text())
     assert results["family"] == "branch-site"
     assert set(results["fits"]) == {"ModelA", "ModelA_null"}
-    assert (out / "fits.tsv").exists()
+    assert (out / "fits_branch_site.tsv").exists()
     assert (out / "lrts.tsv").exists()
     assert (out / "run.yaml").exists()
 

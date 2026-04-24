@@ -1,0 +1,19 @@
+{
+  "_BLOCKED": "Placeholder. Replace with parsed PAML output when fixture lands.",
+  "fits": {
+    "M0": {
+      "lnL": null,
+      "params": {
+        "kappa": null,
+        "omega": null
+      }
+    },
+    "FreeRatios": {
+      "lnL": null,
+      "params": {
+        "kappa": null
+      },
+      "per_branch_omega": []
+    }
+  }
+}

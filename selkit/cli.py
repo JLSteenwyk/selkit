@@ -210,6 +210,108 @@ def handle_codeml_branch_site(ns: argparse.Namespace) -> int:
     return 0
 
 
+def handle_codeml_branch(ns: argparse.Namespace) -> int:
+    from selkit.services.codeml.branch_models import run_branch_models
+    from selkit.errors import SelkitConfigError
+    try:
+        spec = _foreground_spec_from_ns(ns)
+        config = _build_runconfig(ns)
+        # Defaults for branch: canonical positive-selection trio.
+        if not ns.models:
+            config = RunConfig(**{
+                **config.__dict__,
+                "models": ("M0", "TwoRatios", "TwoRatiosFixed"),
+                "subcommand": "codeml.branch",
+            })
+        else:
+            config = RunConfig(**{**config.__dict__, "subcommand": "codeml.branch"})
+        validated = validate_inputs(
+            alignment_path=config.alignment,
+            tree_path=config.tree,
+            foreground_spec=spec,
+            genetic_code_name=config.genetic_code,
+            strip_terminal_stop=config.strict.strip_terminal_stop,
+            strip_stop_codons=config.strict.strip_stop_codons,
+        )
+    except SelkitInputError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+
+    out = Path(config.output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    reporter = ProgressReporter(models=config.models)
+    try:
+        try:
+            result = run_branch_models(
+                inputs=validated, config=config,
+                parallel=config.threads > 1, progress=reporter,
+            )
+        except SelkitConfigError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+    finally:
+        reporter.close()
+
+    (out / "results.json").write_text(_json.dumps(to_json(result), indent=2))
+    emit_tsv_files(result, out)
+    dump_config(config, out / "run.yaml")
+    _render_summary_branch(result)
+
+    unconverged = [n for n, f in result.fits.items() if not f.converged]
+    if unconverged and not ns.allow_unconverged:
+        print(f"WARNING: unconverged models: {unconverged}", file=sys.stderr)
+        return 2
+    return 0
+
+
+def _render_summary_branch(result) -> None:
+    console = Console()
+    t = Table(title="selkit codeml branch")
+    t.add_column("model"); t.add_column("lnL")
+    t.add_column("omega"); t.add_column("converged")
+    for name, fit in result.fits.items():
+        if name == "M0":
+            omega_str = f"{fit.params.get('omega', float('nan')):.4f}"
+        elif name in {"TwoRatios", "TwoRatiosFixed"}:
+            bg = fit.params.get("omega_bg", float("nan"))
+            fg = fit.params.get("omega_fg", 1.0)
+            omega_str = f"fg={fg:.3f}, bg={bg:.3f}"
+        elif name == "NRatios":
+            bg = fit.params.get("omega_bg", float("nan"))
+            extras = ", ".join(
+                f"#{i}={fit.params[f'omega_{i}']:.3f}"
+                for i in range(1, 1_000_000)
+                if f"omega_{i}" in fit.params
+            )
+            omega_str = f"bg={bg:.3f}" + (f", {extras}" if extras else "")
+        elif name == "FreeRatios":
+            import statistics
+            omegas = [r["omega"] for r in fit.per_branch_omega]
+            omega_str = (
+                f"B={len(omegas)} branches, "
+                f"median omega={statistics.median(omegas):.3f}, "
+                f"max omega={max(omegas):.3f}"
+            )
+        else:
+            omega_str = "?"
+        t.add_row(name, f"{fit.lnL:.3f}", omega_str, "yes" if fit.converged else "NO")
+    console.print(t)
+    if result.lrts:
+        lrt_t = Table(title="LRTs")
+        lrt_t.add_column("null"); lrt_t.add_column("alt")
+        lrt_t.add_column("2dlnL"); lrt_t.add_column("df")
+        lrt_t.add_column("p"); lrt_t.add_column("sig.")
+        lrt_t.add_column("warning")
+        for l in result.lrts:
+            lrt_t.add_row(
+                l.null, l.alt, f"{2*l.delta_lnL:.3f}", str(l.df),
+                f"{l.p_value:.4g}",
+                "*" if l.significant_at_0_05 else "",
+                getattr(l, "warning", None) or "",
+            )
+        console.print(lrt_t)
+
+
 def _foreground_spec_from_cfg(cfg: RunConfig) -> ForegroundSpec:
     if cfg.foreground:
         if cfg.foreground.labels_file:
@@ -242,6 +344,41 @@ def _rerun_site(cfg: RunConfig) -> int:
             parallel=cfg.threads > 1,
             progress=reporter,
         )
+    finally:
+        reporter.close()
+    (out / "results.json").write_text(_json.dumps(to_json(result), indent=2))
+    emit_tsv_files(result, out)
+    dump_config(cfg, out / "run.yaml")
+    return 0
+
+
+def _rerun_branch(cfg: RunConfig) -> int:
+    from selkit.services.codeml.branch_models import run_branch_models
+    from selkit.errors import SelkitConfigError
+
+    fg = _foreground_spec_from_cfg(cfg)
+    try:
+        validated = validate_inputs(
+            alignment_path=cfg.alignment, tree_path=cfg.tree,
+            foreground_spec=fg, genetic_code_name=cfg.genetic_code,
+            strip_terminal_stop=cfg.strict.strip_terminal_stop,
+            strip_stop_codons=cfg.strict.strip_stop_codons,
+        )
+    except SelkitInputError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    out = Path(cfg.output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    reporter = ProgressReporter(models=cfg.models)
+    try:
+        try:
+            result = run_branch_models(
+                inputs=validated, config=cfg,
+                parallel=cfg.threads > 1, progress=reporter,
+            )
+        except SelkitConfigError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
     finally:
         reporter.close()
     (out / "results.json").write_text(_json.dumps(to_json(result), indent=2))
@@ -303,6 +440,8 @@ def handle_rerun(ns: argparse.Namespace) -> int:
         return 1
     if cfg.subcommand == "codeml.site":
         return _rerun_site(cfg)
+    if cfg.subcommand == "codeml.branch":
+        return _rerun_branch(cfg)
     if cfg.subcommand == "codeml.branch-site":
         return _rerun_branch_site(cfg)
     print(f"ERROR: rerun does not support {cfg.subcommand!r}", file=sys.stderr)
