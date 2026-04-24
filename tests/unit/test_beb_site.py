@@ -87,14 +87,14 @@ def test_m2a_beb_grid_refinement_converges(hiv_4s_inputs) -> None:
         tree=hiv_4s_inputs.tree, alignment=hiv_4s_inputs.alignment, pi=pi, gc=gc,
     )
     for b10, b30 in zip(beb_10, beb_30):
-        # NOTE: deviation from plan's 0.05 → 0.5 tolerance on posterior_mean_omega.
-        # On hiv_4s the M2a MLE has ω2 ≈ 6.86 → grid support (1, ~21). The grid
-        # converges monotonically (grid=10 mean_om≈5.92, grid=30→5.69, grid=50→5.64)
-        # but at a rate where 10↔30 sees ~0.22 drift on mean_omega. p_positive
-        # stays within 0.05 because it is bounded in [0,1] and not stretched by
-        # the wide ω2 support. 0.5 is loose enough to stay green, tight enough
-        # to catch order-of-magnitude bugs.
-        assert abs(b10.posterior_mean_omega - b30.posterior_mean_omega) < 0.5
+        # Tolerances after the C1 fix (Yang 2005 f(D|θ) weight in the integrand).
+        # On hiv_4s the M2a MLE has ω2 ≈ 6.86 → grid support (1, ~21). With the
+        # corrected integrand the grid converges noticeably faster, but the wide
+        # ω2 support still drives 10↔30 to ~0.16 max-site drift on mean_omega.
+        # G=20 vs G=30 already collapses to ~0.04 / ~0.007 — the convergence
+        # is monotone, just slow on this corpus. p_positive (bounded in [0,1]
+        # and not stretched by the ω2 support) settles to ~0.031 < 0.05.
+        assert abs(b10.posterior_mean_omega - b30.posterior_mean_omega) < 0.20
         assert abs(b10.p_positive - b30.p_positive) < 0.05
 
 
@@ -150,17 +150,19 @@ def test_m8_beb_grid_refinement_converges(hiv_4s_inputs) -> None:
         fit=fit, model_name="M8", grid_size=5,
         tree=hiv_4s_inputs.tree, alignment=hiv_4s_inputs.alignment, pi=pi, gc=gc,
     )
-    beb_8 = run_beb_site(
-        fit=fit, model_name="M8", grid_size=8,
+    beb_10 = run_beb_site(
+        fit=fit, model_name="M8", grid_size=10,
         tree=hiv_4s_inputs.tree, alignment=hiv_4s_inputs.alignment, pi=pi, gc=gc,
     )
-    # NOTE: deviation from plan's grid_size=10/20 → 5/8 and 0.05 → 0.5
-    # tolerance on posterior_mean_omega. M8 grid scales as G^4 so G=20 means
-    # 160_000 grid points × 11 classes ≈ 30+ minutes per call on this CI box —
-    # untenable in a unit test. G=5 → 625, G=8 → 4096; both finish in seconds
-    # to a few minutes. p_positive stays within 0.05 (it's bounded in [0,1]).
-    # mean_omega tolerance loosened for the same reason as M2a (HIV has strong
-    # positive selection, ω2 support is wide).
-    for a, b in zip(beb_5, beb_8):
-        assert abs(a.posterior_mean_omega - b.posterior_mean_omega) < 0.5
+    # Tolerances after the C1 fix (Yang 2005 f(D|θ) weight in the integrand).
+    # M8 grid scales as G^4: G=5 → 625 points, G=10 → 10_000 points (≈4 min on
+    # this CI box). With the corrected integrand the convergence tightens
+    # markedly: G=5 vs G=10 reaches max-site |Δmean_om|≈0.051, |Δp_pos|≈0.008
+    # on hiv_4s; G=8 vs G=10 collapses to ≈0.008 / 0.002. We adopt G=5 vs
+    # G=10 with a small margin above the observed 0.051. The plan's original
+    # 0.05 / G=10 vs G=20 target is unreachable as a unit test (G=20 → 160_000
+    # points ≈ 30+ min) — at the achievable G=10 ceiling, max site mean_om
+    # drift sits at ~0.05, so 0.06 is the tightest stable bound here.
+    for a, b in zip(beb_5, beb_10):
+        assert abs(a.posterior_mean_omega - b.posterior_mean_omega) < 0.06
         assert abs(a.p_positive - b.p_positive) < 0.05
