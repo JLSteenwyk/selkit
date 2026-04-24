@@ -56,7 +56,13 @@ Phases 2 (branch models) and 3 (true BEB) follow.
   for `M2a`, `M8`, and `ModelA`.
 - New `engine/beb/_grid.py` hosts `integrate_posteriors_over_grid` with
   log-sum-exp numerical stability; shared across site (`engine/beb/site.py`)
-  and branch-site (`engine/beb/branch_site.py`) BEB.
+  and branch-site (`engine/beb/branch_site.py`) BEB. The grid integrand
+  includes the per-grid-point marginal-likelihood weight
+  `f(D|θ_g) = Π_h Σ_k w_k(θ_g) · L_{h,k}(θ_g)` (Yang 2005 eq. 5), which
+  weights each grid point by how well it explains the data and does NOT
+  cancel after integrating over θ. The singleton-grid (G=1) ≡ NEB
+  invariant is preserved because the constant scalar `f(D|θ_1)` cancels
+  between numerator and denominator at G=1.
 - `BEBSite` schema: `mean_omega` → `posterior_mean_omega`; new fields
   `p_class_2a`, `p_class_2b`, `beb_grid_size`. Branch-site ModelA
   populates all three; site models leave `p_class_2a`/`p_class_2b` as
