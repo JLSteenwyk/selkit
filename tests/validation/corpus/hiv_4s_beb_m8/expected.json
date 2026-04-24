@@ -1,0 +1,470 @@
+{
+  "source": "PAML 4.10.10 codeml; hiv_4s alignment + tree; M8 (model=0 NSsites=8 CodonFreq=2 verbose=2). BEB output from rst.",
+  "fits": {
+    "M8": {
+      "lnL": -517.562169,
+      "params": {
+        "kappa": 3.37069
+      }
+    }
+  },
+  "beb": {
+    "M8": [
+      {
+        "site": 1,
+        "p_positive": 0.88723,
+        "posterior_mean_omega": 4.597
+      },
+      {
+        "site": 2,
+        "p_positive": 0.19724,
+        "posterior_mean_omega": 1.132
+      },
+      {
+        "site": 3,
+        "p_positive": 0.25112,
+        "posterior_mean_omega": 1.376
+      },
+      {
+        "site": 4,
+        "p_positive": 0.17042,
+        "posterior_mean_omega": 1.02
+      },
+      {
+        "site": 5,
+        "p_positive": 0.30251,
+        "posterior_mean_omega": 1.626
+      },
+      {
+        "site": 6,
+        "p_positive": 0.17712,
+        "posterior_mean_omega": 1.048
+      },
+      {
+        "site": 7,
+        "p_positive": 0.26735,
+        "posterior_mean_omega": 1.452
+      },
+      {
+        "site": 8,
+        "p_positive": 0.32532,
+        "posterior_mean_omega": 1.743
+      },
+      {
+        "site": 9,
+        "p_positive": 0.78666,
+        "posterior_mean_omega": 4.118
+      },
+      {
+        "site": 10,
+        "p_positive": 0.26735,
+        "posterior_mean_omega": 1.452
+      },
+      {
+        "site": 11,
+        "p_positive": 0.21526,
+        "posterior_mean_omega": 1.212
+      },
+      {
+        "site": 12,
+        "p_positive": 0.26674,
+        "posterior_mean_omega": 1.449
+      },
+      {
+        "site": 13,
+        "p_positive": 0.18006,
+        "posterior_mean_omega": 1.064
+      },
+      {
+        "site": 14,
+        "p_positive": 0.31421,
+        "posterior_mean_omega": 1.686
+      },
+      {
+        "site": 15,
+        "p_positive": 0.18626,
+        "posterior_mean_omega": 1.088
+      },
+      {
+        "site": 16,
+        "p_positive": 0.18626,
+        "posterior_mean_omega": 1.088
+      },
+      {
+        "site": 17,
+        "p_positive": 0.19724,
+        "posterior_mean_omega": 1.132
+      },
+      {
+        "site": 18,
+        "p_positive": 0.34648,
+        "posterior_mean_omega": 1.854
+      },
+      {
+        "site": 19,
+        "p_positive": 0.28007,
+        "posterior_mean_omega": 1.514
+      },
+      {
+        "site": 20,
+        "p_positive": 0.21526,
+        "posterior_mean_omega": 1.212
+      },
+      {
+        "site": 21,
+        "p_positive": 0.18006,
+        "posterior_mean_omega": 1.064
+      },
+      {
+        "site": 22,
+        "p_positive": 0.30251,
+        "posterior_mean_omega": 1.626
+      },
+      {
+        "site": 23,
+        "p_positive": 0.19724,
+        "posterior_mean_omega": 1.132
+      },
+      {
+        "site": 24,
+        "p_positive": 0.17712,
+        "posterior_mean_omega": 1.048
+      },
+      {
+        "site": 25,
+        "p_positive": 0.25112,
+        "posterior_mean_omega": 1.376
+      },
+      {
+        "site": 26,
+        "p_positive": 0.63914,
+        "posterior_mean_omega": 3.258
+      },
+      {
+        "site": 27,
+        "p_positive": 0.29837,
+        "posterior_mean_omega": 1.605
+      },
+      {
+        "site": 28,
+        "p_positive": 0.97801,
+        "posterior_mean_omega": 5.086
+      },
+      {
+        "site": 29,
+        "p_positive": 0.17042,
+        "posterior_mean_omega": 1.02
+      },
+      {
+        "site": 30,
+        "p_positive": 0.34296,
+        "posterior_mean_omega": 1.835
+      },
+      {
+        "site": 31,
+        "p_positive": 0.94043,
+        "posterior_mean_omega": 4.911
+      },
+      {
+        "site": 32,
+        "p_positive": 0.26735,
+        "posterior_mean_omega": 1.452
+      },
+      {
+        "site": 33,
+        "p_positive": 0.21526,
+        "posterior_mean_omega": 1.212
+      },
+      {
+        "site": 34,
+        "p_positive": 0.18551,
+        "posterior_mean_omega": 1.083
+      },
+      {
+        "site": 35,
+        "p_positive": 0.17042,
+        "posterior_mean_omega": 1.02
+      },
+      {
+        "site": 36,
+        "p_positive": 0.5478,
+        "posterior_mean_omega": 2.745
+      },
+      {
+        "site": 37,
+        "p_positive": 0.22153,
+        "posterior_mean_omega": 1.238
+      },
+      {
+        "site": 38,
+        "p_positive": 0.59777,
+        "posterior_mean_omega": 3.024
+      },
+      {
+        "site": 39,
+        "p_positive": 0.27313,
+        "posterior_mean_omega": 1.48
+      },
+      {
+        "site": 40,
+        "p_positive": 0.87669,
+        "posterior_mean_omega": 4.596
+      },
+      {
+        "site": 41,
+        "p_positive": 0.20425,
+        "posterior_mean_omega": 1.162
+      },
+      {
+        "site": 42,
+        "p_positive": 0.26285,
+        "posterior_mean_omega": 1.43
+      },
+      {
+        "site": 43,
+        "p_positive": 0.3433,
+        "posterior_mean_omega": 1.837
+      },
+      {
+        "site": 44,
+        "p_positive": 0.54039,
+        "posterior_mean_omega": 2.705
+      },
+      {
+        "site": 45,
+        "p_positive": 0.20629,
+        "posterior_mean_omega": 1.171
+      },
+      {
+        "site": 46,
+        "p_positive": 0.72675,
+        "posterior_mean_omega": 3.764
+      },
+      {
+        "site": 47,
+        "p_positive": 0.28521,
+        "posterior_mean_omega": 1.54
+      },
+      {
+        "site": 48,
+        "p_positive": 0.58216,
+        "posterior_mean_omega": 2.931
+      },
+      {
+        "site": 49,
+        "p_positive": 0.20425,
+        "posterior_mean_omega": 1.162
+      },
+      {
+        "site": 50,
+        "p_positive": 0.17712,
+        "posterior_mean_omega": 1.048
+      },
+      {
+        "site": 51,
+        "p_positive": 0.60411,
+        "posterior_mean_omega": 3.059
+      },
+      {
+        "site": 52,
+        "p_positive": 0.18626,
+        "posterior_mean_omega": 1.088
+      },
+      {
+        "site": 53,
+        "p_positive": 0.20425,
+        "posterior_mean_omega": 1.162
+      },
+      {
+        "site": 54,
+        "p_positive": 0.22419,
+        "posterior_mean_omega": 1.251
+      },
+      {
+        "site": 55,
+        "p_positive": 0.18626,
+        "posterior_mean_omega": 1.088
+      },
+      {
+        "site": 56,
+        "p_positive": 0.17042,
+        "posterior_mean_omega": 1.02
+      },
+      {
+        "site": 57,
+        "p_positive": 0.2603,
+        "posterior_mean_omega": 1.418
+      },
+      {
+        "site": 58,
+        "p_positive": 0.20629,
+        "posterior_mean_omega": 1.171
+      },
+      {
+        "site": 59,
+        "p_positive": 0.7157,
+        "posterior_mean_omega": 3.698
+      },
+      {
+        "site": 60,
+        "p_positive": 0.29837,
+        "posterior_mean_omega": 1.605
+      },
+      {
+        "site": 61,
+        "p_positive": 0.72374,
+        "posterior_mean_omega": 3.747
+      },
+      {
+        "site": 62,
+        "p_positive": 0.29847,
+        "posterior_mean_omega": 1.606
+      },
+      {
+        "site": 63,
+        "p_positive": 0.62535,
+        "posterior_mean_omega": 3.172
+      },
+      {
+        "site": 64,
+        "p_positive": 0.59685,
+        "posterior_mean_omega": 3.009
+      },
+      {
+        "site": 65,
+        "p_positive": 0.57157,
+        "posterior_mean_omega": 2.877
+      },
+      {
+        "site": 66,
+        "p_positive": 0.57051,
+        "posterior_mean_omega": 2.876
+      },
+      {
+        "site": 67,
+        "p_positive": 0.35365,
+        "posterior_mean_omega": 1.892
+      },
+      {
+        "site": 68,
+        "p_positive": 0.92225,
+        "posterior_mean_omega": 4.807
+      },
+      {
+        "site": 69,
+        "p_positive": 0.90741,
+        "posterior_mean_omega": 4.719
+      },
+      {
+        "site": 70,
+        "p_positive": 0.24949,
+        "posterior_mean_omega": 1.368
+      },
+      {
+        "site": 71,
+        "p_positive": 0.71452,
+        "posterior_mean_omega": 3.691
+      },
+      {
+        "site": 72,
+        "p_positive": 0.18006,
+        "posterior_mean_omega": 1.064
+      },
+      {
+        "site": 73,
+        "p_positive": 0.34648,
+        "posterior_mean_omega": 1.854
+      },
+      {
+        "site": 74,
+        "p_positive": 0.19724,
+        "posterior_mean_omega": 1.132
+      },
+      {
+        "site": 75,
+        "p_positive": 0.26674,
+        "posterior_mean_omega": 1.449
+      },
+      {
+        "site": 76,
+        "p_positive": 0.55857,
+        "posterior_mean_omega": 2.808
+      },
+      {
+        "site": 77,
+        "p_positive": 0.18006,
+        "posterior_mean_omega": 1.064
+      },
+      {
+        "site": 78,
+        "p_positive": 0.28173,
+        "posterior_mean_omega": 1.523
+      },
+      {
+        "site": 79,
+        "p_positive": 0.17042,
+        "posterior_mean_omega": 1.02
+      },
+      {
+        "site": 80,
+        "p_positive": 0.17712,
+        "posterior_mean_omega": 1.048
+      },
+      {
+        "site": 81,
+        "p_positive": 0.2603,
+        "posterior_mean_omega": 1.418
+      },
+      {
+        "site": 82,
+        "p_positive": 0.28574,
+        "posterior_mean_omega": 1.542
+      },
+      {
+        "site": 83,
+        "p_positive": 0.65603,
+        "posterior_mean_omega": 3.361
+      },
+      {
+        "site": 84,
+        "p_positive": 0.60131,
+        "posterior_mean_omega": 3.062
+      },
+      {
+        "site": 85,
+        "p_positive": 0.18551,
+        "posterior_mean_omega": 1.083
+      },
+      {
+        "site": 86,
+        "p_positive": 0.18626,
+        "posterior_mean_omega": 1.088
+      },
+      {
+        "site": 87,
+        "p_positive": 0.76002,
+        "posterior_mean_omega": 3.961
+      },
+      {
+        "site": 88,
+        "p_positive": 0.28574,
+        "posterior_mean_omega": 1.542
+      },
+      {
+        "site": 89,
+        "p_positive": 0.21526,
+        "posterior_mean_omega": 1.212
+      },
+      {
+        "site": 90,
+        "p_positive": 0.2603,
+        "posterior_mean_omega": 1.418
+      },
+      {
+        "site": 91,
+        "p_positive": 0.34095,
+        "posterior_mean_omega": 1.825
+      }
+    ]
+  }
+}

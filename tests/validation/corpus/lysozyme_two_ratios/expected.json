@@ -1,26 +1,26 @@
 {
-  "_BLOCKED": "Placeholder. Replace with parsed PAML output when fixture lands.",
+  "source": "PAML 4.10.10 codeml; 19-taxon primate lysozyme with colobine foreground (#1). M0 (model=0), TwoRatios (model=2), TwoRatiosFixed (model=2 fix_omega=1 omega=1).",
   "fits": {
     "M0": {
-      "lnL": null,
+      "lnL": -1043.837511,
       "params": {
-        "kappa": null,
-        "omega": null
+        "kappa": 4.15717,
+        "omega": 0.57374
       }
     },
     "TwoRatios": {
-      "lnL": null,
+      "lnL": -1041.699266,
       "params": {
-        "kappa": null,
-        "omega_bg": null,
-        "omega_fg": null
+        "kappa": 4.16349,
+        "omega_bg": 0.4891,
+        "omega_fg": 3.38347
       }
     },
     "TwoRatiosFixed": {
-      "lnL": null,
+      "lnL": -1042.50373,
       "params": {
-        "kappa": null,
-        "omega_bg": null
+        "kappa": 4.07432,
+        "omega_bg": 0.48857
       }
     }
   }

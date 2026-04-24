@@ -9,6 +9,3 @@ tests: [M0-vs-FreeRatios]
 seed: 0
 n_starts: 3
 paml_cmd: codeml codeml.ctl   # model=1 NSsites=0 CodonFreq=2 (F3X4) cleandata=1
-# BLOCKED: awaiting Jacob's PAML reference output (expected.json placeholder
-# below; the validation test skips this case until real values land).
-blocked: awaiting PAML fixture

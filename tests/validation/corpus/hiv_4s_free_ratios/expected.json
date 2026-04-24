@@ -1,19 +1,18 @@
 {
-  "_BLOCKED": "Placeholder. Replace with parsed PAML output when fixture lands.",
+  "source": "PAML 4.10.10 codeml; alignment + tree from corpus/hiv_4s/. model=1 (FreeRatios) + model=0 (M0 from hiv_4s).",
   "fits": {
     "M0": {
-      "lnL": null,
+      "lnL": -519.411597,
       "params": {
-        "kappa": null,
-        "omega": null
+        "kappa": 3.00807,
+        "omega": 1.45661
       }
     },
     "FreeRatios": {
-      "lnL": null,
+      "lnL": -515.223146,
       "params": {
-        "kappa": null
-      },
-      "per_branch_omega": []
+        "kappa": 3.02269
+      }
     }
   }
 }
