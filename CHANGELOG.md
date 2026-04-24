@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.3.0 (unreleased — in progress)
+## 0.3.0
+
+Three of the four follow-ups tracked in v0.2's "Not yet in v1" list now ship: per-site BEB for Model A, true BEB grid integration for the site-models, and the full Yang-1998 branch-model family. (yn00 stays on the v0.4 roadmap.)
+
+The release also reshapes the service / CLI layer around the three model families (`site`, `branch`, `branch-site`) — a breaking change to the v0.2 CLI surface and `results.json` schema. Pre-1.0, no compat aliases.
 
 ### Refactor (Phase 1)
 

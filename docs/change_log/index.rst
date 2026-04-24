@@ -6,6 +6,16 @@ Change log
 
 Major changes to selkit are summarised here.
 
+**0.3.0**
+
+- **Branch models (Yang 1998).** Four members: ``TwoRatios`` (one foreground class vs background), ``TwoRatiosFixed`` (foreground ω pinned at 1; null for the boundary positive-selection LRT), ``NRatios`` (one ω per ``#``-label class, K ≥ 1), and ``FreeRatios`` (one ω per branch with the two root-adjacent branches merged per PAML convention). New CLI: ``selkit codeml branch``. New library entry: ``codeml_branch_models(...)``.
+- **Per-branch standard errors.** Branch-model fits now carry per-branch ω SE values derived from the L-BFGS-B inverse-Hessian diagonal with a delta-method natural-space correction (sigmoid / softplus / positive-gt-one transforms). Treat as a guide rather than a rigorous CI — see tutorial 06 for caveats.
+- **True BEB (Yang 2005)** for ``M2a``, ``M8``, and ``ModelA`` — replaces the v0.1–v0.2 NEB-at-MLE point estimate. The grid integrand correctly carries the per-grid-point marginal-likelihood weight ``f(D|θ_g) = ∏_h Σ_k w_k(θ_g) · L_{h,k}(θ_g)`` (Yang 2005 eq. 5). The singleton-grid (G=1) ≡ NEB invariant is preserved. New CLI flags: ``--no-beb`` and ``--beb-grid N`` (default 10).
+- **Per-site BEB for Model A.** ``BEBSite`` gains ``p_class_2a`` and ``p_class_2b`` for branch-site posteriors; ``mean_omega`` renamed to ``posterior_mean_omega``.
+- **Three-family CLI surface.** ``selkit codeml site-models`` is renamed to ``selkit codeml site``; ``selkit codeml branch-site`` is new (was hosted under ``site-models`` in v0.2). ``selkit codeml branch`` is new. ``selkit rerun`` hard-fails on v0.2 ``run.yaml`` files with a migration message.
+- **Internal refactor.** Service layer split by family (``site_models.py``, ``branch_models.py``, ``branch_site.py``) with a shared ``services/codeml/_orchestrator.run_family`` pipeline. ``engine/beb`` promoted to a package. Tagged-union fit dataclasses (``SiteModelFit``, ``BranchModelFit``, ``BranchSiteModelFit``). TSV output split by family.
+- **PAML numerical agreement** preserved on the v0.1/v0.2 corpus cases (HIV 4-taxon, HIV 13-taxon, lysozyme branch-site) within ``|Δ lnL| < 1e-3`` at PAML's reported point. Two new corpus cases for the branch-model and BEB additions are scaffolded but skipped pending PAML reference outputs.
+
 **0.2.0**
 
 - **Branch-site Model A and Model A null.** The branch-site test of positive selection (Zhang *et al.* 2005; Yang *et al.* 2005) — tests whether a pre-designated foreground lineage experienced episodic adaptation at some codons. Fit via ``--models ModelA,ModelA_null``. The LRT is automatic, 1 df, mixed 50:50 χ² (boundary test).
