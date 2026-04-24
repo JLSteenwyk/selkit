@@ -60,13 +60,30 @@ def integrate_posteriors_over_grid(
 
     Numerical method
     ----------------
+    Per Yang 2005 eq. 5, the BEB posterior is
+
+        P(k | D_h) ≈ Σ_g f(D|θ_g) · π(θ_g) · w_k(θ_g) · L_{h,k}(θ_g)
+                     ───────────────────────────────────────────────
+                     Σ_g f(D|θ_g) · π(θ_g) · Σ_{k'} w_{k'}(θ_g) · L_{h,k'}(θ_g)
+
+    where ``f(D|θ_g) = ∏_h Σ_k w_k(θ_g) · L_{h,k}(θ_g)`` is the per-grid-point
+    marginal likelihood of the data under the mixture at θ_g. This term weights
+    each grid point by how well it explains the data; it does NOT cancel after
+    integrating over θ (it cancels only at fixed θ). Without this weight every
+    grid point gets equal mass, producing a uniform-prior-averaged estimate
+    rather than a data-conditioned BEB posterior.
+
     For each site h, class k, grid point g, the numerator integrand is
 
-        exp(log_prior[g] + log w_k(θ_g) + logL(h | k, θ_g)).
+        exp(log f(D|θ_g) + log_prior[g] + log w_k(θ_g) + logL(h | k, θ_g)).
 
     The denominator integrand sums over k first (exp then sum) before summing
     over g. Both are accumulated via scipy.special.logsumexp so that single
     extreme grid points do not underflow or overflow.
+
+    Singleton-grid invariant. At G=1 the (constant) ``f(D|θ_1)`` factor cancels
+    between numerator and denominator, so the posterior collapses to NEB-at-θ_1,
+    bit-for-bit. The fix preserves this invariant by construction.
     """
     G, H = hyperparameter_grid.shape
     assert prior_on_grid.shape == (G,), (
@@ -90,10 +107,19 @@ def integrate_posteriors_over_grid(
     # For the positive-selection indicator, track per grid point which classes have ω > 1.
     positive_mask_over_grid = class_omegas_over_grid > 1.0   # (G, K)
 
+    # log_data_at_g[g] = log f(D | θ_g) = Σ_h log Σ_k w_k(θ_g) · L_{h,k}(θ_g)
+    # (Yang 2005 eq. 5 marginal-likelihood weight per grid point.)
+    log_data_at_g = np.empty(G)
+
     for g in range(G):
         logL_g = first if g == 0 else site_class_loglik(hyperparameter_grid[g])  # (n_sites, K)
         log_w_g = np.log(np.clip(class_weights_over_grid[g], 1e-300, None))      # (K,)
-        log_num_stack[g] = log_prior[g] + log_w_g[None, :] + logL_g              # (n_sites, K)
+        # Per-site mixture loglik at θ_g: log Σ_k w_k(θ_g) · L_{h,k}(θ_g).
+        log_per_site_g = logsumexp(log_w_g[None, :] + logL_g, axis=1)            # (n_sites,)
+        log_data_at_g[g] = log_per_site_g.sum()
+        log_num_stack[g] = (
+            log_data_at_g[g] + log_prior[g] + log_w_g[None, :] + logL_g
+        )                                                                         # (n_sites, K)
 
     # Posterior P(class k | site h) = Σ_g num(g, h, k) / Σ_{g,k'} num(g, h, k')
     # Numerator in log space: logsumexp over g for each (site, class).
